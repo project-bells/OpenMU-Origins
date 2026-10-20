@@ -352,7 +352,7 @@ internal class Kalima7 : KalimaBase
             monster.ViewRange = 7;
             monster.MoveDelay = new TimeSpan(800 * TimeSpan.TicksPerMillisecond);
             monster.AttackDelay = new TimeSpan(1700 * TimeSpan.TicksPerMillisecond);
-            monster.RespawnDelay = new TimeSpan(10800 * TimeSpan.TicksPerSecond);
+            monster.RespawnDelay = TimeSpan.FromHours(1);
             monster.Attribute = 2;
             monster.NumberOfMaximumItemDrops = 1;
             monster.AttackSkill = this.GameConfiguration.Skills.FirstOrDefault(s => s.Number == (short)SkillNumber.MonsterSkill);
@@ -372,6 +372,19 @@ internal class Kalima7 : KalimaBase
             };
 
             monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
+            var kundunSetDrop = this.Context.CreateNew<DropItemGroup>();
+            kundunSetDrop.Chance = 1.0;
+            kundunSetDrop.ItemType = SpecialItemType.Excellent;
+            kundunSetDrop.Description = LocalizedString.FromResource(() => MonsterNames.IllusionOfKundun7);
+            kundunSetDrop.Monster = monster;
+            int[] setNumbers = [16, 17, 18, 19, 20, 27, 43, 60];
+            foreach (var item in this.GameConfiguration.Items.Where(item => item.Group is >= 7 and <= 11 && setNumbers.Contains(item.Number)))
+            {
+                kundunSetDrop.PossibleItems.Add(item);
+            }
+
+            monster.DropItemGroups.Add(kundunSetDrop);
+            this.GameConfiguration.DropItemGroups.Add(kundunSetDrop);
             monster.SetGuid(monster.Number);
         }
     }

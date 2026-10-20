@@ -92,6 +92,7 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
     /// <param name="createTestAccounts">If set to <c>true</c>, test accounts should be created.</param>
     public async Task CreateInitialDataAsync(byte numberOfGameServers, bool createTestAccounts)
     {
+        numberOfGameServers = this.GetNumberOfGameServers(numberOfGameServers);
         BaseMapInitializer.ClearDefaultDropItemGroups();
         using (var temporaryContext = this._persistenceContextProvider.CreateNewContext())
         {
@@ -219,6 +220,41 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
     /// </summary>
     protected abstract void CreateGameClientDefinition();
 
+    /// <summary>
+    /// Gets the display name of a connect server.
+    /// </summary>
+    /// <param name="client">The client definition served by the connect server.</param>
+    /// <returns>The connect server display name.</returns>
+    protected virtual string GetConnectServerDescription(GameClientDefinition client) => $"Connect Server ({client.Description})";
+
+    /// <summary>
+    /// Gets the number of game servers to initialize.
+    /// </summary>
+    /// <param name="requestedCount">The number requested by the initialization caller.</param>
+    /// <returns>The number of game servers to initialize.</returns>
+    protected virtual byte GetNumberOfGameServers(byte requestedCount) => requestedCount;
+
+    /// <summary>
+    /// Gets the display name of a game server.
+    /// </summary>
+    /// <param name="serverIndex">The zero-based server index.</param>
+    /// <returns>The server display name.</returns>
+    protected virtual string GetGameServerDescription(int serverIndex) => $"Server {serverIndex}";
+
+    /// <summary>
+    /// Gets the experience multiplier of a game server.
+    /// </summary>
+    /// <param name="serverIndex">The zero-based server index.</param>
+    /// <returns>The experience multiplier.</returns>
+    protected virtual float GetGameServerExperienceRate(int serverIndex) => 1.0f;
+
+    /// <summary>
+    /// Determines whether player-versus-player combat is enabled on a game server.
+    /// </summary>
+    /// <param name="serverIndex">The zero-based server index.</param>
+    /// <returns><see langword="true" /> when PVP is enabled; otherwise, <see langword="false" />.</returns>
+    protected virtual bool IsPvpEnabled(int serverIndex) => true;
+
     private PlayerShopCurrenciesConfiguration CreatePlayerShopCurrenciesConfiguration()
     {
         var configuration = new PlayerShopCurrenciesConfiguration();
@@ -298,7 +334,7 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
             connectServer.ServerId = serverId;
             connectServer.Client = client;
             connectServer.ClientListenerPort = port;
-            connectServer.Description = $"Connect Server ({client.Description})";
+            connectServer.Description = this.GetConnectServerDescription(client);
             port++;
             serverId++;
         }
@@ -312,8 +348,9 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
             var server = this.Context!.CreateNew<GameServerDefinition>();
             server.SetGuid((short)i);
             server.ServerID = (byte)i;
-            server.Description = $"Server {i}";
-            server.ExperienceRate = 1.0f;
+            server.Description = this.GetGameServerDescription(i);
+            server.ExperienceRate = this.GetGameServerExperienceRate(i);
+            server.PvpEnabled = this.IsPvpEnabled(i);
             server.GameConfiguration = this.GameConfiguration;
             server.ServerConfiguration = gameServerConfiguration;
 

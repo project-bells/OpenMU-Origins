@@ -36,6 +36,11 @@ public abstract class GameConfigurationInitializerBase : InitializerBase
     /// </summary>
     protected abstract IEnumerable<ItemOptionType> OptionTypes { get; }
 
+    /// <summary>
+    /// Gets the chance for the common random item drop group.
+    /// </summary>
+    protected virtual double RandomItemDropChance => 0.3;
+
     /// <inheritdoc />
     public override void Initialize()
     {
@@ -194,7 +199,7 @@ public abstract class GameConfigurationInitializerBase : InitializerBase
 
         var randomItemDropItemGroup = this.Context.CreateNew<DropItemGroup>();
         randomItemDropItemGroup.SetGuid(2);
-        randomItemDropItemGroup.Chance = 0.3;
+        randomItemDropItemGroup.Chance = this.RandomItemDropChance;
         randomItemDropItemGroup.ItemType = SpecialItemType.RandomItem;
         randomItemDropItemGroup.Description = LocalizedString.FromResource(() => DropGroupDescriptions.TheCommonDropItemGroupForRandomItems30PercentDropChance);
         this.GameConfiguration.DropItemGroups.Add(randomItemDropItemGroup);

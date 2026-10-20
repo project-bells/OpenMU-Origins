@@ -19,6 +19,8 @@ using MUnique.OpenMU.PlugIns;
 [Display(Name = nameof(PlugInResources.DataInitialization_Name), Description = nameof(PlugInResources.DataInitialization_Description), ResourceType = typeof(PlugInResources))]
 public class DataInitialization : DataInitializationBase
 {
+    private const int OriginsGameServerCount = 2;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="DataInitialization" /> class.
     /// </summary>
@@ -48,6 +50,22 @@ public class DataInitialization : DataInitializationBase
 
     /// <inheritdoc/>
     protected override IGameMapsInitializer GameMapsInitializer => new GameMapsInitializer(this.Context, this.GameConfiguration);
+
+    /// <inheritdoc />
+    protected override string GetConnectServerDescription(GameClientDefinition client) => "Origins EXPx1000 / Drop 60%";
+
+    /// <inheritdoc />
+    protected override byte GetNumberOfGameServers(byte requestedCount) => OriginsGameServerCount;
+
+    /// <inheritdoc />
+    protected override string GetGameServerDescription(int serverIndex)
+        => serverIndex == 0 ? "SV1-PVP" : "SV2-NON PVP";
+
+    /// <inheritdoc />
+    protected override float GetGameServerExperienceRate(int serverIndex) => 1000.0f;
+
+    /// <inheritdoc />
+    protected override bool IsPvpEnabled(int serverIndex) => serverIndex == 0;
 
     /// <inheritdoc />
     protected override void CreateGameClientDefinition()

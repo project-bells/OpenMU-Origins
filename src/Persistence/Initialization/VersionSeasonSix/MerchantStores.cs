@@ -464,6 +464,9 @@ internal partial class NpcInitialization
             this.ItemHelper.CreateItem(62, 49, 13, 1, 5), // Old Scroll
             this.ItemHelper.CreatePotion(64, 9, 1, 0), // Ale
             this.ItemHelper.CreateItem(65, 29, 13, 1, 0), // Armor of Guardsman
+            this.ItemHelper.CreateItem(66, 11, 14, 1, 8), // Box of Kundun + 1
+            this.ItemHelper.CreateItem(67, 11, 14, 1, 9), // Box of Kundun + 2
+            this.ItemHelper.CreateItem(68, 11, 14, 1, 10), // Box of Kundun + 3
         };
 
         var storage = this.CreateMerchantStore(itemList);

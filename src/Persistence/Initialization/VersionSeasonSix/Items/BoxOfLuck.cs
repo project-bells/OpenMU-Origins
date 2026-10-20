@@ -496,14 +496,14 @@ internal class BoxOfLuck : InitializerBase
         this.AddDropItem(boxOfKundun3, 13, 26); // Pendant of Wind
         this.AddDropItem(boxOfKundun3, 13, 27); // Pendant of Water
         this.AddDropItem(boxOfKundun3, 13, 28); // Pendant of Ability
-        this.AddArmorSet(boxOfKundun3, 9); // Plate Set
-        this.AddArmorSet(boxOfKundun3, 1); // Dragon Set
-        this.AddArmorSet(boxOfKundun3, 3); // Legendary Set
-        this.AddArmorSet(boxOfKundun3, 14); // Guardian Set
-        this.AddArmorSet(boxOfKundun3, 15); // Storm Crow Set
-        this.AddArmorSet(boxOfKundun3, 26); // Adamantine Set
-        this.AddArmorSet(boxOfKundun3, 42); // Bloody Amethyst Set
-        this.AddArmorSet(boxOfKundun3, 59); // Sacred Fire Set
+        this.AddArmorSet(boxOfKundun3, 16); // Black Dragon Set
+        this.AddArmorSet(boxOfKundun3, 17); // Dark Phoenix Set
+        this.AddArmorSet(boxOfKundun3, 18); // Grand Soul Set
+        this.AddArmorSet(boxOfKundun3, 19); // Divine Set
+        this.AddArmorSet(boxOfKundun3, 20); // Thunder Hawk Set
+        this.AddArmorSet(boxOfKundun3, 27); // Dark Steel Set
+        this.AddArmorSet(boxOfKundun3, 43); // Rhodon Quartz Set
+        this.AddArmorSet(boxOfKundun3, 60); // Storm Jahad Fire Set
         this.AddMoneyDropFallback(box, 150000, boxOfKundun3, LocalizedString.FromResource(() => ItemDropDescriptions.BoxOfKundunPlus3Money));
 
         var boxOfKundun4 = this.Context.CreateNew<ItemDropItemGroup>();

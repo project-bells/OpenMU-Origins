@@ -108,7 +108,7 @@ public class SimpleItemCraftingHandler : BaseItemCraftingHandler
 
         if (totalCraftingPrice > 0)
         {
-            rate = (byte)(totalCraftingPrice / this._settings.NpcPriceDivisor);
+            rate += (byte)(totalCraftingPrice / this._settings.NpcPriceDivisor);
         }
 
         if (this._settings.MaximumSuccessPercent > 0)
