@@ -30,8 +30,9 @@ services:
     ports:
       - "443:443"
     volumes:
-      - ./nginx/nginx.prod443.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/nginx.origins443.conf:/etc/nginx/nginx.conf:ro
       - ./certbot/conf/:/etc/nginx/ssl/:ro
+      - ./website:/usr/share/nginx/html:ro
       - ./nginx/templates/nginx.server_name.conf.template:/etc/nginx/templates/nginx.server_name.conf.template:ro
       - ./nginx/templates/nginx.prod.certificates.conf.template:/etc/nginx/templates/nginx.prod.certificates.conf.template:ro
     depends_on:
