@@ -467,6 +467,36 @@ internal partial class NpcInitialization
             this.ItemHelper.CreateItem(66, 11, 14, 1, 8), // Box of Kundun + 1
             this.ItemHelper.CreateItem(67, 11, 14, 1, 9), // Box of Kundun + 2
             this.ItemHelper.CreateItem(68, 11, 14, 1, 10), // Box of Kundun + 3
+
+            // Jewels and refinement materials
+            this.ItemHelper.CreateItem(69, 15, 12, 1, 0), // Jewel of Chaos
+            this.ItemHelper.CreateItem(70, 13, 14, 1, 0), // Jewel of Bless
+            this.ItemHelper.CreateItem(71, 14, 14, 1, 0), // Jewel of Soul
+            this.ItemHelper.CreateItem(72, 16, 14, 1, 0), // Jewel of Life
+            this.ItemHelper.CreateItem(73, 22, 14, 1, 0), // Jewel of Creation
+            this.ItemHelper.CreateItem(74, 31, 14, 1, 0), // Jewel of Guardian
+            this.ItemHelper.CreateItem(75, 41, 14, 1, 0), // Gemstone
+            this.ItemHelper.CreateItem(76, 42, 14, 1, 0), // Jewel of Harmony
+            this.ItemHelper.CreateItem(77, 43, 14, 1, 0), // Lower Refine Stone
+            this.ItemHelper.CreateItem(78, 44, 14, 1, 0), // Higher Refine Stone
+
+            // Class-change quest items
+            this.ItemHelper.CreateItem(80, 23, 14, 1, 0), // Scroll of Emperor
+            this.ItemHelper.CreateItem(81, 23, 14, 1, 1), // Ring of Honor
+            this.ItemHelper.CreateItem(82, 24, 14, 1, 0), // Broken Sword
+            this.ItemHelper.CreateItem(83, 24, 14, 1, 1), // Dark Stone
+            this.ItemHelper.CreateItem(84, 25, 14, 1, 0), // Tear of Elf
+            this.ItemHelper.CreateItem(85, 26, 14, 1, 0), // Soul Shard of Wizard
+            this.ItemHelper.CreateItem(86, 65, 14, 1, 0), // Flame of Death Beam Knight
+            this.ItemHelper.CreateItem(87, 66, 14, 1, 0), // Horn of Hell Maine
+            this.ItemHelper.CreateItem(88, 67, 14, 1, 0), // Feather of Dark Phoenix
+            this.ItemHelper.CreateItem(89, 68, 14, 1, 0), // Eye of Abyssal
+
+            // Wing crafting materials
+            this.ItemHelper.CreateItem(90, 14, 13, 1, 0), // Loch's Feather
+            this.ItemHelper.CreateItem(91, 14, 13, 1, 1), // Crest of Monarch
+            this.ItemHelper.CreateItem(92, 52, 13, 1, 0), // Flame of Condor
+            this.ItemHelper.CreateItem(93, 53, 13, 1, 0), // Feather of Condor
         };
 
         var storage = this.CreateMerchantStore(itemList);

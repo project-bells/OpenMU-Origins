@@ -33,6 +33,9 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
     protected override double RandomItemDropChance => 0.6;
 
     /// <inheritdoc />
+    protected override double ExcellentItemDropChance => 0.15;
+
+    /// <inheritdoc />
     protected override IEnumerable<ItemOptionType> OptionTypes
     {
         get
@@ -79,16 +82,17 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
         new AncientSets(this.Context, this.GameConfiguration).Initialize();
         new BoxOfLuck(this.Context, this.GameConfiguration).Initialize();
         new GensRewardItems(this.Context, this.GameConfiguration).Initialize();
+        new Quest(this.Context, this.GameConfiguration).Initialize();
         this.CreateJewelMixes();
         new NpcInitialization(this.Context, this.GameConfiguration).Initialize();
         new InvasionMobsInitialization(this.Context, this.GameConfiguration).Initialize();
         new GameMapsInitializer(this.Context, this.GameConfiguration).Initialize();
+        this.TripleRegularMonsterSpawns();
         this.AssignCharacterClassHomeMaps();
         this.WireRenaDropToEventMaps();
         new SocketSystem(this.Context, this.GameConfiguration).Initialize();
         new ChaosMixes(this.Context, this.GameConfiguration).Initialize();
         new Gates(this.Context, this.GameConfiguration).Initialize();
-        new Quest(this.Context, this.GameConfiguration).Initialize();
         new Quests(this.Context, this.GameConfiguration).Initialize();
         new DevilSquareInitializer(this.Context, this.GameConfiguration).Initialize();
         new BloodCastleInitializer(this.Context, this.GameConfiguration).Initialize();
@@ -103,6 +107,18 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
         // After all items exist.
         new ItemRules(this.Context, this.GameConfiguration).Initialize();
         new CashShopInitializer(this.Context, this.GameConfiguration).Initialize();
+    }
+
+    private void TripleRegularMonsterSpawns()
+    {
+        foreach (var spawn in this.GameConfiguration.Maps
+                     .SelectMany(map => map.MonsterSpawns)
+                     .Where(spawn => spawn.SpawnTrigger == SpawnTrigger.Automatic
+                                     && spawn.MonsterDefinition?.NpcWindow == NpcWindow.Undefined
+                                     && spawn.MonsterDefinition.RespawnDelay < TimeSpan.FromHours(1)))
+        {
+            spawn.Quantity = checked((short)(spawn.Quantity * 3));
+        }
     }
 
     /// <summary>

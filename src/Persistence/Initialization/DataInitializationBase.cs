@@ -208,6 +208,8 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
             {
                 plugInConfiguration.IsActive = false;
             }
+
+            plugInConfiguration.IsActive = this.IsPlugInActiveByDefault(plugInType, plugInConfiguration.IsActive);
         });
 
         this.AddAllUpdateEntries(plugInManager);
@@ -219,6 +221,14 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
     /// Creates the game client definition.
     /// </summary>
     protected abstract void CreateGameClientDefinition();
+
+    /// <summary>
+    /// Allows a version initializer to override the default activation state of a plug-in.
+    /// </summary>
+    /// <param name="plugInType">The discovered plug-in type.</param>
+    /// <param name="defaultValue">The activation state determined by the common initializer.</param>
+    /// <returns>The activation state which is stored in the game configuration.</returns>
+    protected virtual bool IsPlugInActiveByDefault(Type plugInType, bool defaultValue) => defaultValue;
 
     /// <summary>
     /// Gets the display name of a connect server.

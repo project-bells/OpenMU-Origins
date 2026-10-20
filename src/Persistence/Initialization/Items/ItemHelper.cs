@@ -112,7 +112,8 @@ internal class ItemHelper
     public Item CreateItem(byte itemSlot, byte itemId, byte itemGroup, byte stackSize, byte level)
     {
         var item = this._context.CreateNew<Item>();
-        item.Definition = this._gameConfiguration.Items.First(def => def.Group == itemGroup && def.Number == itemId);
+        item.Definition = this._gameConfiguration.Items.FirstOrDefault(def => def.Group == itemGroup && def.Number == itemId)
+                          ?? throw new InvalidOperationException($"Item definition {itemGroup}/{itemId} was not initialized.");
         item.ItemSlot = itemSlot;
         item.Durability = stackSize;
         item.Level = level;

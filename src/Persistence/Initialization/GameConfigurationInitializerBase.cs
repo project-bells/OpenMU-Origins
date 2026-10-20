@@ -41,6 +41,11 @@ public abstract class GameConfigurationInitializerBase : InitializerBase
     /// </summary>
     protected virtual double RandomItemDropChance => 0.3;
 
+    /// <summary>
+    /// Gets the chance for a regular monster to drop an excellent item.
+    /// </summary>
+    protected virtual double ExcellentItemDropChance => 0.0001;
+
     /// <inheritdoc />
     public override void Initialize()
     {
@@ -209,7 +214,7 @@ public abstract class GameConfigurationInitializerBase : InitializerBase
         {
             var excellentItemDropItemGroup = this.Context.CreateNew<DropItemGroup>();
             excellentItemDropItemGroup.SetGuid(3);
-            excellentItemDropItemGroup.Chance = 0.0001;
+            excellentItemDropItemGroup.Chance = this.ExcellentItemDropChance;
             excellentItemDropItemGroup.ItemType = SpecialItemType.Excellent;
             excellentItemDropItemGroup.ItemLevel = 0;
             excellentItemDropItemGroup.Description =

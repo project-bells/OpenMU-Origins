@@ -17,6 +17,10 @@ using MUnique.OpenMU.Persistence;
 /// </remarks>
 public static class CharacterInitialization
 {
+    private const int OriginsStartingLevelUpPoints = 300;
+
+    private const int OriginsStartingMoney = 3_000_000;
+
     /// <summary>
     /// Determines whether the name is valid for a character, according to the <see cref="GameConfiguration.CharacterNameRegex"/>.
     /// </summary>
@@ -76,6 +80,8 @@ public static class CharacterInitialization
         }
 
         character.Inventory ??= context.CreateNew<ItemStorage>();
+        character.LevelUpPoints = OriginsStartingLevelUpPoints;
+        character.Inventory.Money = OriginsStartingMoney;
     }
 
     /// <summary>

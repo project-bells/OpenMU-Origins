@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using MUnique.OpenMU.DataModel.Configuration;
+using MUnique.OpenMU.GameLogic.PlugIns.ChatCommands;
 using MUnique.OpenMU.Network.PlugIns;
 using MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.TestAccounts;
 using MUnique.OpenMU.PlugIns;
@@ -52,7 +53,7 @@ public class DataInitialization : DataInitializationBase
     protected override IGameMapsInitializer GameMapsInitializer => new GameMapsInitializer(this.Context, this.GameConfiguration);
 
     /// <inheritdoc />
-    protected override string GetConnectServerDescription(GameClientDefinition client) => "Origins EXPx1000 / Drop 60%";
+    protected override string GetConnectServerDescription(GameClientDefinition client) => "Origins EXPx100 / Drop 60%";
 
     /// <inheritdoc />
     protected override byte GetNumberOfGameServers(byte requestedCount) => OriginsGameServerCount;
@@ -62,10 +63,20 @@ public class DataInitialization : DataInitializationBase
         => serverIndex == 0 ? "SV1-PVP" : "SV2-NON PVP";
 
     /// <inheritdoc />
-    protected override float GetGameServerExperienceRate(int serverIndex) => 1000.0f;
+    protected override float GetGameServerExperienceRate(int serverIndex) => 100.0f;
 
     /// <inheritdoc />
     protected override bool IsPvpEnabled(int serverIndex) => serverIndex == 0;
+
+    /// <inheritdoc />
+    protected override bool IsPlugInActiveByDefault(Type plugInType, bool defaultValue)
+        => plugInType == typeof(AddStrengthStatChatCommandPlugIn)
+           || plugInType == typeof(AddAgilityStatChatCommandPlugIn)
+           || plugInType == typeof(AddVitalityStatChatCommandPlugIn)
+           || plugInType == typeof(AddEnergyStatChatCommandPlugIn)
+           || plugInType == typeof(AddCommandStatChatCommandPlugIn)
+           || plugInType == typeof(AddCommandStatAliasChatCommandPlugIn)
+           || defaultValue;
 
     /// <inheritdoc />
     protected override void CreateGameClientDefinition()
