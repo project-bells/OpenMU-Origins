@@ -520,6 +520,15 @@ public static class AttackableExtensions
     /// <param name="hitInfo">The hit information.</param>
     public static void ApplyAmmunitionConsumption(this IAttacker attacker, HitInfo hitInfo)
     {
+        // Origins keeps ammunition free for all three Elf progressions. This is
+        // intentionally enforced server-side so a client cannot desynchronise
+        // the arrow count or bypass a configuration-only rule.
+        if (attacker is Player player
+            && player.SelectedCharacter?.CharacterClass?.Number is 8 or 10 or 11)
+        {
+            return;
+        }
+
         if (!hitInfo.Attributes.HasFlag(DamageAttributes.Reflected) && attacker.Attributes[Stats.AmmunitionConsumptionRate] > 0.0)
         {
             // Every hit needs ammo, missed or not
