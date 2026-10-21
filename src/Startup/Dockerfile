@@ -2,7 +2,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS base
 WORKDIR /app
 
 # tzdata provides the IANA time zones (e.g. America/Argentina/Buenos_Aires) for the server time zone setting.
-RUN apk add --no-cache icu-libs tzdata
+# krb5-libs provides libgssapi_krb5.so.2, required by the PostgreSQL/SASL
+# stack when the runtime probes GSSAPI authentication support.
+RUN apk add --no-cache icu-libs tzdata krb5-libs
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 EXPOSE 8080
