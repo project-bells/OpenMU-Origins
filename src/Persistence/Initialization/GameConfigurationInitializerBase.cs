@@ -64,7 +64,9 @@ public abstract class GameConfigurationInitializerBase : InitializerBase
         this.GameConfiguration.MaximumLetters = 50;
         this.GameConfiguration.LetterSendPrice = 1000;
         this.GameConfiguration.MaximumCharactersPerAccount = 5;
-        this.GameConfiguration.CharacterNameRegex = "^[a-zA-Z0-9]{3,10}$";
+        // Allow Unicode letters, combining marks (for example Thai vowels and
+        // tone marks) and decimal digits. Spaces and punctuation stay blocked.
+        this.GameConfiguration.CharacterNameRegex = "^[\\p{L}\\p{M}\\p{Nd}]{3,10}$";
         this.GameConfiguration.MaximumPasswordLength = 20;
         this.GameConfiguration.MaximumPartySize = 5;
         this.GameConfiguration.ShouldDropMoney = true;
