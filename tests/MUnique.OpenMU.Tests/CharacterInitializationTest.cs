@@ -156,6 +156,7 @@ public class CharacterInitializationTest
     [TestCase("Hero", true)]
     [TestCase("ไทย", true)]
     [TestCase("เบล", true)]
+    [TestCase("ทดสอบ", false)]
     [TestCase("Hero!", false)]
     [TestCase("ไทย!", false)]
     [TestCase("ชื่อ ไทย", false)]
