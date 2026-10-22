@@ -243,8 +243,8 @@ public readonly struct PublicChatMessage
     /// </summary>
     public string Character
     {
-        get => this._data.Span.ExtractString(3, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(3, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(3, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(3, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -338,8 +338,8 @@ public readonly struct WhisperMessage
     /// </summary>
     public string ReceiverName
     {
-        get => this._data.Span.ExtractString(3, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(3, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(3, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(3, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -1325,8 +1325,8 @@ public readonly struct PlayerShopItemListRequest
     /// </summary>
     public string PlayerName
     {
-        get => this._data.Span.ExtractString(6, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(6, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(6, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(6, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -1420,8 +1420,8 @@ public readonly struct PlayerShopItemBuyRequest
     /// </summary>
     public string PlayerName
     {
-        get => this._data.Span.ExtractString(6, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(6, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(6, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(6, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -1524,8 +1524,8 @@ public readonly struct PlayerShopCloseOther
     /// </summary>
     public string PlayerName
     {
-        get => this._data.Span.ExtractString(6, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(6, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(6, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(6, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -8455,8 +8455,8 @@ public readonly struct CreateCharacter
     /// </summary>
     public string Name
     {
-        get => this._data.Span.ExtractString(4, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(4, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(4, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(4, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -8550,8 +8550,8 @@ public readonly struct DeleteCharacter
     /// </summary>
     public string Name
     {
-        get => this._data.Span.ExtractString(4, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(4, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(4, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(4, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -8657,8 +8657,8 @@ public readonly struct SelectCharacter
     /// </summary>
     public string Name
     {
-        get => this._data.Span.ExtractString(4, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(4, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(4, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(4, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -8743,8 +8743,8 @@ public readonly struct FocusCharacter
     /// </summary>
     public string Name
     {
-        get => this._data.Span.ExtractString(4, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(4, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(4, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(4, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -11197,8 +11197,8 @@ public readonly struct LetterSendRequest
     /// </summary>
     public string Receiver
     {
-        get => this._data.Span.ExtractString(8, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(8, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(8, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(8, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -11407,8 +11407,8 @@ public readonly struct GuildKickPlayerRequest
     /// </summary>
     public string PlayerName
     {
-        get => this._data.Span.ExtractString(3, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(3, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(3, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(3, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -12244,8 +12244,8 @@ public readonly struct GuildRoleAssignRequest
     /// </summary>
     public string PlayerName
     {
-        get => this._data.Span.ExtractString(5, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(5, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(5, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(5, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -13199,8 +13199,8 @@ public readonly struct FriendAddRequest
     /// </summary>
     public string FriendName
     {
-        get => this._data.Span.ExtractString(3, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(3, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(3, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(3, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -13278,8 +13278,8 @@ public readonly struct FriendDelete
     /// </summary>
     public string FriendName
     {
-        get => this._data.Span.ExtractString(3, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(3, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(3, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(3, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -13357,8 +13357,8 @@ public readonly struct ChatRoomCreateRequest
     /// </summary>
     public string FriendName
     {
-        get => this._data.Span.ExtractString(3, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(3, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(3, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(3, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -13445,8 +13445,8 @@ public readonly struct FriendAddResponse
     /// </summary>
     public string FriendRequesterName
     {
-        get => this._data.Span.ExtractString(4, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(4, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(4, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(4, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -13603,8 +13603,8 @@ public readonly struct ChatRoomInvitationRequest
     /// </summary>
     public string FriendName
     {
-        get => this._data.Span.ExtractString(3, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(3, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(3, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(3, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -17264,8 +17264,8 @@ public readonly struct DuelStartRequest
     /// </summary>
     public string PlayerName
     {
-        get => this._data.Span.ExtractString(6, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(6, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(6, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(6, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -17368,8 +17368,8 @@ public readonly struct DuelStartResponse
     /// </summary>
     public string PlayerName
     {
-        get => this._data.Span.ExtractString(7, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(7, 10).Span.WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.Span.ExtractString(7, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(7, 10).Span.WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>

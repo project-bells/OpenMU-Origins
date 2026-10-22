@@ -156,7 +156,11 @@ public class CharacterInitializationTest
     [TestCase("Hero", true)]
     [TestCase("ไทย", true)]
     [TestCase("เบล", true)]
-    [TestCase("ทดสอบ", false)]
+    [TestCase("ทดสอบ", true)]
+    [TestCase("สุดเขต", true)]
+    [TestCase("สมยศ", true)]
+    [TestCase("เพลินจิต", true)]
+    [TestCase("กขคงจฉชซฌญฎ", false)]
     [TestCase("Hero!", false)]
     [TestCase("ไทย!", false)]
     [TestCase("ชื่อ ไทย", false)]
@@ -164,7 +168,7 @@ public class CharacterInitializationTest
     public void CharacterNameIsCheckedAgainstPattern(string name, bool expectedResult)
     {
         var configuration = this._context.CreateNew<GameConfiguration>();
-        configuration.CharacterNameRegex = "^[\\p{L}\\p{M}\\p{Nd}]{3,10}$";
+        configuration.CharacterNameRegex = "^[A-Za-z0-9\\u0E01-\\u0E3A\\u0E3F-\\u0E5B]{3,10}$";
 
         Assert.That(configuration.IsValidCharacterName(name), Is.EqualTo(expectedResult));
     }

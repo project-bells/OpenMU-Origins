@@ -177,8 +177,8 @@ public readonly ref struct ChatRoomClientJoinedRef
     /// </summary>
     public string Name
     {
-        get => this._data.ExtractString(5, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(5, 10).WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.ExtractString(5, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(5, 10).WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -342,8 +342,8 @@ public readonly ref struct ChatRoomClientLeftRef
     /// </summary>
     public string Name
     {
-        get => this._data.ExtractString(5, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(5, 10).WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.ExtractString(5, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(5, 10).WriteString(value, Windows874Encoding.Instance);
     }
 
     /// <summary>
@@ -482,8 +482,8 @@ public readonly ref struct ChatClientRef
     /// </summary>
     public string Name
     {
-        get => this._data.ExtractString(1, 10, System.Text.Encoding.UTF8);
-        set => this._data.Slice(1, 10).WriteString(value, System.Text.Encoding.UTF8);
+        get => this._data.ExtractString(1, 10, Windows874Encoding.Instance);
+        set => this._data.Slice(1, 10).WriteString(value, Windows874Encoding.Instance);
     }
 }
 }

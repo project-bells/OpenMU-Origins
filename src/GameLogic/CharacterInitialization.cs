@@ -4,7 +4,6 @@
 
 namespace MUnique.OpenMU.GameLogic;
 
-using System.Text;
 using System.Text.RegularExpressions;
 using MUnique.OpenMU.AttributeSystem;
 using MUnique.OpenMU.Persistence;
@@ -18,8 +17,6 @@ using MUnique.OpenMU.Persistence;
 /// </remarks>
 public static class CharacterInitialization
 {
-    private const int CharacterNameWireByteLimit = 10;
-
     private const int OriginsStartingLevelUpPoints = 300;
 
     private const int OriginsStartingMoney = 3_000_000;
@@ -32,9 +29,8 @@ public static class CharacterInitialization
     /// <returns><c>true</c>, if the name is valid; otherwise, <c>false</c>.</returns>
     public static bool IsValidCharacterName(this GameConfiguration configuration, string name)
     {
-        return Encoding.UTF8.GetByteCount(name) <= CharacterNameWireByteLimit
-               && (string.IsNullOrWhiteSpace(configuration.CharacterNameRegex)
-                   || Regex.IsMatch(name, configuration.CharacterNameRegex));
+        return string.IsNullOrWhiteSpace(configuration.CharacterNameRegex)
+               || Regex.IsMatch(name, configuration.CharacterNameRegex);
     }
 
     /// <summary>

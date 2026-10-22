@@ -66,7 +66,10 @@ public abstract class GameConfigurationInitializerBase : InitializerBase
         this.GameConfiguration.MaximumCharactersPerAccount = 5;
         // Allow Unicode letters, combining marks (for example Thai vowels and
         // tone marks) and decimal digits. Spaces and punctuation stay blocked.
-        this.GameConfiguration.CharacterNameRegex = "^[\\p{L}\\p{M}\\p{Nd}]{3,10}$";
+
+        // Classic MU packets reserve ten single-byte characters for identity fields.
+        // The Origins protocol uses Windows-874 on the wire, which supports ASCII and Thai.
+        this.GameConfiguration.CharacterNameRegex = "^[A-Za-z0-9\\u0E01-\\u0E3A\\u0E3F-\\u0E5B]{3,10}$";
         this.GameConfiguration.MaximumPasswordLength = 20;
         this.GameConfiguration.MaximumPartySize = 5;
         this.GameConfiguration.ShouldDropMoney = true;
