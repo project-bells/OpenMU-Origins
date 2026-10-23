@@ -362,7 +362,7 @@ internal class BoxOfLuck : InitializerBase
         var boxOfKundun1 = this.Context.CreateNew<ItemDropItemGroup>();
         boxOfKundun1.SourceItemLevel = 8;
         boxOfKundun1.ItemType = SpecialItemType.Excellent;
-        boxOfKundun1.Chance = 0.2;
+        boxOfKundun1.Chance = 1.0;
         boxOfKundun1.Description = LocalizedString.FromResource(() => ItemDropDescriptions.BoxOfKundunPlus1);
         box.DropItems.Add(boxOfKundun1);
         this.AddDropItem(boxOfKundun1, 0, 0); // Kris
@@ -404,12 +404,11 @@ internal class BoxOfLuck : InitializerBase
         this.AddArmorSet(boxOfKundun1, 11); // Silk Set
         this.AddArmorSet(boxOfKundun1, 39); // Violent Wind Set
         this.AddArmorSet(boxOfKundun1, 40); // Red Wing Set
-        this.AddMoneyDropFallback(box, 50000, boxOfKundun1, LocalizedString.FromResource(() => ItemDropDescriptions.BoxOfKundunPlus1Money));
 
         var boxOfKundun2 = this.Context.CreateNew<ItemDropItemGroup>();
         boxOfKundun2.SourceItemLevel = 9;
         boxOfKundun2.ItemType = SpecialItemType.Excellent;
-        boxOfKundun2.Chance = 0.2;
+        boxOfKundun2.Chance = 1.0;
         boxOfKundun2.Description = LocalizedString.FromResource(() => ItemDropDescriptions.BoxOfKundunPlus2);
         box.DropItems.Add(boxOfKundun2);
         this.AddDropItem(boxOfKundun2, 0, 5); // Blade
@@ -454,12 +453,11 @@ internal class BoxOfLuck : InitializerBase
         this.AddArmorSet(boxOfKundun2, 13); // Spirit Set
         this.AddArmorSet(boxOfKundun2, 25); // Light Plate Set
         this.AddArmorSet(boxOfKundun2, 41); // Ancient Set
-        this.AddMoneyDropFallback(box, 100000, boxOfKundun2, LocalizedString.FromResource(() => ItemDropDescriptions.BoxOfKundunPlus2Money));
 
         var boxOfKundun3 = this.Context.CreateNew<ItemDropItemGroup>();
         boxOfKundun3.SourceItemLevel = 10;
         boxOfKundun3.ItemType = SpecialItemType.Excellent;
-        boxOfKundun3.Chance = 0.2;
+        boxOfKundun3.Chance = 1.0;
         boxOfKundun3.Description = LocalizedString.FromResource(() => ItemDropDescriptions.BoxOfKundunPlus3);
         box.DropItems.Add(boxOfKundun3);
         this.AddDropItem(boxOfKundun3, 0, 11); // Legendary Sword
@@ -504,12 +502,11 @@ internal class BoxOfLuck : InitializerBase
         this.AddArmorSet(boxOfKundun3, 27); // Dark Steel Set
         this.AddArmorSet(boxOfKundun3, 43); // Rhodon Quartz Set
         this.AddArmorSet(boxOfKundun3, 60); // Storm Jahad Fire Set
-        this.AddMoneyDropFallback(box, 150000, boxOfKundun3, LocalizedString.FromResource(() => ItemDropDescriptions.BoxOfKundunPlus3Money));
 
         var boxOfKundun4 = this.Context.CreateNew<ItemDropItemGroup>();
         boxOfKundun4.SourceItemLevel = 11;
         boxOfKundun4.ItemType = SpecialItemType.Excellent;
-        boxOfKundun4.Chance = 0.2;
+        boxOfKundun4.Chance = 1.0;
         boxOfKundun4.Description = LocalizedString.FromResource(() => ItemDropDescriptions.BoxOfKundunPlus4);
         box.DropItems.Add(boxOfKundun4);
         this.AddDropItem(boxOfKundun4, 0, 16); // Sword of Destruction
@@ -540,12 +537,11 @@ internal class BoxOfLuck : InitializerBase
         this.AddArmorSet(boxOfKundun4, 27); // Dark Steel Set
         this.AddArmorSet(boxOfKundun4, 43); // Rhodon Quartz Set
         this.AddArmorSet(boxOfKundun4, 60); // Storm Jahad Fire Set
-        this.AddMoneyDropFallback(box, 200000, boxOfKundun4, LocalizedString.FromResource(() => ItemDropDescriptions.BoxOfKundunPlus4Money));
 
         var boxOfKundun5 = this.Context.CreateNew<ItemDropItemGroup>();
         boxOfKundun5.SourceItemLevel = 12;
         boxOfKundun5.ItemType = SpecialItemType.Excellent;
-        boxOfKundun5.Chance = 0.2;
+        boxOfKundun5.Chance = 1.0;
         boxOfKundun5.Description = LocalizedString.FromResource(() => ItemDropDescriptions.BoxOfKundunPlus5);
         box.DropItems.Add(boxOfKundun5);
         this.AddDropItem(boxOfKundun5, 0, 20); // Knight Blade
@@ -567,7 +563,6 @@ internal class BoxOfLuck : InitializerBase
         this.AddArmorSet(boxOfKundun5, 37); // Valiant Set
         this.AddArmorSet(boxOfKundun5, 38); // Glorious Set
         this.AddArmorSet(boxOfKundun5, 61); // Piercing Groove Fire Set
-        this.AddMoneyDropFallback(box, 250000, boxOfKundun5, LocalizedString.FromResource(() => ItemDropDescriptions.BoxOfKundunPlus5Money));
 
         var heartOfDarkLord = this.Context.CreateNew<ItemDropItemGroup>();
         heartOfDarkLord.ItemType = SpecialItemType.RandomItem;
