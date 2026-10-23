@@ -383,10 +383,25 @@ BEGIN
     WHERE item."Id" IS NULL;
 
     IF missing_count > 0 THEN
-        RAISE EXCEPTION 'Tier configuration references % missing item definitions', missing_count;
+        RAISE WARNING 'Tier configuration references % missing item definitions; these entries will be skipped', missing_count;
     END IF;
 END
 $check$;
+
+-- Print definitions which don't exist in the currently installed game configuration.
+-- Database versions can legitimately differ, so missing entries are skipped below.
+SELECT DISTINCT
+    requested."Tier" AS "KundunPlus",
+    requested."Group" AS "MissingItemGroup",
+    requested."Number" AS "MissingItemNumber"
+FROM kundun_tier_items requested
+JOIN kundun_groups groups ON groups."Tier" = requested."Tier"
+LEFT JOIN config."ItemDefinition" item
+  ON item."GameConfigurationId" = groups."GameConfigurationId"
+ AND item."Group" = requested."Group"
+ AND item."Number" = requested."Number"
+WHERE item."Id" IS NULL
+ORDER BY requested."Tier", requested."Group", requested."Number";
 
 -- Every Kundun box selects its excellent group with 100 percent probability.
 UPDATE config."ItemDropItemGroup" drops
