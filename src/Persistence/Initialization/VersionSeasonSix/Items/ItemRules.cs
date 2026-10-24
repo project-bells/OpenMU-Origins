@@ -158,10 +158,10 @@ public class ItemRules : InitializerBase
         Rule(14, 19, Blocked.Repair), // Devil's Invitation
         Rule(14, 21, Blocked.Trade, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Rena
         Rule(14, 22, Blocked.Repair), // Jewel of Creation
-        Rule(14, 23, Blocked.Trade, Blocked.Drop, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Scroll of the Emperor
-        Rule(14, 24, Blocked.Trade, Blocked.Drop, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Broken Sword
-        Rule(14, 25, Blocked.Trade, Blocked.Drop, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Tear of Elf
-        Rule(14, 26, Blocked.Trade, Blocked.Drop, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Soul Shard of Wizard
+        Rule(14, 23, Blocked.Trade, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Scroll of the Emperor
+        Rule(14, 24, Blocked.Trade, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Broken Sword
+        Rule(14, 25, Blocked.Trade, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Tear of Elf
+        Rule(14, 26, Blocked.Trade, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Soul Shard of Wizard
         Rule(14, 28, Blocked.Repair), // Lost Map
         Rule(14, 29, Blocked.Repair), // Symbol of Kundun
         Rule(14, 31, Blocked.Repair), // Jewel of Guardian
@@ -187,10 +187,10 @@ public class ItemRules : InitializerBase
         Rule(14, 51, Blocked.Repair), // Chistmas Star
         Rule(14, 52, Blocked.Trade, Blocked.Repair), // GM Gift
         Rule(14, 63, Blocked.Repair), // Firecracker
-        Rule(14, 65, Blocked.Trade, Blocked.Drop, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Death-beam Knight Flame
-        Rule(14, 66, Blocked.Trade, Blocked.Drop, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Hell-Miner Horn
-        Rule(14, 67, Blocked.Trade, Blocked.Drop, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Dark Phoenix Feather
-        Rule(14, 68, Blocked.Trade, Blocked.Drop, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Abyssal Eye
+        Rule(14, 65, Blocked.Trade, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Death-beam Knight Flame
+        Rule(14, 66, Blocked.Trade, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Hell-Miner Horn
+        Rule(14, 67, Blocked.Trade, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Dark Phoenix Feather
+        Rule(14, 68, Blocked.Trade, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Abyssal Eye
         Rule(14, 84, Blocked.Repair), // Cherry Blossom Play-Box
         Rule(14, 85, Blocked.Repair), // Cherry Blossom Wine
         Rule(14, 86, Blocked.Repair), // Cherry Blossom Rice Cake
