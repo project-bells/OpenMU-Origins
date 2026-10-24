@@ -55,7 +55,7 @@ public abstract class ItemDurabilityRefactorPlugInBase : UpdatePlugInBase
         });
 
         gameConfiguration.DamagePerOneItemDurability = 69;
-        gameConfiguration.DamagePerOnePetDurability = 100;
+        gameConfiguration.DamagePerOnePetDurability = 1000;
         gameConfiguration.HitsPerOneItemDurability = 564;
     }
 }

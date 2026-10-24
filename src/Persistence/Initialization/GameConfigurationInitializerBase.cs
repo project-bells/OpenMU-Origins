@@ -76,7 +76,7 @@ public abstract class GameConfigurationInitializerBase : InitializerBase
         this.GameConfiguration.ItemDropDuration = TimeSpan.FromSeconds(60);
         this.GameConfiguration.MaximumItemOptionLevelDrop = 3;
         this.GameConfiguration.DamagePerOneItemDurability = 69;
-        this.GameConfiguration.DamagePerOnePetDurability = 100;
+        this.GameConfiguration.DamagePerOnePetDurability = 1000;
         this.GameConfiguration.HitsPerOneItemDurability = 564;
 
         this.GameConfiguration.ExperienceFormula = "if(level == 0, 0, if(level < 256, 10 * (level + 8) * (level - 1) * (level - 1), (10 * (level + 8) * (level - 1) * (level - 1)) + (1000 * (level - 247) * (level - 256) * (level - 256))))";
