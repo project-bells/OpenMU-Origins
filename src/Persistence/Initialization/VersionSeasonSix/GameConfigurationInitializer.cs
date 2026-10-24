@@ -87,7 +87,6 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
         new NpcInitialization(this.Context, this.GameConfiguration).Initialize();
         new InvasionMobsInitialization(this.Context, this.GameConfiguration).Initialize();
         new GameMapsInitializer(this.Context, this.GameConfiguration).Initialize();
-        this.ReduceMonsterDefense();
         this.TripleRegularMonsterSpawns();
         this.AssignCharacterClassHomeMaps();
         this.WireRenaDropToEventMaps();
@@ -103,6 +102,7 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
         new DoppelgangerInitializer(this.Context, this.GameConfiguration).Initialize();
         new ImperialGuardianInitializer(this.Context, this.GameConfiguration).Initialize();
         new CrywolfInitializer(this.Context, this.GameConfiguration).Initialize();
+        this.ReduceMonsterDefense();
         new CashShopItems(this.Context, this.GameConfiguration).Initialize();
         this.IncreaseJewelDropChances();
 
