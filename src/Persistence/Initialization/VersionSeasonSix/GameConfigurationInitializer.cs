@@ -103,10 +103,32 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
         new ImperialGuardianInitializer(this.Context, this.GameConfiguration).Initialize();
         new CrywolfInitializer(this.Context, this.GameConfiguration).Initialize();
         new CashShopItems(this.Context, this.GameConfiguration).Initialize();
+        this.IncreaseJewelDropChances();
 
         // After all items exist.
         new ItemRules(this.Context, this.GameConfiguration).Initialize();
         new CashShopInitializer(this.Context, this.GameConfiguration).Initialize();
+    }
+
+    private void IncreaseJewelDropChances()
+    {
+        (byte Group, short Number)[] jewels =
+        [
+            (12, 15), // Jewel of Chaos
+            (14, 13), // Jewel of Bless
+            (14, 14), // Jewel of Soul
+            (14, 16), // Jewel of Life
+            (14, 22), // Jewel of Creation
+            (14, 31), // Jewel of Guardian
+            (14, 41), // Gemstone
+            (14, 42), // Jewel of Harmony
+        ];
+
+        foreach (var group in this.GameConfiguration.DropItemGroups
+                     .Where(group => group.PossibleItems.Any(item => jewels.Contains((item.Group, item.Number)))))
+        {
+            group.Chance = Math.Min(1.0, group.Chance * 1.30);
+        }
     }
 
     private void TripleRegularMonsterSpawns()
