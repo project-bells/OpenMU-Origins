@@ -87,6 +87,7 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
         new NpcInitialization(this.Context, this.GameConfiguration).Initialize();
         new InvasionMobsInitialization(this.Context, this.GameConfiguration).Initialize();
         new GameMapsInitializer(this.Context, this.GameConfiguration).Initialize();
+        this.ReduceMonsterDefense();
         this.TripleRegularMonsterSpawns();
         this.AssignCharacterClassHomeMaps();
         this.WireRenaDropToEventMaps();
@@ -128,6 +129,18 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
                      .Where(group => group.PossibleItems.Any(item => jewels.Contains((item.Group, item.Number)))))
         {
             group.Chance = Math.Min(1.0, group.Chance * 1.30);
+        }
+    }
+
+    private void ReduceMonsterDefense()
+    {
+        var defenseAttribute = Stats.DefenseBase.GetPersistent(this.GameConfiguration);
+        foreach (var attribute in this.GameConfiguration.Monsters
+                     .Where(monster => monster.NpcWindow == NpcWindow.Undefined)
+                     .SelectMany(monster => monster.Attributes)
+                     .Where(attribute => attribute.AttributeDefinition == defenseAttribute))
+        {
+            attribute.Value *= 0.70f;
         }
     }
 

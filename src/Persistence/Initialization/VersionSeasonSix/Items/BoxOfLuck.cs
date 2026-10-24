@@ -537,6 +537,25 @@ internal class BoxOfLuck : InitializerBase
         this.AddArmorSet(boxOfKundun4, 27); // Dark Steel Set
         this.AddArmorSet(boxOfKundun4, 43); // Rhodon Quartz Set
         this.AddArmorSet(boxOfKundun4, 60); // Storm Jahad Fire Set
+        this.AddDropItem(boxOfKundun4, 0, 20); // Knight Blade (moved from +5)
+        this.AddDropItem(boxOfKundun4, 0, 21); // Dark Reign Blade (moved from +5)
+        this.AddDropItem(boxOfKundun4, 0, 31); // Rune Blade (moved from +5)
+        this.AddDropItem(boxOfKundun4, 0, 34); // Piercing Groove Glove (moved from +5)
+        this.AddDropItem(boxOfKundun4, 2, 15); // Shining Scepter (moved from +5)
+        this.AddDropItem(boxOfKundun4, 4, 20); // Arrow Viper Bow (moved from +5)
+        this.AddDropItem(boxOfKundun4, 5, 11); // Staff of Kundun (moved from +5)
+        this.AddDropItem(boxOfKundun4, 5, 13); // Platina Staff (moved from +5)
+        this.AddArmorSet(boxOfKundun4, 21); // Great Dragon Set (moved from +5)
+        this.AddArmorSet(boxOfKundun4, 22); // Dark Soul Set (moved from +5)
+        this.AddArmorSet(boxOfKundun4, 23); // Hurricane Set (moved from +5)
+        this.AddArmorSet(boxOfKundun4, 24); // Red Spirit Set (moved from +5)
+        this.AddArmorSet(boxOfKundun4, 28); // Dark Master Set (moved from +5)
+        this.AddArmorSet(boxOfKundun4, 34); // Ashcrow Set (moved from +5)
+        this.AddArmorSet(boxOfKundun4, 35); // Eclipse Set (moved from +5)
+        this.AddArmorSet(boxOfKundun4, 36); // Iris Set (moved from +5)
+        this.AddArmorSet(boxOfKundun4, 37); // Valiant Set (moved from +5)
+        this.AddArmorSet(boxOfKundun4, 38); // Glorious Set (moved from +5)
+        this.AddArmorSet(boxOfKundun4, 61); // Piercing Groove Fire Set (moved from +5)
 
         var boxOfKundun5 = this.Context.CreateNew<ItemDropItemGroup>();
         boxOfKundun5.SourceItemLevel = 12;
@@ -544,25 +563,26 @@ internal class BoxOfLuck : InitializerBase
         boxOfKundun5.Chance = 1.0;
         boxOfKundun5.Description = LocalizedString.FromResource(() => ItemDropDescriptions.BoxOfKundunPlus5);
         box.DropItems.Add(boxOfKundun5);
-        this.AddDropItem(boxOfKundun5, 0, 20); // Knight Blade
-        this.AddDropItem(boxOfKundun5, 0, 21); // Dark Reign Blade
-        this.AddDropItem(boxOfKundun5, 0, 31); // Rune Blade
-        this.AddDropItem(boxOfKundun5, 0, 34); // Piercing Groove Glove
-        this.AddDropItem(boxOfKundun5, 2, 15); // Shining Scepter
-        this.AddDropItem(boxOfKundun5, 4, 20); // Arrow Viper Bow
-        this.AddDropItem(boxOfKundun5, 5, 11); // Staff of Kundun
-        this.AddDropItem(boxOfKundun5, 5, 13); // Platina Staff
-        this.AddArmorSet(boxOfKundun5, 21); // Great Dragon Set
-        this.AddArmorSet(boxOfKundun5, 22); // Dark Soul Set
-        this.AddArmorSet(boxOfKundun5, 23); // Hurricane Set
-        this.AddArmorSet(boxOfKundun5, 24); // Red Spirit Set
-        this.AddArmorSet(boxOfKundun5, 28); // Dark Master Set
-        this.AddArmorSet(boxOfKundun5, 34); // Ashcrow Set
-        this.AddArmorSet(boxOfKundun5, 35); // Eclipse Set
-        this.AddArmorSet(boxOfKundun5, 36); // Iris Set
-        this.AddArmorSet(boxOfKundun5, 37); // Valiant Set
-        this.AddArmorSet(boxOfKundun5, 38); // Glorious Set
-        this.AddArmorSet(boxOfKundun5, 61); // Piercing Groove Fire Set
+        this.AddDropItem(boxOfKundun5, 0, 22); // Bone Blade
+        this.AddDropItem(boxOfKundun5, 0, 23); // Explosion Blade
+        this.AddDropItem(boxOfKundun5, 0, 26); // Flamberge
+        this.AddDropItem(boxOfKundun5, 0, 27); // Sword Breaker
+        this.AddDropItem(boxOfKundun5, 0, 28); // Imperial Sword
+        this.AddDropItem(boxOfKundun5, 0, 35); // Phoenix Soul Star
+        this.AddDropItem(boxOfKundun5, 2, 14); // Soleil Scepter
+        this.AddDropItem(boxOfKundun5, 4, 21); // Sylph Wind Bow
+        this.AddDropItem(boxOfKundun5, 5, 12); // Grand Viper Staff
+        this.AddDropItem(boxOfKundun5, 5, 19); // Storm Blitz Stick
+        this.AddDropItem(boxOfKundun5, 5, 20); // Eternal Wing Stick
+        this.AddDropItem(boxOfKundun5, 5, 30); // Deadly Staff
+        this.AddDropItem(boxOfKundun5, 5, 31); // Imperial Staff
+        this.AddArmorSet(boxOfKundun5, 29); // Dragon Knight Set
+        this.AddArmorSet(boxOfKundun5, 30); // Venom Mist Set
+        this.AddArmorSet(boxOfKundun5, 31); // Sylphid Ray Set
+        this.AddArmorSet(boxOfKundun5, 32); // Volcano Set
+        this.AddArmorSet(boxOfKundun5, 33); // Sunlight Set
+        this.AddArmorSet(boxOfKundun5, 43); // Aura Set
+        this.AddArmorSet(boxOfKundun5, 73); // Phoenix Soul Set
 
         var heartOfDarkLord = this.Context.CreateNew<ItemDropItemGroup>();
         heartOfDarkLord.ItemType = SpecialItemType.RandomItem;

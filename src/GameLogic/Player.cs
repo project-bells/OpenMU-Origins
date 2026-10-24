@@ -412,7 +412,11 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
     public ISkillList? SkillList { get; private set; }
 
     /// <inheritdoc />
-    public ComboStateMachine? ComboState => this.Attributes?[Stats.IsSkillComboAvailable] > 0 ? this._comboStateLazy?.Value : null;
+    // A combo definition is only assigned to character classes which support combos.
+    // Don't additionally depend on the legacy quest attribute here: imported or
+    // previously converted characters can have completed Marlon's quest without
+    // that attribute being persisted, which made every valid combo fail.
+    public ComboStateMachine? ComboState => this._comboStateLazy?.Value;
 
     /// <summary>
     /// Gets the player summon.
