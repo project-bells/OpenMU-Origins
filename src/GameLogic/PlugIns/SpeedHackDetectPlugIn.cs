@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MUnique.OpenMU.DataModel.Configuration;
+using MUnique.OpenMU.GameLogic.AntiCheat;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.Pathfinding;
 using MUnique.OpenMU.PlugIns;
@@ -81,6 +82,7 @@ public class SpeedHackDetectPlugIn : IFeaturePlugIn, ISupportCustomConfiguration
         if (violationSeverity is not SpeedHackViolationSeverity.None)
         {
             eventArgs.Severity = violationSeverity;
+            this.ReportCentralRisk(player, AntiCheatCategory.MovementSpeed, violationSeverity, "movement.speed.exceeded");
             await this.RecordViolationAsync(player, state, config, violationSeverity).ConfigureAwait(false);
         }
     }
@@ -136,6 +138,7 @@ public class SpeedHackDetectPlugIn : IFeaturePlugIn, ISupportCustomConfiguration
             // stay soft and debounced, exactly as before: only sustained violations spread
             // over time can accumulate toward a punishment, never a single burst.
             eventArgs.Severity = SpeedHackViolationSeverity.Resync;
+            this.ReportCentralRisk(player, AntiCheatCategory.AttackSpeed, eventArgs.Severity, "attack.speed.exceeded");
             await this.RecordViolationAsync(player, state, config, eventArgs.Severity).ConfigureAwait(false);
         }
     }
@@ -204,6 +207,20 @@ public class SpeedHackDetectPlugIn : IFeaturePlugIn, ISupportCustomConfiguration
     private static bool IsGameMaster(Player player) =>
         player.Account?.State is AccountState.GameMaster or AccountState.GameMasterInvisible
         || player.SelectedCharacter?.CharacterStatus is CharacterStatus.GameMaster;
+
+    private void ReportCentralRisk(Player player, AntiCheatCategory category, SpeedHackViolationSeverity severity, string code)
+    {
+        if (player.GameContext.FeaturePlugIns.GetPlugIn<ServerAuthoritativeAntiCheatPlugIn>() is not { } antiCheat)
+        {
+            return;
+        }
+
+        double points = severity == SpeedHackViolationSeverity.Reject ? 15.0 : 5.0;
+        antiCheat.Report(
+            player,
+            new AntiCheatEvidence(category, points, code, $"severity={severity}", this._timeProvider.GetUtcNow()),
+            severity == SpeedHackViolationSeverity.Reject);
+    }
 
     /// <summary>
     /// Gets the maximum walk credit, which defines how far the walk start points

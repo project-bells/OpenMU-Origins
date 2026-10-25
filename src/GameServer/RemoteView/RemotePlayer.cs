@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.GameServer.RemoteView;
 using System.Buffers;
 using Microsoft.Extensions.Logging;
 using MUnique.OpenMU.GameLogic;
+using MUnique.OpenMU.GameLogic.AntiCheat;
 using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameServer.MessageHandler;
 using MUnique.OpenMU.Network;
@@ -21,6 +22,8 @@ public class RemotePlayer : Player, IClientVersionProvider, IHasIpAddress
     private readonly byte[] _packetBuffer = new byte[0xFF];
 
     private readonly string? _ipAddress;
+
+    private readonly PacketAdmissionGuard? _packetAdmissionGuard;
 
     private ClientVersion _clientVersion;
 
@@ -39,6 +42,11 @@ public class RemotePlayer : Player, IClientVersionProvider, IHasIpAddress
             ? (ipEndPoint.Address.IsIPv4MappedToIPv6 ? ipEndPoint.Address.MapToIPv4() : ipEndPoint.Address).ToString()
             : null;
         this.MainPacketHandler = new MainPacketHandlerPlugInContainer(this, gameContext.PlugInManager, gameContext.LoggerFactory);
+        if (gameContext.FeaturePlugIns.GetPlugIn<ServerAuthoritativeAntiCheatPlugIn>() is { Configuration: not null } antiCheat)
+        {
+            this._packetAdmissionGuard = new PacketAdmissionGuard(this, antiCheat);
+        }
+
         this.MainPacketHandler.Initialize();
         this.Connection!.PacketReceived += this.PacketReceivedAsync;
         this.Connection!.Disconnected += this.DisconnectAsync;
@@ -190,6 +198,26 @@ public class RemotePlayer : Player, IClientVersionProvider, IHasIpAddress
 
             try
             {
+                if (this._packetAdmissionGuard is { } admissionGuard
+                    && !admissionGuard.TryAdmit(DateTimeOffset.UtcNow, buffer.Length, out var antiCheatDecision))
+                {
+                    this.Logger.LogWarning(
+                        "Anti-cheat rejected packet. Category={Category}, Score={Score}, RiskLevel={RiskLevel}, Account={Account}, Character={Character}, IpAddress={IpAddress}, PacketLength={PacketLength}",
+                        AntiCheatCategory.PacketFrequency,
+                        antiCheatDecision?.Score,
+                        antiCheatDecision?.Level,
+                        this.GetAccountName(),
+                        this.GetSelectedCharacterName(),
+                        this.IpAddress,
+                        buffer.Length);
+                    if (antiCheatDecision?.Disconnect == true)
+                    {
+                        await this.DisconnectAsync().ConfigureAwait(false);
+                    }
+
+                    return;
+                }
+
                 if (this.Logger.IsEnabled(LogLevel.Debug))
                 {
                     this.Logger.LogDebug("[C->S] {0}", buffer.ToArray().AsString());
