@@ -2,6 +2,10 @@ BEGIN;
 
 -- The Class 3 quest can be accepted and its maps can work even when this
 -- plug-in configuration is missing. Without it, monster kills are not counted.
+UPDATE config."PlugInConfiguration"
+SET "IsActive" = TRUE
+WHERE "TypeId" = '416c2231-d7fe-414a-9321-26622e262ef5';
+
 INSERT INTO config."PlugInConfiguration"
 (
     "Id",
@@ -22,6 +26,12 @@ SELECT
     NULL
 FROM config."GameServerDefinition" server
 WHERE server."GameConfigurationId" IS NOT NULL
+  AND NOT EXISTS
+  (
+      SELECT 1
+      FROM config."PlugInConfiguration" existing
+      WHERE existing."TypeId" = '416c2231-d7fe-414a-9321-26622e262ef5'
+  )
 ORDER BY server."ServerID"
 LIMIT 1
 ON CONFLICT ("Id") DO UPDATE
