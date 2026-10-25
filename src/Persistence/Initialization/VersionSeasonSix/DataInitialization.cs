@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using MUnique.OpenMU.DataModel.Configuration;
+using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.PlugIns.ChatCommands;
 using MUnique.OpenMU.Network.PlugIns;
 using MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.TestAccounts;
@@ -70,7 +71,8 @@ public class DataInitialization : DataInitializationBase
 
     /// <inheritdoc />
     protected override bool IsPlugInActiveByDefault(Type plugInType, bool defaultValue)
-        => plugInType == typeof(AddStrengthStatChatCommandPlugIn)
+        => plugInType == typeof(QuestMonsterKillCountPlugIn)
+           || plugInType == typeof(AddStrengthStatChatCommandPlugIn)
            || plugInType == typeof(AddAgilityStatChatCommandPlugIn)
            || plugInType == typeof(AddVitalityStatChatCommandPlugIn)
            || plugInType == typeof(AddEnergyStatChatCommandPlugIn)
