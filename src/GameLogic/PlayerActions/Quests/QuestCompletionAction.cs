@@ -34,6 +34,13 @@ public class QuestCompletionAction
             return;
         }
 
+        if (activeQuest.Rewards.Any(reward => reward.RewardType == QuestRewardType.CharacterEvolutionSecondToThird))
+        {
+            player.Logger.LogInformation("Class 3 quest completion was rejected; player must use /evo at level 400.");
+            await player.ShowBlueMessageAsync("Class 3 evolution is available through /evo at level 400.").ConfigureAwait(false);
+            return;
+        }
+
         foreach (var requiredItem in activeQuest.RequiredItems)
         {
             var requiredLevel = requiredItem.DropItemGroup?.ItemLevel;
@@ -149,16 +156,7 @@ public class QuestCompletionAction
                     true).ConfigureAwait(false);
                 break;
             case QuestRewardType.CharacterEvolutionSecondToThird:
-                player.SelectedCharacter!.CharacterClass = player.SelectedCharacter.CharacterClass?.NextGenerationClass
-                                                           ?? throw new InvalidOperationException($"Current character class has no next generation");
-                await player.ForEachWorldObserverAsync<ILegacyQuestRewardPlugIn>(
-                    p => p.ShowAsync(
-                        player,
-                        QuestRewardType.CharacterEvolutionSecondToThird,
-                        reward.Value,
-                        null),
-                    true).ConfigureAwait(false);
-                await player.InvokeViewPlugInAsync<IUpdateMasterStatsPlugIn>(p => p.SendMasterStatsAsync()).ConfigureAwait(false);
+                player.Logger.LogWarning("Ignored a Class 3 quest reward; Class 3 evolution is restricted to /evo at level 400.");
                 break;
             case QuestRewardType.Experience:
                 await player.AddExperienceAsync(reward.Value, null).ConfigureAwait(false);
