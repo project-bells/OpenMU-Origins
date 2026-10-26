@@ -74,4 +74,28 @@ public sealed class ServerAuthoritativeAntiCheatConfiguration
     [Range(0.1, 100.0)]
     [Display(Name = "Invalid combat range risk points")]
     public double InvalidCombatRangeRiskPoints { get; set; } = 15.0;
+
+    /// <summary>
+    /// Gets or sets the shortest accepted interval between casts of the same skill.
+    /// </summary>
+    [DefaultValue(25.0)]
+    [Range(5.0, 1000.0)]
+    [Display(Name = "Minimum skill interval (milliseconds)", Description = "Server-side hard floor for repeated casts of the same skill.")]
+    public double MinimumSkillIntervalMilliseconds { get; set; } = 25.0;
+
+    /// <summary>
+    /// Gets or sets the short burst capacity for each skill.
+    /// </summary>
+    [DefaultValue(3.0)]
+    [Range(1.0, 20.0)]
+    [Display(Name = "Skill cast burst capacity", Description = "Allows small network bursts without accepting sustained cast flooding.")]
+    public double SkillCastBurstCapacity { get; set; } = 3.0;
+
+    /// <summary>
+    /// Gets or sets the risk points for a skill cast which exceeds its server-side budget.
+    /// </summary>
+    [DefaultValue(8.0)]
+    [Range(0.1, 100.0)]
+    [Display(Name = "Skill cooldown risk points")]
+    public double SkillCooldownRiskPoints { get; set; } = 8.0;
 }

@@ -18,6 +18,7 @@ using MUnique.OpenMU.PlugIns;
 public sealed class ServerAuthoritativeAntiCheatPlugIn : IFeaturePlugIn, ISupportCustomConfiguration<ServerAuthoritativeAntiCheatConfiguration>, ISupportDefaultCustomConfiguration
 {
     private readonly ConditionalWeakTable<Player, AntiCheatRiskState> _riskStates = new();
+    private readonly ConditionalWeakTable<Player, SkillCastAdmissionGuard> _skillCastGuards = new();
 
     /// <inheritdoc />
     public ServerAuthoritativeAntiCheatConfiguration? Configuration { get; set; }
@@ -54,5 +55,34 @@ public sealed class ServerAuthoritativeAntiCheatPlugIn : IFeaturePlugIn, ISuppor
             player.Account?.LoginName,
             player.SelectedCharacter?.Name);
         return decision;
+    }
+
+    /// <summary>
+    /// Checks a skill cast against the server-side per-skill timing budget.
+    /// </summary>
+    public bool TryAdmitSkillCast(Player player, ushort skillId, DateTimeOffset now, out AntiCheatDecision? decision)
+    {
+        if (this.Configuration is not { } configuration
+            || player is Offline.OfflinePlayer
+            || this._skillCastGuards.GetOrCreateValue(player).TryAdmit(
+                skillId,
+                now,
+                configuration.MinimumSkillIntervalMilliseconds,
+                configuration.SkillCastBurstCapacity))
+        {
+            decision = null;
+            return true;
+        }
+
+        decision = this.Report(
+            player,
+            new AntiCheatEvidence(
+                AntiCheatCategory.SkillCooldown,
+                configuration.SkillCooldownRiskPoints,
+                "combat.skill_cast.rate_exceeded",
+                $"skill={skillId};minimumIntervalMs={configuration.MinimumSkillIntervalMilliseconds:F2};burst={configuration.SkillCastBurstCapacity:F2}",
+                now),
+            true);
+        return configuration.ObserveOnly;
     }
 }

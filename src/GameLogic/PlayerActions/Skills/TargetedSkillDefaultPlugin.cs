@@ -72,6 +72,12 @@ public class TargetedSkillDefaultPlugin : TargetedSkillPluginBase
             return;
         }
 
+        if (player.GameContext.FeaturePlugIns.GetPlugIn<ServerAuthoritativeAntiCheatPlugIn>() is { } antiCheat
+            && !antiCheat.TryAdmitSkillCast(player, skillId, DateTimeOffset.UtcNow, out _))
+        {
+            return;
+        }
+
         if (skill.SkillType != SkillType.Buff && skill.SkillType != SkillType.Regeneration && skill.SkillType != SkillType.SummonMonster)
         {
             if (player.GameContext.PlugInManager.GetPlugInPoint<ISpeedHackCheatCheckPlugIn>() is { } speedCheck)

@@ -37,6 +37,12 @@ public class AreaSkillAttackAction
             return;
         }
 
+        if (player.GameContext.FeaturePlugIns.GetPlugIn<ServerAuthoritativeAntiCheatPlugIn>() is { } antiCheat
+            && !antiCheat.TryAdmitSkillCast(player, skillId, DateTimeOffset.UtcNow, out _))
+        {
+            return;
+        }
+
         if (player.GameContext.FeaturePlugIns.GetPlugIn<ServerAuthoritativeAntiCheatPlugIn>() is { Configuration: { } antiCheatConfiguration }
             && !CombatActionValidator.IsAreaTargetWithinRange(player.Position, targetAreaCenter, skill, antiCheatConfiguration.SkillRangeTolerance))
         {
