@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using MUnique.OpenMU.GameLogic.AntiCheat;
 using MUnique.OpenMU.PlugIns;
 
 /// <summary>
@@ -46,10 +47,29 @@ public class MaximumConnectionsPerIpPlugIn : IPlayerStateChangingPlugIn, ISuppor
 
         if (sameIpCount >= config.MaximumConnectionsPerIp)
         {
+            if (player.GameContext.FeaturePlugIns.GetPlugIn<ServerAuthoritativeAntiCheatPlugIn>() is { } antiCheat)
+            {
+                antiCheat.Report(
+                    player,
+                    new AntiCheatEvidence(
+                        AntiCheatCategory.MultiClient,
+                        config.RiskPoints,
+                        "session.ip_connection_limit.exceeded",
+                        $"ip={ipAddress};active={sameIpCount};limit={config.MaximumConnectionsPerIp}",
+                        DateTimeOffset.UtcNow),
+                    true);
+            }
+
             player.Logger.LogWarning(
-                "Login request for IP '{IpAddress}' was cancelled. It exceeded the maximum connection limit of {Limit}.",
+                "Login request for IP '{IpAddress}' exceeded the maximum connection limit of {Limit}. ObserveOnly={ObserveOnly}.",
                 ipAddress,
-                config.MaximumConnectionsPerIp);
+                config.MaximumConnectionsPerIp,
+                config.ObserveOnly);
+            if (!ShouldReject(sameIpCount, config.MaximumConnectionsPerIp, config.ObserveOnly))
+            {
+                return;
+            }
+
             player.LoginResultOverride = Views.Login.LoginResult.ServerIsFull;
             eventArgs.Cancel = true;
         }
@@ -60,6 +80,12 @@ public class MaximumConnectionsPerIpPlugIn : IPlayerStateChangingPlugIn, ISuppor
     {
         return CreateDefaultConfiguration();
     }
+
+    /// <summary>
+    /// Determines whether an excessive connection must be rejected.
+    /// </summary>
+    internal static bool ShouldReject(int activeConnectionCount, int maximumConnections, bool observeOnly)
+        => !observeOnly && activeConnectionCount >= Math.Max(1, maximumConnections);
 
     private static MaximumConnectionsPerIpPlugInConfiguration CreateDefaultConfiguration()
     {
