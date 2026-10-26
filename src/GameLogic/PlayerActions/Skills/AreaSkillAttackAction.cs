@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.GameLogic.PlayerActions.Skills;
 
 using System.Diagnostics.CodeAnalysis;
 using MUnique.OpenMU.DataModel.Configuration;
+using MUnique.OpenMU.GameLogic.AntiCheat;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.Views;
@@ -34,6 +35,19 @@ public class AreaSkillAttackAction
         if (skillEntry?.Skill is not { } skill || skill.SkillType == SkillType.PassiveBoost)
         {
             return;
+        }
+
+        if (player.GameContext.FeaturePlugIns.GetPlugIn<ServerAuthoritativeAntiCheatPlugIn>() is { Configuration: { } antiCheatConfiguration }
+            && !CombatActionValidator.IsAreaTargetWithinRange(player.Position, targetAreaCenter, skill, antiCheatConfiguration.SkillRangeTolerance))
+        {
+            player.ReportRejectedAction(
+                AntiCheatCategory.AttackRange,
+                "combat.area_skill.target_out_of_range",
+                $"skill={skill.Number};distance={player.Position.EuclideanDistanceTo(targetAreaCenter):F2};allowed={skill.Range + antiCheatConfiguration.SkillRangeTolerance}");
+            if (!antiCheatConfiguration.ObserveOnly)
+            {
+                return;
+            }
         }
 
         if (skill.SkillType != SkillType.Buff && skill.SkillType != SkillType.Regeneration)

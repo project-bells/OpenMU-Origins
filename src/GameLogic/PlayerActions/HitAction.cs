@@ -4,6 +4,7 @@
 
 namespace MUnique.OpenMU.GameLogic.PlayerActions;
 
+using MUnique.OpenMU.GameLogic.AntiCheat;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.Views.World;
@@ -58,6 +59,19 @@ public class HitAction
         if (target.IsAtSafezone())
         {
             return;
+        }
+
+        if (player.GameContext.FeaturePlugIns.GetPlugIn<ServerAuthoritativeAntiCheatPlugIn>() is { Configuration: { } antiCheatConfiguration }
+            && !CombatActionValidator.IsWithinRange(player.Position, target.Position, antiCheatConfiguration.BasicAttackRange))
+        {
+            player.ReportRejectedAction(
+                AntiCheatCategory.AttackRange,
+                "combat.basic_attack.out_of_range",
+                $"distance={player.GetDistanceTo(target):F2};allowed={antiCheatConfiguration.BasicAttackRange};target={target.Id}");
+            if (!antiCheatConfiguration.ObserveOnly)
+            {
+                return;
+            }
         }
 
         if (target is IObservable targetAsObservable)

@@ -50,4 +50,28 @@ public sealed class ServerAuthoritativeAntiCheatConfiguration
     [Range(0.1, 1440.0)]
     [Display(Name = "Risk score half-life (minutes)")]
     public double RiskScoreHalfLifeMinutes { get; set; } = AntiCheatRiskPolicy.DefaultHalfLifeMinutes;
+
+    /// <summary>
+    /// Gets or sets the maximum server-side range of a basic melee attack.
+    /// </summary>
+    [DefaultValue(3)]
+    [Range(1, 16)]
+    [Display(Name = "Basic attack range", Description = "Maximum tile distance for a basic attack.")]
+    public int BasicAttackRange { get; set; } = 3;
+
+    /// <summary>
+    /// Gets or sets the additional range allowed for targeted skills to absorb normal position desynchronization.
+    /// </summary>
+    [DefaultValue(2)]
+    [Range(0, 8)]
+    [Display(Name = "Skill range tolerance", Description = "Additional tile tolerance for targeted and aimed skills.")]
+    public int SkillRangeTolerance { get; set; } = 2;
+
+    /// <summary>
+    /// Gets or sets the risk points added for an impossible combat range.
+    /// </summary>
+    [DefaultValue(15.0)]
+    [Range(0.1, 100.0)]
+    [Display(Name = "Invalid combat range risk points")]
+    public double InvalidCombatRangeRiskPoints { get; set; } = 15.0;
 }

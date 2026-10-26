@@ -39,6 +39,20 @@ public sealed class ServerAuthoritativeAntiCheatPlugIn : IFeaturePlugIn, ISuppor
             return null;
         }
 
-        return this._riskStates.GetOrCreateValue(player).Add(evidence, impossibleAction, configuration.RiskScoreHalfLifeMinutes);
+        var decision = this._riskStates.GetOrCreateValue(player).Add(evidence, impossibleAction, configuration.RiskScoreHalfLifeMinutes);
+        player.Logger.LogWarning(
+            "Anti-cheat evidence. Category={Category}, Code={Code}, Facts={Facts}, Points={Points}, Score={Score}, RiskLevel={RiskLevel}, RejectAction={RejectAction}, Disconnect={Disconnect}, ManualReview={ManualReview}, Account={Account}, Character={Character}",
+            evidence.Category,
+            evidence.Code,
+            evidence.Facts,
+            evidence.Points,
+            decision.Score,
+            decision.Level,
+            decision.RejectAction,
+            decision.Disconnect,
+            decision.RequiresManualReview,
+            player.Account?.LoginName,
+            player.SelectedCharacter?.Name);
+        return decision;
     }
 }

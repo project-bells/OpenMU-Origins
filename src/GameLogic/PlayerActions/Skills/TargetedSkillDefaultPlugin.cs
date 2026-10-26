@@ -5,6 +5,7 @@
 namespace MUnique.OpenMU.GameLogic.PlayerActions.Skills;
 
 using System.Runtime.InteropServices;
+using MUnique.OpenMU.GameLogic.AntiCheat;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.NPC;
 using MUnique.OpenMU.GameLogic.PlugIns;
@@ -107,8 +108,15 @@ public class TargetedSkillDefaultPlugin : TargetedSkillPluginBase
             return;
         }
 
-        if (!player.IsInRange(target.Position, skill.Range + 2))
+        int rangeTolerance = player.GameContext.FeaturePlugIns.GetPlugIn<ServerAuthoritativeAntiCheatPlugIn>()?.Configuration?.SkillRangeTolerance ?? 2;
+        int allowedRange = skill.Range + rangeTolerance;
+        if (!player.IsInRange(target.Position, allowedRange))
         {
+            player.ReportRejectedAction(
+                AntiCheatCategory.AttackRange,
+                "combat.targeted_skill.out_of_range",
+                $"skill={skill.Number};distance={player.GetDistanceTo(target):F2};allowed={allowedRange};target={target.Id}");
+
             // target position might be out of sync so we send the current coordinates to the client again.
             if (!(target is ISupportWalk { IsWalking: true }))
             {
