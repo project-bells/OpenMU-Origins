@@ -98,4 +98,12 @@ public sealed class ServerAuthoritativeAntiCheatConfiguration
     [Range(0.1, 100.0)]
     [Display(Name = "Skill cooldown risk points")]
     public double SkillCooldownRiskPoints { get; set; } = 8.0;
+
+    /// <summary>
+    /// Gets or sets the risk points for an overlapping economic transaction from the same player.
+    /// </summary>
+    [DefaultValue(25.0)]
+    [Range(0.1, 100.0)]
+    [Display(Name = "Concurrent transaction risk points", Description = "Risk added when a client starts another economic transaction before its previous transaction completed.")]
+    public double ConcurrentTransactionRiskPoints { get; set; } = 25.0;
 }

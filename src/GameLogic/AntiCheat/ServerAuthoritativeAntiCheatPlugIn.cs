@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.GameLogic.AntiCheat;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using MUnique.OpenMU.PlugIns;
 
 /// <summary>
@@ -19,6 +20,7 @@ public sealed class ServerAuthoritativeAntiCheatPlugIn : IFeaturePlugIn, ISuppor
 {
     private readonly ConditionalWeakTable<Player, AntiCheatRiskState> _riskStates = new();
     private readonly ConditionalWeakTable<Player, SkillCastAdmissionGuard> _skillCastGuards = new();
+    private readonly ConditionalWeakTable<Player, EconomicTransactionState> _economicTransactionStates = new();
 
     /// <inheritdoc />
     public ServerAuthoritativeAntiCheatConfiguration? Configuration { get; set; }
@@ -84,5 +86,81 @@ public sealed class ServerAuthoritativeAntiCheatPlugIn : IFeaturePlugIn, ISuppor
                 now),
             true);
         return configuration.ObserveOnly;
+    }
+
+    /// <summary>
+    /// Tries to reserve the player's economic transaction slot. A player may mutate inventory or
+    /// currency through only one client-requested transaction at a time.
+    /// </summary>
+    /// <param name="player">The player which requested the transaction.</param>
+    /// <param name="operation">A stable operation name for the audit evidence.</param>
+    /// <param name="now">The server timestamp of the request.</param>
+    /// <param name="lease">A lease which must be disposed after the transaction finishes.</param>
+    /// <param name="decision">The risk decision when the request overlaps another transaction.</param>
+    /// <returns><c>true</c> when the transaction slot was reserved; otherwise, <c>false</c>.</returns>
+    public bool TryBeginEconomicTransaction(Player player, string operation, DateTimeOffset now, out IDisposable? lease, out AntiCheatDecision? decision)
+    {
+        var state = this._economicTransactionStates.GetOrCreateValue(player);
+        if (state.TryEnter(out lease))
+        {
+            decision = null;
+            return true;
+        }
+
+        decision = this.Report(
+            player,
+            new AntiCheatEvidence(
+                AntiCheatCategory.TradeIntegrity,
+                this.Configuration?.ConcurrentTransactionRiskPoints ?? 25.0,
+                "economy.transaction.concurrent",
+                $"operation={operation}",
+                now),
+            true);
+        return false;
+    }
+
+    private sealed class EconomicTransactionState
+    {
+        private readonly object _sync = new();
+        private bool _active;
+
+        public bool TryEnter(out IDisposable? lease)
+        {
+            lock (this._sync)
+            {
+                if (this._active)
+                {
+                    lease = null;
+                    return false;
+                }
+
+                this._active = true;
+                lease = new TransactionLease(this);
+                return true;
+            }
+        }
+
+        private void Exit()
+        {
+            lock (this._sync)
+            {
+                this._active = false;
+            }
+        }
+
+        private sealed class TransactionLease : IDisposable
+        {
+            private EconomicTransactionState? _owner;
+
+            public TransactionLease(EconomicTransactionState owner)
+            {
+                this._owner = owner;
+            }
+
+            public void Dispose()
+            {
+                Interlocked.Exchange(ref this._owner, null)?.Exit();
+            }
+        }
     }
 }

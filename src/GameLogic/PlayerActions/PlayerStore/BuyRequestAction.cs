@@ -4,6 +4,7 @@
 
 namespace MUnique.OpenMU.GameLogic.PlayerActions.PlayerStore;
 
+using MUnique.OpenMU.GameLogic.AntiCheat;
 using MUnique.OpenMU.GameLogic.PlayerShopCurrencies;
 using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.Views;
@@ -31,6 +32,17 @@ public class BuyRequestAction
             await player.InvokeViewPlugInAsync<IPlayerShopBuyRequestResultPlugIn>(p => p.ShowResultAsync(requestedPlayer, ItemBuyResult.ItemBlock, null)).ConfigureAwait(false);
             return;
         }
+
+        IDisposable? economicTransactionLease = null;
+        if (player.GameContext.FeaturePlugIns.GetPlugIn<ServerAuthoritativeAntiCheatPlugIn>() is { } antiCheat
+            && !antiCheat.TryBeginEconomicTransaction(player, "player-shop-buy", DateTimeOffset.UtcNow, out economicTransactionLease, out _))
+        {
+            player.Logger.LogWarning("Rejected overlapping player-shop purchase request from {player}.", player);
+            await player.InvokeViewPlugInAsync<IPlayerShopBuyRequestResultPlugIn>(p => p.ShowResultAsync(requestedPlayer, ItemBuyResult.ItemBlock, null)).ConfigureAwait(false);
+            return;
+        }
+
+        using var transactionLease = economicTransactionLease;
 
         if (!(requestedPlayer.ShopStorage?.StoreOpen ?? false))
         {
