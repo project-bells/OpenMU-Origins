@@ -41,7 +41,7 @@ public sealed class ItemBoxDroppedPlugIn : IItemDropPlugIn
         var (item, droppedMoneyAmount, dropEffect) = player.GameContext.DropGenerator.GenerateItemDrop(itemDropGroups);
         if (droppedMoneyAmount is not null)
         {
-            var droppedMoney = new DroppedMoney(droppedMoneyAmount.Value, player.Position, player.CurrentMap!);
+            var droppedMoney = new DroppedMoney(droppedMoneyAmount.Value, player.Position, player.CurrentMap!, applyMoneyAmountRate: false);
             await player.CurrentMap!.AddAsync(droppedMoney).ConfigureAwait(false);
         }
 

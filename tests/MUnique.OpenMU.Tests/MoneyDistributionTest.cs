@@ -99,6 +99,26 @@ public class MoneyDistributionTest
     }
 
     /// <summary>
+    /// Tests that a fixed item-box reward is not multiplied by the global money rate. Multiplying a
+    /// configured 3M reward by a high-rate server setting can exceed the inventory limit and make the
+    /// visible money pile impossible to pick up.
+    /// </summary>
+    [Test]
+    public async Task FixedItemBoxMoneyIgnoresMoneyRateAsync()
+    {
+        const uint fixedReward = 3_000_000;
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        player.GameContext.Configuration.MaximumInventoryMoney = int.MaxValue;
+        player.Money = 0;
+        SetMoneyRate(player, 1000.0f);
+
+        var money = new DroppedMoney(fixedReward, DropPosition, player.CurrentMap!, applyMoneyAmountRate: false);
+
+        Assert.That(await money.TryPickUpByAsync(player).ConfigureAwait(false), Is.True);
+        Assert.That(player.Money, Is.EqualTo((int)fixedReward));
+    }
+
+    /// <summary>
     /// Tests that the pick up clamp is calculated on the amount *after* the money rate was applied.
     /// Clamping the raw amount would let the player exceed the maximum inventory money.
     /// </summary>

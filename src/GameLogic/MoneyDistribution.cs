@@ -11,8 +11,8 @@ using MUnique.OpenMU.GameLogic.Attributes;
 /// </summary>
 /// <remarks>
 /// This is the single place where <see cref="Stats.MoneyAmountRate"/> and
-/// <see cref="DataModel.Configuration.GameConfiguration.ClampMoneyOnPickup"/> are applied, so that
-/// every path - dropped on the ground, added directly, solo or in a party - treats them the same way.
+/// <see cref="DataModel.Configuration.GameConfiguration.ClampMoneyOnPickup"/> are applied. Fixed item-box
+/// rewards opt out of the rate because their configured amount is already the final reward.
 /// </remarks>
 internal static class MoneyDistribution
 {
@@ -80,8 +80,9 @@ internal static class MoneyDistribution
     /// </summary>
     /// <param name="shares">The shares.</param>
     /// <param name="isEligible">Determines whether a player may still receive their share.</param>
+    /// <param name="applyMoneyAmountRate">Whether each receiver's money drop rate is applied.</param>
     /// <returns><c>True</c>, if at least one player received money; Otherwise, <c>false</c>.</returns>
-    public static bool TryPayShares(IReadOnlyList<MoneyShare> shares, Func<Player, bool> isEligible)
+    public static bool TryPayShares(IReadOnlyList<MoneyShare> shares, Func<Player, bool> isEligible, bool applyMoneyAmountRate = true)
     {
         var eligible = new List<MoneyShare>(shares.Count);
         uint forfeited = 0;
@@ -117,7 +118,7 @@ internal static class MoneyDistribution
         var received = false;
         for (int i = 0; i < eligible.Count; i++)
         {
-            received |= TryPay(eligible[i].Player, eligible[i].Amount + extra[i]);
+            received |= TryPay(eligible[i].Player, eligible[i].Amount + extra[i], applyMoneyAmountRate);
         }
 
         return received;
@@ -128,9 +129,10 @@ internal static class MoneyDistribution
     /// and the configured pick up clamp.
     /// </summary>
     /// <param name="player">The player which should receive the money.</param>
-    /// <param name="amount">The amount, before the money rate of the player is applied.</param>
+    /// <param name="amount">The configured amount.</param>
+    /// <param name="applyMoneyAmountRate">Whether the receiver's money drop rate is applied.</param>
     /// <returns><c>True</c>, if the player received money; Otherwise, <c>false</c>.</returns>
-    public static bool TryPay(Player player, uint amount)
+    public static bool TryPay(Player player, uint amount, bool applyMoneyAmountRate = true)
     {
         if (amount == 0)
         {
@@ -139,7 +141,8 @@ internal static class MoneyDistribution
 
         // The rate is applied in double precision: a float multiplication would round money amounts
         // above the ~16.7M the float mantissa can represent exactly, before the cast to long.
-        var scaled = (long)(amount * (double)(player.Attributes?[Stats.MoneyAmountRate] ?? 1.0f));
+        var rate = applyMoneyAmountRate ? player.Attributes?[Stats.MoneyAmountRate] ?? 1.0f : 1.0f;
+        var scaled = (long)(amount * (double)rate);
         if (scaled <= 0)
         {
             return false;

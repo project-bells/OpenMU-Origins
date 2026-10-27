@@ -21,6 +21,8 @@ public sealed class DroppedMoney : AsyncDisposable, ILocateable
 
     private readonly IReadOnlyList<MoneyShare> _shares;
 
+    private readonly bool _applyMoneyAmountRate;
+
     private Timer? _removeTimer;
 
     private bool _availableToPick = true;
@@ -35,10 +37,15 @@ public sealed class DroppedMoney : AsyncDisposable, ILocateable
     /// The part of the money which is reserved for each player, matching the experience they gained from the kill.
     /// When it's empty - for example for money from an item box - the money is split equally instead.
     /// </param>
-    public DroppedMoney(uint amount, Point position, GameMap map, IReadOnlyList<MoneyShare>? shares = null)
+    /// <param name="applyMoneyAmountRate">
+    /// Whether the receiver's money drop rate is applied. Fixed rewards from item boxes disable this,
+    /// because their configured money amount is the final reward.
+    /// </param>
+    public DroppedMoney(uint amount, Point position, GameMap map, IReadOnlyList<MoneyShare>? shares = null, bool applyMoneyAmountRate = true)
     {
         this.Amount = amount;
         this._shares = shares ?? [];
+        this._applyMoneyAmountRate = applyMoneyAmountRate;
         this._pickupLock = new();
         this.Position = position;
         this.CurrentMap = map;
@@ -139,7 +146,7 @@ public sealed class DroppedMoney : AsyncDisposable, ILocateable
     {
         if (player.Party is not { } party)
         {
-            if (!MoneyDistribution.TryPay(player, this.Amount))
+            if (!MoneyDistribution.TryPay(player, this.Amount, this._applyMoneyAmountRate))
             {
                 player.Logger.LogDebug("Money could not be added to the inventory, Player {0}, Money {1}", player, this);
                 return false;
@@ -157,7 +164,7 @@ public sealed class DroppedMoney : AsyncDisposable, ILocateable
             ? this._shares
             : MoneyDistribution.CreateEqualShares(this.Amount, party.PartyList.OfType<Player>().ToList());
 
-        var received = MoneyDistribution.TryPayShares(shares, member => party.IsEligibleForMoney(member, player));
+        var received = MoneyDistribution.TryPayShares(shares, member => party.IsEligibleForMoney(member, player), this._applyMoneyAmountRate);
         if (!received)
         {
             player.Logger.LogDebug("No party member could take the money, Player {0}, Money {1}", player, this);
