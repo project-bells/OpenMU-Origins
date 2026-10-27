@@ -97,6 +97,9 @@ public class FenrirUpgradeCrafting : BaseItemCraftingHandler
     {
         var fenrir = requiredItems.First(i => i.ItemRequirement.Reference == 1).Items.First();
         fenrir.Durability = 255;
+        // Plasma Storm is an inherent Fenrir skill. Keep it when upgrading an old red
+        // Fenrir which might have been persisted without the skill flag.
+        fenrir.HasSkill = fenrir.Definition?.Skill is not null;
 
         IEnumerable<IncreasableItemOption> fenrirOptions;
         if (requiredItems.Any(i => i.ItemRequirement.Reference == 2))

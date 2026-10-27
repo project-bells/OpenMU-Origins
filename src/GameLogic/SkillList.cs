@@ -50,7 +50,7 @@ public sealed class SkillList : ISkillList, IDisposable
         this._availableSkills = this.CreateAvailableSkills();
         this._itemSkills = new List<SkillEntry>();
         this._player.Inventory.EquippedItems
-            .Where(item => item.HasSkill)
+            .Where(EnsureInherentItemSkill)
             .Where(item => (item.Definition ?? throw Error.NotInitializedProperty(item, nameof(item.Definition))).Skill != null)
             .ForEach(item => this.TryAddItemSkill(item.Definition!.Skill!));
         this._inventory = this._player.Inventory;
@@ -274,6 +274,22 @@ public sealed class SkillList : ISkillList, IDisposable
         return true;
     }
 
+    /// <summary>
+    /// Ensures skills which are an inherent part of an item are available even when an old
+    /// persisted item predates the correct <see cref="Item.HasSkill"/> flag. In Season 6,
+    /// Plasma Storm is intrinsic to every Horn of Fenrir; unlike weapon skills it is not an
+    /// optional item roll.
+    /// </summary>
+    private static bool EnsureInherentItemSkill(Item item)
+    {
+        if (item.Definition is { Group: 13, Number: 37, Skill: not null })
+        {
+            item.HasSkill = true;
+        }
+
+        return item.HasSkill;
+    }
+
     private async ValueTask AddLearnedSkillAsync(SkillEntry skill)
     {
         // A learned skill replaces the entry of an equipped item which grants the same skill: an item
@@ -315,7 +331,7 @@ public sealed class SkillList : ISkillList, IDisposable
     private async ValueTask Inventory_WearingItemsChangedAsync(ItemEventArgs eventArgs)
     {
         var item = eventArgs.Item;
-        if (!item.HasSkill || item.Definition?.Skill is null)
+        if (!EnsureInherentItemSkill(item) || item.Definition?.Skill is null)
         {
             return;
         }
