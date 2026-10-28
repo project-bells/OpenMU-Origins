@@ -23,6 +23,7 @@ using MUnique.OpenMU.Telemetry;
 using MUnique.OpenMU.Web.AdminPanel.Auth;
 using MUnique.OpenMU.Web.AdminPanel.Components;
 using MUnique.OpenMU.Web.AdminPanel.Services;
+using MUnique.OpenMU.Web.AdminPanel.WebShop;
 using MUnique.OpenMU.Web.Shared.Components.Modal;
 using MUnique.OpenMU.Web.Shared.Models;
 using MUnique.OpenMU.Web.Shared.Services;
@@ -74,6 +75,9 @@ public static class WebApplicationExtensions
         services.AddToasts();
 
         services.AddMemoryCache();
+        services.Configure<WebShopOptions>(builder.Configuration.GetSection(WebShopOptions.SectionName));
+        services.AddSingleton<WebShopSessionService>();
+        services.AddHttpClient<PayPalCheckoutService>();
 
         services.AddScoped<ModalService>();
         services.AddScoped<IModalService>(sp => sp.GetRequiredService<ModalService>());

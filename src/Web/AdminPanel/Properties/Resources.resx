@@ -2128,4 +2128,18 @@
   <data name="DashboardOpen" xml:space="preserve">
     <value>Open</value>
   </data>
+  <data name="WebShopPageTitle" xml:space="preserve"><value>MU Origins Web Shop</value></data>
+  <data name="WebShopSubtitle" xml:space="preserve"><value>Secure WCoinC top-ups through PayPal Sandbox</value></data>
+  <data name="WebShopLogout" xml:space="preserve"><value>Sign out</value></data>
+  <data name="WebShopApprovalReturned" xml:space="preserve"><value>Returned from PayPal Sandbox approval. This phase does not capture the payment or grant WCoinC until the webhook and payment ledger are enabled.</value></data>
+  <data name="WebShopPaymentCancelled" xml:space="preserve"><value>The payment was cancelled.</value></data>
+  <data name="WebShopPaymentUnavailable" xml:space="preserve"><value>PayPal Sandbox client ID and secret are not configured.</value></data>
+  <data name="WebShopLoginTitle" xml:space="preserve"><value>Sign in with your game account</value></data>
+  <data name="WebShopLoginFailed" xml:space="preserve"><value>The account name or password is incorrect.</value></data>
+  <data name="WebShopLoginName" xml:space="preserve"><value>Account name</value></data>
+  <data name="WebShopPassword" xml:space="preserve"><value>Password</value></data>
+  <data name="WebShopLoginButton" xml:space="preserve"><value>Sign in to Web Shop</value></data>
+  <data name="WebShopPackagesTitle" xml:space="preserve"><value>Choose a WCoinC package</value></data>
+  <data name="WebShopPayPalButton" xml:space="preserve"><value>Pay with PayPal</value></data>
+  <data name="WebShopSandboxNotice" xml:space="preserve"><value>Sandbox mode uses test money and does not grant real WCoinC in this phase.</value></data>
 </root>

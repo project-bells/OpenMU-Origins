@@ -1,0 +1,22 @@
+.webshop-shell { min-height: 100vh; padding: 3rem clamp(1.25rem, 5vw, 6rem); color: #eef2ff; background: radial-gradient(circle at 15% 0%, #263a7a 0, transparent 32rem), linear-gradient(145deg, #060918, #111a37); font-family: Inter, system-ui, sans-serif; }
+.webshop-hero { display: flex; align-items: center; justify-content: space-between; gap: 2rem; max-width: 1100px; margin: 0 auto 3rem; }
+.webshop-hero h1 { margin: .35rem 0; font-size: clamp(2.8rem, 7vw, 5.5rem); letter-spacing: -.06em; }
+.webshop-kicker { color: #7dd3fc; font-weight: 800; letter-spacing: .25em; }
+.webshop-login, .webshop-shell > section { max-width: 1100px; margin: 0 auto; }
+.webshop-login { max-width: 460px; padding: 2rem; border: 1px solid #ffffff20; border-radius: 1.5rem; background: #ffffff0d; box-shadow: 0 20px 70px #0006; }
+.webshop-login form, .webshop-login label { display: grid; gap: .6rem; }
+.webshop-login form { gap: 1.25rem; }
+.webshop-login input { padding: .9rem 1rem; color: #fff; border: 1px solid #ffffff30; border-radius: .8rem; background: #050817; }
+.webshop-packages { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1.25rem; }
+.webshop-package { display: grid; gap: 1rem; padding: 1.6rem; border: 1px solid #ffffff22; border-radius: 1.4rem; background: linear-gradient(160deg, #ffffff16, #ffffff08); }
+.webshop-package .coin { display: grid; width: 3.25rem; height: 3.25rem; place-items: center; border-radius: 50%; color: #1a1300; background: linear-gradient(145deg, #fde68a, #f59e0b); font-size: 1.5rem; font-weight: 900; }
+.webshop-package strong { font-size: 1.4rem; }
+.webshop-package .price { color: #93c5fd; font-size: 1.7rem; font-weight: 800; }
+.webshop-button { width: 100%; padding: .85rem 1rem; border: 0; border-radius: .8rem; color: #07111f; background: linear-gradient(135deg, #7dd3fc, #60a5fa); font-weight: 800; cursor: pointer; }
+.webshop-button.secondary { width: auto; margin-left: .75rem; color: #fff; background: #ffffff18; }
+.webshop-account { font-weight: 700; }
+.webshop-notice { max-width: 1100px; margin: 0 auto 1.5rem; padding: 1rem 1.2rem; border: 1px solid #fcd34d55; border-radius: .8rem; background: #f59e0b22; }
+.webshop-notice.success { border-color: #4ade8055; background: #22c55e22; }
+.webshop-notice.danger { border-color: #fb718555; background: #e11d4822; }
+.webshop-footnote { margin-top: 1.5rem; color: #a5b4d4; }
+@media (max-width: 600px) { .webshop-hero { align-items: flex-start; flex-direction: column; } }

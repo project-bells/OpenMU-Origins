@@ -1,0 +1,94 @@
+@page "/webshop"
+@using Microsoft.Extensions.Options
+@using MUnique.OpenMU.Web.AdminPanel.WebShop
+@using MUnique.OpenMU.Web.AdminPanel.Properties
+@attribute [AllowAnonymous]
+@layout MUnique.OpenMU.Web.AdminPanel.Components.Layout.WebShopLayout
+@inject IOptions<WebShopOptions> Options
+@inject WebShopSessionService SessionService
+
+<PageTitle>@T("WebShopPageTitle")</PageTitle>
+
+<main class="webshop-shell">
+  <section class="webshop-hero">
+    <div>
+      <span class="webshop-kicker">MU ORIGINS</span>
+      <h1>Web Shop</h1>
+      <p>@T("WebShopSubtitle")</p>
+    </div>
+    @if (this.LoginName is { } loginName)
+    {
+      <form method="post" action="webshop/logout">
+        <AntiforgeryToken />
+        <span class="webshop-account">@loginName</span>
+        <button class="webshop-button secondary" type="submit">@T("WebShopLogout")</button>
+      </form>
+    }
+  </section>
+
+  @if (this.Payment == "approved")
+  {
+    <div class="webshop-notice success">@T("WebShopApprovalReturned")</div>
+  }
+  else if (this.Payment == "cancelled")
+  {
+    <div class="webshop-notice">@T("WebShopPaymentCancelled")</div>
+  }
+  else if (this.Payment == "unavailable")
+  {
+    <div class="webshop-notice danger">@T("WebShopPaymentUnavailable")</div>
+  }
+
+  @if (this.LoginName is null)
+  {
+    <section class="webshop-login">
+      <h2>@T("WebShopLoginTitle")</h2>
+      @if (this.Login == "failed")
+      {
+        <div class="webshop-notice danger">@T("WebShopLoginFailed")</div>
+      }
+      <form method="post" action="webshop/login">
+        <AntiforgeryToken />
+        <label>@T("WebShopLoginName")<input name="loginName" maxlength="10" required autocomplete="username" /></label>
+        <label>@T("WebShopPassword")<input name="password" type="password" maxlength="20" required autocomplete="current-password" /></label>
+        <button class="webshop-button" type="submit">@T("WebShopLoginButton")</button>
+      </form>
+    </section>
+  }
+  else
+  {
+    <section>
+      <h2>@T("WebShopPackagesTitle")</h2>
+      <div class="webshop-packages">
+        @foreach (var package in this.Options.Value.Packages.Where(package => package.PriceThb > 0 && package.WCoinC > 0))
+        {
+          <article class="webshop-package">
+            <span class="coin">W</span>
+            <strong>@package.WCoinC.ToString("N0") WCoinC</strong>
+            <span class="price">฿@package.PriceThb.ToString("N0")</span>
+            <form method="post" action="webshop/checkout/@package.Code">
+              <AntiforgeryToken />
+              <button class="webshop-button" type="submit">@T("WebShopPayPalButton")</button>
+            </form>
+          </article>
+        }
+      </div>
+      <p class="webshop-footnote">@T("WebShopSandboxNotice")</p>
+    </section>
+  }
+</main>
+
+@code {
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    [SupplyParameterFromQuery(Name = "login")]
+    public string? Login { get; set; }
+
+    [SupplyParameterFromQuery(Name = "payment")]
+    public string? Payment { get; set; }
+
+    private string? LoginName => this.HttpContext is null ? null : this.SessionService.GetLoginName(this.HttpContext);
+
+    private static string T(string key) => Resources.ResourceManager.GetString(key) ?? key;
+}
