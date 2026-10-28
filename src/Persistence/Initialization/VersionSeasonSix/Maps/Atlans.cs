@@ -31,7 +31,5 @@ internal class Atlans : Version075.Maps.Atlans
         {
             yield return npc;
         }
-
-        yield return this.CreateMonsterSpawn(10, this.NpcDictionary[229], 17, 35, Direction.SouthEast, SpawnTrigger.Wandering); // Marlon
     }
 }
