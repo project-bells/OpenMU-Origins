@@ -51,7 +51,7 @@ public sealed class WebShopController : Controller
     {
         var gameConfiguration = await this._gameConfigurationSource.GetOwnerAsync(Guid.Empty, cancellationToken).ConfigureAwait(false);
         using var context = this._persistenceContextProvider.CreateNewPlayerContext(gameConfiguration);
-        if (await context.GetAccountByLoginNameAsync(loginName, password, cancellationToken).ConfigureAwait(false) is null)
+        if (await context.AuthenticateAsync(loginName, password, cancellationToken).ConfigureAwait(false) is null)
         {
             return this.Redirect("/webshop?login=failed");
         }
