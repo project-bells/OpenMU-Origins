@@ -78,6 +78,39 @@ public class DropGeneratorTest
     }
 
     /// <summary>
+    /// Tests that an excellent drop never selects an item definition without excellent options.
+    /// </summary>
+    [Test]
+    public async ValueTask TestExcellentDropHasExcellentOptionAsync()
+    {
+        var config = this.GetGameConfig();
+        var regularItem = this.CreateItemDefinition(14, 13, 0);
+        var excellentItem = this.CreateItemDefinition(0, 0, 0);
+        var excellentOption = new IncreasableItemOption { OptionType = ItemOptionTypes.Excellent, Number = 1 };
+        var excellentOptionDefinition = new Mock<ItemOptionDefinition>();
+        excellentOptionDefinition.SetupAllProperties();
+        excellentOptionDefinition.Setup(definition => definition.PossibleOptions).Returns(new List<IncreasableItemOption> { excellentOption });
+        excellentOptionDefinition.Object.MaximumOptionsPerItem = 1;
+        excellentItem.PossibleItemOptions.Add(excellentOptionDefinition.Object);
+
+        var dropGroup = new Mock<DropItemGroup>();
+        dropGroup.SetupAllProperties();
+        dropGroup.Object.Chance = 1.0;
+        dropGroup.Object.ItemType = SpecialItemType.Excellent;
+        dropGroup.Setup(group => group.PossibleItems).Returns(new List<ItemDefinition> { regularItem, excellentItem });
+
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        player.CurrentMap!.Definition.DropItemGroups.Add(dropGroup.Object);
+
+        var generator = new DefaultDropGenerator(config, this.GetRandomizer(0));
+        var (items, _) = await generator.GenerateItemDropsAsync(this.GetMonster(1, 0), 1, player).ConfigureAwait(false);
+        var item = items.Single();
+
+        Assert.That(item.Definition, Is.EqualTo(excellentItem));
+        Assert.That(item.ItemOptions.Single().ItemOption?.OptionType, Is.EqualTo(ItemOptionTypes.Excellent));
+    }
+
+    /// <summary>
     /// Tests the drops defined by a player are getting considered.
     /// </summary>
     public void TestItemDropItemByPlayer()

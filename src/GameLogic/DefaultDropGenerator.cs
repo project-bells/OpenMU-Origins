@@ -184,7 +184,10 @@ public class DefaultDropGenerator : IDropGenerator
             return null;
         }
 
-        var possible = possibleItems ?? this.GetPossibleList(monsterLevel - this._excellentItemDropLevelDelta);
+        var possible = (possibleItems ?? this.GetPossibleList(monsterLevel - this._excellentItemDropLevelDelta) ?? [])
+            .Where(definition => definition.PossibleItemOptions.Any(optionDefinition =>
+                optionDefinition.PossibleOptions.Any(option => option.OptionType == ItemOptionTypes.Excellent)))
+            .ToList();
         var item = this.GenerateRandomItem(possible);
         if (item is null)
         {
