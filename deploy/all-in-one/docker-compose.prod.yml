@@ -25,6 +25,8 @@ services:
     image: nginx:alpine
     container_name: nginx-443
     restart: "unless-stopped"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       DOMAIN_NAME: ${DOMAIN_NAME}
     ports:
@@ -33,6 +35,7 @@ services:
       - ./nginx/nginx.origins443.conf:/etc/nginx/nginx.conf:ro
       - ./certbot/conf/:/etc/nginx/ssl/:ro
       - ./website:/usr/share/nginx/html:ro
+      - /opt/openmu/client-update:/opt/openmu/client-update:ro
       - ./nginx/templates/nginx.server_name.conf.template:/etc/nginx/templates/nginx.server_name.conf.template:ro
       - ./nginx/templates/nginx.prod.certificates.conf.template:/etc/nginx/templates/nginx.prod.certificates.conf.template:ro
     depends_on:
