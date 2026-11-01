@@ -2134,6 +2134,7 @@
   <data name="WebShopApprovalReturned" xml:space="preserve"><value>Returned from PayPal Sandbox approval. This phase does not capture the payment or grant WCoinC until the webhook and payment ledger are enabled.</value></data>
   <data name="WebShopPaymentCancelled" xml:space="preserve"><value>The payment was cancelled.</value></data>
   <data name="WebShopPaymentUnavailable" xml:space="preserve"><value>PayPal Sandbox client ID and secret are not configured.</value></data>
+  <data name="WebShopPaymentInvalid" xml:space="preserve"><value>The payment could not be verified. No coins were granted.</value></data>
   <data name="WebShopLoginTitle" xml:space="preserve"><value>Sign in with your game account</value></data>
   <data name="WebShopLoginFailed" xml:space="preserve"><value>The account name or password is incorrect.</value></data>
   <data name="WebShopLoginName" xml:space="preserve"><value>Account name</value></data>

@@ -78,6 +78,7 @@ public static class WebApplicationExtensions
         services.Configure<WebShopOptions>(builder.Configuration.GetSection(WebShopOptions.SectionName));
         services.AddSingleton<WebShopSessionService>();
         services.AddHttpClient<PayPalCheckoutService>();
+        services.AddScoped<CashShopCoinService>();
 
         services.AddScoped<ModalService>();
         services.AddScoped<IModalService>(sp => sp.GetRequiredService<ModalService>());

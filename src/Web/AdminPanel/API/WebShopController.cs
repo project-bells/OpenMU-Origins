@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.Persistence;
+using MUnique.OpenMU.Web.AdminPanel.Services;
 using MUnique.OpenMU.Web.AdminPanel.WebShop;
 
 /// <summary>
@@ -23,6 +24,7 @@ public sealed class WebShopController : Controller
     private readonly IDataSource<GameConfiguration> _gameConfigurationSource;
     private readonly WebShopSessionService _sessionService;
     private readonly PayPalCheckoutService _payPalCheckout;
+    private readonly CashShopCoinService _cashShopCoinService;
     private readonly IOptions<WebShopOptions> _options;
 
     /// <summary>
@@ -33,12 +35,14 @@ public sealed class WebShopController : Controller
         IDataSource<GameConfiguration> gameConfigurationSource,
         WebShopSessionService sessionService,
         PayPalCheckoutService payPalCheckout,
+        CashShopCoinService cashShopCoinService,
         IOptions<WebShopOptions> options)
     {
         this._persistenceContextProvider = persistenceContextProvider;
         this._gameConfigurationSource = gameConfigurationSource;
         this._sessionService = sessionService;
         this._payPalCheckout = payPalCheckout;
+        this._cashShopCoinService = cashShopCoinService;
         this._options = options;
     }
 
@@ -95,24 +99,43 @@ public sealed class WebShopController : Controller
             return this.NotFound();
         }
 
-        var returnUrl = new Uri(this.Url.ActionLink(nameof(this.Completed), values: new { packageCode })!);
+        var returnUrl = new Uri(this.Url.ActionLink(nameof(this.CompletedAsync), values: new { packageCode })!);
         var cancelUrl = new Uri(this.Url.ActionLink(nameof(this.Cancelled))!);
         var approvalUrl = await this._payPalCheckout.CreateOrderAsync(package, loginName, returnUrl, cancelUrl, cancellationToken).ConfigureAwait(false);
         return this.Redirect(approvalUrl.AbsoluteUri);
     }
 
     /// <summary>
-    /// Displays the phase-one completion result. Capture and coin granting are added in phase two.
+    /// Captures an approved PayPal order and creates an idempotent WCoinC grant.
     /// </summary>
     [HttpGet("completed")]
-    public IActionResult Completed(string? packageCode, string? token)
+    public async Task<IActionResult> CompletedAsync(string? packageCode, string? token, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(packageCode) || string.IsNullOrWhiteSpace(token))
+        if (this._sessionService.GetLoginName(this.HttpContext) is not { } loginName
+            || string.IsNullOrWhiteSpace(packageCode)
+            || string.IsNullOrWhiteSpace(token))
         {
             return this.Redirect("/webshop?payment=invalid");
         }
 
-        return this.Redirect($"/webshop?payment=approved&package={Uri.EscapeDataString(packageCode)}&order={Uri.EscapeDataString(token)}");
+        var package = this._options.Value.Packages.SingleOrDefault(candidate => string.Equals(candidate.Code, packageCode, StringComparison.Ordinal));
+        if (package is null
+            || !await this._payPalCheckout.CaptureAndVerifyOrderAsync(package, loginName, token, cancellationToken).ConfigureAwait(false))
+        {
+            return this.Redirect("/webshop?payment=invalid");
+        }
+
+        var (status, _) = await this._cashShopCoinService.GrantAsync(
+            loginName,
+            CashShopCoinType.WCoinC,
+            package.WCoinC,
+            $"PayPal purchase {package.Code}",
+            $"paypal:{token}",
+            "PayPal",
+            cancellationToken).ConfigureAwait(false);
+        return status is CashShopCoinGrantStatus.Created or CashShopCoinGrantStatus.AlreadyGranted
+            ? this.Redirect("/webshop?payment=approved")
+            : this.Redirect("/webshop?payment=invalid");
     }
 
     /// <summary>

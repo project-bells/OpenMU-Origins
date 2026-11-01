@@ -38,6 +38,10 @@
   {
     <div class="webshop-notice danger">@T("WebShopPaymentUnavailable")</div>
   }
+  else if (this.Payment == "invalid")
+  {
+    <div class="webshop-notice danger">@T("WebShopPaymentInvalid")</div>
+  }
 
   @if (this.LoginName is null)
   {
