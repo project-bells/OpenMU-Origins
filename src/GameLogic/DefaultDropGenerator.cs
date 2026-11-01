@@ -457,7 +457,11 @@ public class DefaultDropGenerator : IDropGenerator
         {
             var bonusOptionLink = new ItemOptionLink();
             bonusOptionLink.ItemOption = bonusOption;
-            bonusOptionLink.Level = bonusOption.LevelDependentOptions.Select(o => o.Level).SelectRandom();
+            bonusOptionLink.Level = bonusOption.LevelDependentOptions
+                .Select(o => o.Level)
+                .Where(level => level > 0)
+                .DefaultIfEmpty(1)
+                .SelectRandom(this._randomizer);
             item.ItemOptions.Add(bonusOptionLink);
         }
     }

@@ -111,6 +111,56 @@ public class DropGeneratorTest
     }
 
     /// <summary>
+    /// Tests that an ancient drop always has a serializable bonus level when its set item defines a bonus option.
+    /// </summary>
+    [Test]
+    public void TestAncientDropHasBonusLevel()
+    {
+        var config = this.GetGameConfig();
+        var ancientItem = this.CreateItemDefinition(8, 1, 0);
+        ancientItem.DropsFromMonsters = true;
+
+        var ancientSetOption = new IncreasableItemOption { OptionType = ItemOptionTypes.AncientOption };
+        var ancientSetOptions = new Mock<ItemOptionDefinition>();
+        ancientSetOptions.Setup(definition => definition.PossibleOptions).Returns(new List<IncreasableItemOption> { ancientSetOption });
+
+        var ancientSet = new Mock<ItemSetGroup>();
+        ancientSet.SetupAllProperties();
+        ancientSet.Object.Options = ancientSetOptions.Object;
+        ancientSet.Setup(set => set.Items).Returns(new List<ItemOfItemSet>());
+
+        var bonusOption = new Mock<IncreasableItemOption>();
+        bonusOption.SetupAllProperties();
+        bonusOption.Object.OptionType = ItemOptionTypes.AncientBonus;
+        bonusOption.Setup(option => option.LevelDependentOptions).Returns(new List<ItemOptionOfLevel>());
+        var itemOfSet = new ItemOfItemSet
+        {
+            AncientSetDiscriminator = 1,
+            BonusOption = bonusOption.Object,
+            ItemDefinition = ancientItem,
+            ItemSetGroup = ancientSet.Object,
+        };
+        ancientSet.Object.Items.Add(itemOfSet);
+        ancientItem.PossibleItemSetGroups.Add(ancientSet.Object);
+        config.Items.Add(ancientItem);
+
+        var dropGroup = new Mock<DropItemGroup>();
+        dropGroup.SetupAllProperties();
+        dropGroup.Object.ItemType = SpecialItemType.Ancient;
+        dropGroup.Setup(group => group.PossibleItems).Returns(new List<ItemDefinition>());
+
+        var generator = new DefaultDropGenerator(config, this.GetRandomizer(0));
+        var item = generator.GenerateItemDrop(dropGroup.Object);
+
+        Assert.That(item, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(item!.ItemSetGroups, Does.Contain(itemOfSet));
+            Assert.That(item.ItemOptions.Single(option => option.ItemOption == bonusOption.Object).Level, Is.EqualTo(1));
+        });
+    }
+
+    /// <summary>
     /// Tests the drops defined by a player are getting considered.
     /// </summary>
     public void TestItemDropItemByPlayer()
@@ -188,6 +238,7 @@ public class DropGeneratorTest
         itemDefinition.Object.DropLevel = dropLevel;
         itemDefinition.Object.MaximumDropLevel = maximumDropLevel;
         itemDefinition.Object.Durability = 1;
+        itemDefinition.Setup(d => d.PossibleItemSetGroups).Returns(new List<ItemSetGroup>());
         itemDefinition.Setup(d => d.PossibleItemOptions).Returns(new List<ItemOptionDefinition>());
         return itemDefinition.Object;
     }
