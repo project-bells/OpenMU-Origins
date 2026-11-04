@@ -13,10 +13,13 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `724972a1a` - `test(events): cover Blood Castle and Devil Square entry data`
+- `51ee64e64` - `test(events): cover ticket consumption timing`
 
 Recent completed work:
 
+- `51ee64e64` - Added Blood Castle and Devil Square entry integration tests
+  proving that successful registration consumes one invitation use, while
+  level rejection, wrong ticket level, and full-event rejection consume none.
 - `724972a1a` - Added fresh Season 6 configuration coverage for all Blood
   Castle 1-8 and Devil Square 1-7 normal/special/master entrance brackets,
   event maps, invitation levels, party policy, and shared-map policy.
@@ -57,10 +60,9 @@ Recent completed work:
 Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
-  and 0 warnings in the final incremental build.
-- Targeted Blood Castle/Devil Square initialization run: 2 passed, 0 failed.
-- Full `MUnique.OpenMU.Persistence.Initialization.Tests` run: 664 passed,
-  7 skipped, 0 failed.
+  (15 existing warnings in the final incremental build).
+- Targeted ticket-consumption integration run: 8 passed, 0 failed.
+- Full `MUnique.OpenMU.Tests` run: 2,004 passed, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
 
@@ -140,7 +142,8 @@ Audit all configured levels (Blood Castle 1-8, Devil Square 1-7):
 
 - normal-level and master-level brackets - fresh configuration coverage added
   by `724972a1a`;
-- invitation/ticket level covered by `724972a1a`; consumption timing remains;
+- invitation/ticket level covered by `724972a1a`; consumption timing on
+  success and rejected entry covered by `51ee64e64`;
 - party behavior and entrance failure results;
 - monster definitions, counts, spawn positions, and wave timing;
 - Blood Castle gate/statue/Archangel weapon quest sequence;
