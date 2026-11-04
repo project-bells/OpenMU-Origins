@@ -192,13 +192,21 @@ public class SimpleItemCraftingHandler : BaseItemCraftingHandler
                     o.PossibleOptions.Any(p => p.OptionType == ItemOptionTypes.Excellent || p.OptionType == ItemOptionTypes.Wing))
                 is { } optionDefinition)
         {
+            var maximumOptionCount = Math.Min(this._settings.ResultItemMaxExcOptionCount, optionDefinition.MaximumOptionsPerItem);
             for (int j = 0;
-                j < optionDefinition.MaximumOptionsPerItem && Rand.NextRandomBool(this._settings.ResultItemExcellentOptionChance);
+                j < maximumOptionCount && Rand.NextRandomBool(this._settings.ResultItemExcellentOptionChance);
                 j++)
             {
+                var option = optionDefinition.PossibleOptions
+                    .Except(resultItem.ItemOptions.Select(io => io.ItemOption))
+                    .SelectRandom();
+                if (option is null)
+                {
+                    break;
+                }
+
                 var link = player.PersistenceContext.CreateNew<ItemOptionLink>();
-                link.ItemOption = optionDefinition.PossibleOptions
-                    .Except(resultItem.ItemOptions.Select(io => io.ItemOption)).SelectRandom();
+                link.ItemOption = option;
                 resultItem.ItemOptions.Add(link);
                 if (resultItem.Definition.Skill != null)
                 {

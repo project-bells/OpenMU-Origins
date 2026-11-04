@@ -21,6 +21,40 @@ using MUnique.OpenMU.GameLogic.PlayerActions.Items;
 public class SimpleItemCraftingHandlerTests
 {
     /// <summary>
+    /// Ensures that crafted excellent options respect the configured crafting limit.
+    /// </summary>
+    [Test]
+    public async Task CraftedExcellentOptionsRespectConfiguredMaximumAsync()
+    {
+        var settings = new Mock<SimpleCraftingSettings>();
+        settings.SetupAllProperties();
+        settings.Object.ResultItemExcellentOptionChance = 100;
+        settings.Object.ResultItemMaxExcOptionCount = 1;
+
+        var excellentOptions = new Mock<ItemOptionDefinition>();
+        excellentOptions.SetupAllProperties();
+        excellentOptions.Object.MaximumOptionsPerItem = 6;
+        excellentOptions.Setup(option => option.PossibleOptions).Returns(new List<IncreasableItemOption>
+        {
+            new() { OptionType = ItemOptionTypes.Excellent, Number = 1 },
+            new() { OptionType = ItemOptionTypes.Excellent, Number = 2 },
+        });
+        var definition = new Mock<ItemDefinition>();
+        definition.SetupAllProperties();
+        definition.Setup(item => item.PossibleItemOptions).Returns(new List<ItemOptionDefinition> { excellentOptions.Object });
+        var resultItem = new Mock<Item>();
+        resultItem.SetupAllProperties();
+        resultItem.Setup(item => item.ItemOptions).Returns(new List<ItemOptionLink>());
+        resultItem.Object.Definition = definition.Object;
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+
+        new TestSimpleItemCraftingHandler(settings.Object).AddExcellentOptions(resultItem.Object, player);
+
+        Assert.That(resultItem.Object.ItemOptions, Has.Count.EqualTo(1));
+        Assert.That(resultItem.Object.ItemOptions.Single().ItemOption, Is.Not.Null);
+    }
+
+    /// <summary>
     /// Ensures that a negative socket-item adjustment is clamped at zero instead of wrapping around.
     /// </summary>
     [Test]
@@ -80,5 +114,18 @@ public class SimpleItemCraftingHandlerTests
         item.Object.Durability = 1;
         item.Object.SocketCount = 1;
         return item.Object;
+    }
+
+    private sealed class TestSimpleItemCraftingHandler : SimpleItemCraftingHandler
+    {
+        public TestSimpleItemCraftingHandler(SimpleCraftingSettings settings)
+            : base(settings)
+        {
+        }
+
+        public void AddExcellentOptions(Item resultItem, Player player)
+        {
+            this.AddRandomExcellentOptions(resultItem, player);
+        }
     }
 }
