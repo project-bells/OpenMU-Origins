@@ -4,6 +4,7 @@
 
 namespace MUnique.OpenMU.Tests;
 
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Configuration.Items;
@@ -74,6 +75,7 @@ public class EnterMiniGameTicketConsumptionTests
 
         Assert.That(player.CurrentMiniGame, Is.Null);
         Assert.That(ticket.Durability, Is.EqualTo(InitialDurability));
+        VerifyEnterResult(player, gameType, EnterResult.CharacterLevelTooLow);
     }
 
     /// <summary>
@@ -91,6 +93,7 @@ public class EnterMiniGameTicketConsumptionTests
 
         Assert.That(player.CurrentMiniGame, Is.Null);
         Assert.That(ticket.Durability, Is.EqualTo(InitialDurability));
+        VerifyEnterResult(player, gameType, EnterResult.Failed);
     }
 
     /// <summary>
@@ -109,6 +112,7 @@ public class EnterMiniGameTicketConsumptionTests
         this._gamesToDispose.Add(firstPlayer.CurrentMiniGame!);
 
         var rejectedPlayer = await PlayerTestHelper.CreatePlayerAsync(firstPlayer.GameContext).ConfigureAwait(false);
+        rejectedPlayer.Attributes![Stats.Level] = 100;
         var rejectedTicket = await AddTicketAsync(rejectedPlayer, definition.TicketItem!, TicketLevel).ConfigureAwait(false);
 
         await action.TryEnterMiniGameAsync(rejectedPlayer, gameType, definition.GameLevel, TicketSlot).ConfigureAwait(false);
@@ -116,6 +120,31 @@ public class EnterMiniGameTicketConsumptionTests
         Assert.That(firstTicket.Durability, Is.EqualTo(InitialDurability - 1));
         Assert.That(rejectedPlayer.CurrentMiniGame, Is.Null);
         Assert.That(rejectedTicket.Durability, Is.EqualTo(InitialDurability));
+        VerifyEnterResult(rejectedPlayer, gameType, EnterResult.Full);
+    }
+
+    /// <summary>
+    /// Tests that entering Blood Castle or Devil Square keeps the player's party membership.
+    /// </summary>
+    [TestCase(MiniGameType.BloodCastle, 13, 18)]
+    [TestCase(MiniGameType.DevilSquare, 14, 19)]
+    public async Task SuccessfulEntry_KeepsPartyMembershipAsync(MiniGameType gameType, byte ticketGroup, short ticketNumber)
+    {
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        var partyMember = await PlayerTestHelper.CreatePlayerAsync(player.GameContext).ConfigureAwait(false);
+        var party = new Party(new PartyManager(5, new NullLogger<Party>()), 5, new NullLogger<Party>());
+        await party.AddAsync(player).ConfigureAwait(false);
+        await party.AddAsync(partyMember).ConfigureAwait(false);
+        var definition = CreateDefinition(player, gameType, ticketGroup, ticketNumber);
+        await AddTicketAsync(player, definition.TicketItem!, TicketLevel).ConfigureAwait(false);
+
+        await new EnterMiniGameAction().TryEnterMiniGameAsync(player, gameType, definition.GameLevel, TicketSlot).ConfigureAwait(false);
+
+        Assert.That(player.CurrentMiniGame, Is.Not.Null);
+        Assert.That(player.Party, Is.SameAs(party));
+        Assert.That(party.PartyList, Does.Contain(player));
+        Assert.That(party.PartyList, Does.Contain(partyMember));
+        this._gamesToDispose.Add(player.CurrentMiniGame!);
     }
 
     private static MiniGameDefinition CreateDefinition(Player player, MiniGameType gameType, byte ticketGroup, short ticketNumber)
@@ -148,6 +177,7 @@ public class EnterMiniGameTicketConsumptionTests
         definition.MaximumSpecialCharacterLevel = 400;
         definition.MaximumPlayerCount = 1;
         definition.MapCreationPolicy = MiniGameMapCreationPolicy.Shared;
+        definition.AllowParty = true;
         definition.Entrance = new ExitGate { Map = map };
         definition.EnterDuration = TimeSpan.FromMinutes(1);
         definition.GameDuration = TimeSpan.FromMinutes(1);
@@ -171,5 +201,11 @@ public class EnterMiniGameTicketConsumptionTests
         };
         await player.Inventory!.AddItemAsync(TicketSlot, ticket).ConfigureAwait(false);
         return ticket;
+    }
+
+    private static void VerifyEnterResult(Player player, MiniGameType gameType, EnterResult result)
+    {
+        Mock.Get(player.ViewPlugIns.GetPlugIn<IShowMiniGameEnterResultPlugIn>()!)
+            .Verify(plugin => plugin.ShowResultAsync(gameType, result), Times.Once);
     }
 }
