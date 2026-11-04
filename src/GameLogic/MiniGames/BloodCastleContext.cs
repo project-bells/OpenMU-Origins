@@ -57,11 +57,10 @@ public sealed class BloodCastleContext : MiniGameContext
     private const byte DialogCategoryMain = 1;
 
     private readonly ConcurrentDictionary<string, PlayerGameState> _gameStates = new();
+    private readonly BloodCastleCycleState _cycleState = new();
 
     private IReadOnlyCollection<(string Name, int Score, int BonusExp, int BonusMoney)>? _highScoreTable;
     private TimeSpan _remainingTime;
-
-    private bool _gateDestroyed;
 
     private Player? _winner;
     private Player? _questItemOwner;
@@ -120,6 +119,12 @@ public sealed class BloodCastleContext : MiniGameContext
             return;
         }
 
+        if (!this._cycleState.TryCompleteSuccessfully())
+        {
+            await player.InvokeViewPlugInAsync<IShowDialogPlugIn>(p => p.ShowDialogAsync(DialogCategoryMain, (byte)DialogNumber.EventFinished)).ConfigureAwait(false);
+            return;
+        }
+
         this._winner = player;
         await player.InvokeViewPlugInAsync<IShowDialogPlugIn>(p => p.ShowDialogAsync(DialogCategoryMain, (byte)DialogNumber.EventWinner)).ConfigureAwait(false);
         this.FinishEvent();
@@ -161,11 +166,12 @@ public sealed class BloodCastleContext : MiniGameContext
 
             if (destructible.Definition.Number == StatueOfSaintNumber)
             {
+                this._cycleState.TryRegisterStatueDestroyed();
                 await this.ShowGoldenMessageAsync(nameof(PlayerMessage.BloodCastleCrystalStatusDestroyed), e.KillerName).ConfigureAwait(false);
             }
             else if (destructible.Definition.Number == CastleGateNumber)
             {
-                this._gateDestroyed = true;
+                this._cycleState.TryRegisterGateDestroyed();
             }
             else
             {
@@ -209,6 +215,11 @@ public sealed class BloodCastleContext : MiniGameContext
     /// <inheritdoc />
     protected override async ValueTask GameEndedAsync(ICollection<Player> finishers)
     {
+        if (this._winner is null)
+        {
+            this._cycleState.TryCompleteTimeout();
+        }
+
         await this.UpdateStateForAllAsync(BloodCastleStatus.Ended).ConfigureAwait(false);
 
         var sortedFinishers = finishers
@@ -276,12 +287,12 @@ public sealed class BloodCastleContext : MiniGameContext
                    && this._remainingTime >= TimeSpan.Zero
                    && await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (this._remainingTime < maximumGameDuration && !this._gateDestroyed)
+                if (this._remainingTime < maximumGameDuration && !this._cycleState.IsGateDestroyed)
                 {
                     await this.UpdateStateForAllAsync(BloodCastleStatus.GateNotDestroyed).ConfigureAwait(false);
                 }
 
-                if (this._remainingTime < maximumGameDuration && this._gateDestroyed)
+                if (this._remainingTime < maximumGameDuration && this._cycleState.IsGateDestroyed)
                 {
                     await this.UpdateStateForAllAsync(BloodCastleStatus.GateDestroyed).ConfigureAwait(false);
                 }
