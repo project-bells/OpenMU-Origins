@@ -13,10 +13,13 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `225696efa` - `test(imperial-guardian): cover full zone cycles`
+- `e0c721f76` - `test(raklion): cover full Selupan cycles`
 
 Recent completed work:
 
+- `e0c721f76` - Added deterministic Raklion/Selupan full-cycle tests for
+  success, close timeout, empty-battle failure, reset, concurrent terminal
+  precedence, and exactly-once successful reward completion.
 - `225696efa` - Added deterministic Imperial Guardian full-zone-cycle tests for
   ordered zone execution, success, first/middle-zone timeout, reset, and
   exactly-once successful reward completion.
@@ -42,9 +45,9 @@ Recent completed work:
 Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
-  (183 existing warnings).
-- Targeted Imperial Guardian test run: 16 passed, 0 failed.
-- Full `MUnique.OpenMU.Tests` run: 1,976 passed, 0 failed.
+  (162 existing warnings).
+- Targeted Raklion/Selupan test run: 34 passed, 0 failed.
+- Full `MUnique.OpenMU.Tests` run: 1,980 passed, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
 
@@ -84,7 +87,8 @@ Start with the event implementations which already exist:
    exactly-once final reward completion covered by `9f331b7c0`
 3. Imperial Guardian - ordered zones, success/timeout/reset, and exactly-once
    successful reward completion covered by `225696efa`
-4. Raklion (Selupan)
+4. Raklion (Selupan) - success/timeout/reset, concurrent terminal precedence,
+   and exactly-once successful reward completion covered by `e0c721f76`
 5. Blood Castle
 6. Devil Square
 7. Chaos Castle
