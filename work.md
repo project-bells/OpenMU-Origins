@@ -13,10 +13,13 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `e0c721f76` - `test(raklion): cover full Selupan cycles`
+- `6162a7189` - `test(blood-castle): cover full event cycles`
 
 Recent completed work:
 
+- `6162a7189` - Added deterministic Blood Castle full-cycle tests for ordered
+  gate/statue/quest milestones, timeout at every milestone, reset, concurrent
+  terminal arbitration, and exactly-once successful reward completion.
 - `e0c721f76` - Added deterministic Raklion/Selupan full-cycle tests for
   success, close timeout, empty-battle failure, reset, concurrent terminal
   precedence, and exactly-once successful reward completion.
@@ -45,9 +48,9 @@ Recent completed work:
 Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
-  (162 existing warnings).
-- Targeted Raklion/Selupan test run: 34 passed, 0 failed.
-- Full `MUnique.OpenMU.Tests` run: 1,980 passed, 0 failed.
+  (15 existing warnings in the final incremental build).
+- Targeted Blood Castle test run: 12 passed, 0 failed.
+- Full `MUnique.OpenMU.Tests` run: 1,985 passed, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
 
@@ -89,7 +92,9 @@ Start with the event implementations which already exist:
    successful reward completion covered by `225696efa`
 4. Raklion (Selupan) - success/timeout/reset, concurrent terminal precedence,
    and exactly-once successful reward completion covered by `e0c721f76`
-5. Blood Castle
+5. Blood Castle - ordered gate/statue/quest milestones, timeout/reset,
+   concurrent terminal arbitration, and exactly-once successful reward
+   completion covered by `6162a7189`
 6. Devil Square
 7. Chaos Castle
 
