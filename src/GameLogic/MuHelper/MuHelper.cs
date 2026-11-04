@@ -94,6 +94,17 @@ public class MuHelper : AsyncDisposable
     /// </summary>
     public async ValueTask StopAsync()
     {
+        await this.StopAsync(true).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    protected override async ValueTask DisposeAsyncCore()
+    {
+        await this.StopAsync().ConfigureAwait(false);
+    }
+
+    private async ValueTask StopAsync(bool waitForRunTask)
+    {
         if (this._runTask is not { } runTask
             || this._stopCts is not { } stopCts)
         {
@@ -106,9 +117,7 @@ public class MuHelper : AsyncDisposable
 
             await stopCts.CancelAsync().ConfigureAwait(false);
 
-            // Skip awaiting the loop task if we are currently executing inside it
-            // (i.e. CollectAsync triggered StopAsync), to avoid a self-deadlock.
-            if (runTask.Id != Task.CurrentId)
+            if (waitForRunTask)
             {
                 await runTask.ConfigureAwait(false);
             }
@@ -123,12 +132,6 @@ public class MuHelper : AsyncDisposable
         {
             this._player.Logger.LogWarning(ex, "Exception during stopping the mu helper for {CharacterName}: {Error}", this._player.Name, ex.Message);
         }
-    }
-
-    /// <inheritdoc />
-    protected override async ValueTask DisposeAsyncCore()
-    {
-        await this.StopAsync().ConfigureAwait(false);
     }
 
     private int CalculateRequiredMoney() =>
@@ -174,7 +177,9 @@ public class MuHelper : AsyncDisposable
         }
         else
         {
-            await this.StopAsync().ConfigureAwait(false);
+            // This method runs as part of _runTask. Awaiting that task while stopping
+            // would deadlock, so only external callers wait for the loop to finish.
+            await this.StopAsync(false).ConfigureAwait(false);
         }
     }
 }
