@@ -13,10 +13,13 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `6162a7189` - `test(blood-castle): cover full event cycles`
+- `b76e44d9f` - `test(devil-square): cover full event cycles`
 
 Recent completed work:
 
+- `b76e44d9f` - Added deterministic Devil Square full-cycle tests for start,
+  survival timeout with finishers, empty-event completion, reset, concurrent
+  terminal arbitration, and exactly-once reward/ranking completion.
 - `6162a7189` - Added deterministic Blood Castle full-cycle tests for ordered
   gate/statue/quest milestones, timeout at every milestone, reset, concurrent
   terminal arbitration, and exactly-once successful reward completion.
@@ -48,9 +51,9 @@ Recent completed work:
 Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
-  (15 existing warnings in the final incremental build).
-- Targeted Blood Castle test run: 12 passed, 0 failed.
-- Full `MUnique.OpenMU.Tests` run: 1,985 passed, 0 failed.
+  (183 existing warnings).
+- Targeted Devil Square test run: 7 passed, 0 failed.
+- Full `MUnique.OpenMU.Tests` run: 1,990 passed, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
 
@@ -95,7 +98,9 @@ Start with the event implementations which already exist:
 5. Blood Castle - ordered gate/statue/quest milestones, timeout/reset,
    concurrent terminal arbitration, and exactly-once successful reward
    completion covered by `6162a7189`
-6. Devil Square
+6. Devil Square - start, survival timeout/empty completion, reset, concurrent
+   terminal arbitration, and exactly-once reward/ranking completion covered by
+   `b76e44d9f`
 7. Chaos Castle
 
 Each test must cover:
