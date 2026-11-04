@@ -495,16 +495,16 @@ public class DefaultDropGenerator : IDropGenerator
 
             if (this._randomizer.NextRandomBool(excellentOptions.AddChance))
             {
-                var newOption = excellentOptions.PossibleOptions.SelectRandom(this._randomizer);
-                while (item.ItemOptions.Any(o => object.Equals(o.ItemOption, newOption)))
+                var remainingOptions = excellentOptions.PossibleOptions
+                    .Where(option => item.ItemOptions.All(link => !object.Equals(link.ItemOption, option)))
+                    .ToList();
+                var newOption = remainingOptions.SelectRandom(this._randomizer);
+                if (newOption is null)
                 {
-                    newOption = excellentOptions.PossibleOptions.SelectRandom(this._randomizer);
+                    break;
                 }
 
-                if (newOption is not null)
-                {
-                    item.ItemOptions.Add(new ItemOptionLink { ItemOption = newOption });
-                }
+                item.ItemOptions.Add(new ItemOptionLink { ItemOption = newOption });
             }
         }
     }

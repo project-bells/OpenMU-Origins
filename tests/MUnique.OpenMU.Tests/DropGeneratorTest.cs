@@ -111,6 +111,38 @@ public class DropGeneratorTest
     }
 
     /// <summary>
+    /// Tests that excellent option generation stops when all distinct options have been added,
+    /// even if the configured maximum is higher.
+    /// </summary>
+    [Test]
+    public async ValueTask TestExcellentDropStopsWhenOptionsAreExhaustedAsync()
+    {
+        var config = this.GetGameConfig();
+        var excellentItem = this.CreateItemDefinition(0, 0, 0);
+        var onlyOption = new IncreasableItemOption { OptionType = ItemOptionTypes.Excellent, Number = 1 };
+        var excellentOptionDefinition = new Mock<ItemOptionDefinition>();
+        excellentOptionDefinition.SetupAllProperties();
+        excellentOptionDefinition.Setup(definition => definition.PossibleOptions).Returns(new List<IncreasableItemOption> { onlyOption });
+        excellentOptionDefinition.Object.MaximumOptionsPerItem = 6;
+        excellentOptionDefinition.Object.AddChance = 1.0f;
+        excellentItem.PossibleItemOptions.Add(excellentOptionDefinition.Object);
+
+        var dropGroup = new Mock<DropItemGroup>();
+        dropGroup.SetupAllProperties();
+        dropGroup.Object.Chance = 1.0;
+        dropGroup.Object.ItemType = SpecialItemType.Excellent;
+        dropGroup.Setup(group => group.PossibleItems).Returns(new List<ItemDefinition> { excellentItem });
+
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        player.CurrentMap!.Definition.DropItemGroups.Add(dropGroup.Object);
+
+        var generator = new DefaultDropGenerator(config, this.GetRandomizer(0));
+        var (items, _) = await generator.GenerateItemDropsAsync(this.GetMonster(1, 0), 1, player).ConfigureAwait(false);
+
+        Assert.That(items.Single().ItemOptions.Select(link => link.ItemOption), Is.EqualTo(new[] { onlyOption }));
+    }
+
+    /// <summary>
     /// Tests that an ancient drop always has a serializable bonus level when its set item defines a bonus option.
     /// </summary>
     [Test]
