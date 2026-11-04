@@ -159,36 +159,39 @@ public sealed class RaklionContext : IEventStateProvider, IDisposable
 
         await this.RemoveUnauthorizedPlayersAsync().ConfigureAwait(false);
 
-        var elapsed = DateTime.UtcNow - this._stateStart;
-        switch (this.State)
+        var action = RaklionStateMachine.GetAction(
+            this.State,
+            DateTime.UtcNow - this._stateStart,
+            this._definition,
+            this.IsSelupanDead,
+            this._battlePlayers.IsEmpty,
+            this._arePlayersRemoved);
+        switch (action)
         {
-            case RaklionState.End:
+            case RaklionAction.Start:
                 await this.StartAsync().ConfigureAwait(false);
                 break;
-            case RaklionState.Idle:
+            case RaklionAction.CheckSpiderEggs:
                 await this.CheckSpiderEggsAsync().ConfigureAwait(false);
                 break;
-            case RaklionState.Standby when elapsed >= this._definition.SelupanAppearanceDelay:
+            case RaklionAction.SpawnSelupan:
                 await this.SpawnSelupanAsync().ConfigureAwait(false);
                 break;
-            case RaklionState.StartBattle when this.IsSelupanDead:
+            case RaklionAction.EndBattleSuccess:
                 await this.EndBattleAsync(true).ConfigureAwait(false);
                 break;
-            case RaklionState.StartBattle when elapsed >= this._definition.HatcheryCloseDelay:
+            case RaklionAction.CloseHatchery:
                 await this.CloseHatcheryAsync().ConfigureAwait(false);
                 break;
-            case RaklionState.CloseDoor when this.IsSelupanDead:
-                await this.EndBattleAsync(true).ConfigureAwait(false);
-                break;
-            case RaklionState.CloseDoor when this._battlePlayers.IsEmpty:
+            case RaklionAction.EndBattleFailure:
                 await this.EndBattleAsync(false).ConfigureAwait(false);
                 break;
-            case RaklionState.Notify4 when !this._arePlayersRemoved && elapsed >= this._definition.PlayerRemovalDelay:
+            case RaklionAction.RemovePlayers:
                 // The remaining players are moved to the entrance of raklion by the next tick.
                 this._arePlayersRemoved = true;
                 this._battlePlayers.Clear();
                 break;
-            case RaklionState.Notify4 when elapsed >= this._definition.HatcheryOpenDelay:
+            case RaklionAction.Reopen:
                 await this.ChangeStateAsync(RaklionState.End).ConfigureAwait(false);
                 break;
             default:
