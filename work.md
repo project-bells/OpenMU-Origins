@@ -13,10 +13,13 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `51ee64e64` - `test(events): cover ticket consumption timing`
+- `c3a11316d` - `test(events): cover party entry results`
 
 Recent completed work:
 
+- `c3a11316d` - Added Blood Castle and Devil Square integration coverage for
+  preserving party membership and reporting exact level, ticket, and capacity
+  rejection results without consuming invitations.
 - `51ee64e64` - Added Blood Castle and Devil Square entry integration tests
   proving that successful registration consumes one invitation use, while
   level rejection, wrong ticket level, and full-event rejection consume none.
@@ -61,8 +64,8 @@ Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
   (15 existing warnings in the final incremental build).
-- Targeted ticket-consumption integration run: 8 passed, 0 failed.
-- Full `MUnique.OpenMU.Tests` run: 2,004 passed, 0 failed.
+- Targeted event-entry integration run: 10 passed, 0 failed.
+- Full `MUnique.OpenMU.Tests` run: 2,006 passed, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
 
@@ -144,7 +147,8 @@ Audit all configured levels (Blood Castle 1-8, Devil Square 1-7):
   by `724972a1a`;
 - invitation/ticket level covered by `724972a1a`; consumption timing on
   success and rejected entry covered by `51ee64e64`;
-- party behavior and entrance failure results;
+- party preservation and level/ticket/capacity failure results covered by
+  `c3a11316d`;
 - monster definitions, counts, spawn positions, and wave timing;
 - Blood Castle gate/statue/Archangel weapon quest sequence;
 - quest hand-in ownership and duplicate-claim prevention;
