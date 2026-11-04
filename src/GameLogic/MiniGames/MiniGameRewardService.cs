@@ -163,8 +163,12 @@ internal sealed class MiniGameRewardService
                 this._logger.LogWarning($"Undefined reward type in {reward.GetId()}");
                 break;
             default:
-                this._logger.LogError($"Reward type {reward.RewardType} in {reward.GetId()} is not implemented!");
-                throw new NotImplementedException($"Reward type {reward.RewardType} is not implemented");
+                this._logger.LogError(
+                    "{context}: Reward type {rewardType} in {rewardId} is not supported. The reward is skipped.",
+                    this._owner,
+                    reward.RewardType,
+                    reward.GetId());
+                break;
         }
 
         return (0, 0);

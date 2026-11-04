@@ -17,6 +17,39 @@ using MUnique.OpenMU.GameLogic.MiniGames;
 public class MiniGameRewardServiceTests
 {
     /// <summary>
+    /// Ensures that an unsupported persisted reward value doesn't abort the remaining rewards.
+    /// </summary>
+    [Test]
+    public async Task UnsupportedRewardTypeIsSkippedAsync()
+    {
+        const int score = 50;
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        var definition = new Mock<MiniGameDefinition>();
+        definition.Setup(game => game.Rewards).Returns(new List<MiniGameReward>
+        {
+            new() { RewardType = (MiniGameRewardType)byte.MaxValue },
+            new() { RewardType = MiniGameRewardType.Score, RewardAmount = score },
+        });
+        var service = new MiniGameRewardService(
+            definition.Object,
+            player.GameContext!,
+            player.CurrentMap!,
+            () => NullDropGenerator.Instance,
+            () => TimeSpan.Zero,
+            () => null,
+            NullLogger.Instance,
+            this);
+
+        var (bonusScore, givenMoney) = await service.GiveRewardsAndGetBonusScoreAsync(player, 1).ConfigureAwait(false);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(bonusScore, Is.EqualTo(score));
+            Assert.That(givenMoney, Is.Zero);
+        });
+    }
+
+    /// <summary>
     /// Ensures that a rejected money reward isn't reported as given in the event result.
     /// </summary>
     [Test]
