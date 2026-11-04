@@ -98,24 +98,10 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
             }
         }
 
-        /// <summary>Gets BoxOfKundunPlus5Money from the configuration name resources.</summary>
-        public static string BoxOfKundunPlus5Money {
-            get {
-                return ResourceManager.GetString("BoxOfKundunPlus5Money", resourceCulture);
-            }
-        }
-
         /// <summary>Gets BoxOfKundunPlus5 from the configuration name resources.</summary>
         public static string BoxOfKundunPlus5 {
             get {
                 return ResourceManager.GetString("BoxOfKundunPlus5", resourceCulture);
-            }
-        }
-
-        /// <summary>Gets BoxOfKundunPlus4Money from the configuration name resources.</summary>
-        public static string BoxOfKundunPlus4Money {
-            get {
-                return ResourceManager.GetString("BoxOfKundunPlus4Money", resourceCulture);
             }
         }
 
@@ -126,13 +112,6 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
             }
         }
 
-        /// <summary>Gets BoxOfKundunPlus3Money from the configuration name resources.</summary>
-        public static string BoxOfKundunPlus3Money {
-            get {
-                return ResourceManager.GetString("BoxOfKundunPlus3Money", resourceCulture);
-            }
-        }
-
         /// <summary>Gets BoxOfKundunPlus3 from the configuration name resources.</summary>
         public static string BoxOfKundunPlus3 {
             get {
@@ -140,24 +119,10 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
             }
         }
 
-        /// <summary>Gets BoxOfKundunPlus2Money from the configuration name resources.</summary>
-        public static string BoxOfKundunPlus2Money {
-            get {
-                return ResourceManager.GetString("BoxOfKundunPlus2Money", resourceCulture);
-            }
-        }
-
         /// <summary>Gets BoxOfKundunPlus2 from the configuration name resources.</summary>
         public static string BoxOfKundunPlus2 {
             get {
                 return ResourceManager.GetString("BoxOfKundunPlus2", resourceCulture);
-            }
-        }
-
-        /// <summary>Gets BoxOfKundunPlus1Money from the configuration name resources.</summary>
-        public static string BoxOfKundunPlus1Money {
-            get {
-                return ResourceManager.GetString("BoxOfKundunPlus1Money", resourceCulture);
             }
         }
 

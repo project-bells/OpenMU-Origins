@@ -33,32 +33,17 @@
   <data name="HeartOfDarkLord" xml:space="preserve">
     <value>圣导师之心</value>
   </data>
-  <data name="BoxOfKundunPlus5Money" xml:space="preserve">
-    <value>昆顿宝箱+5：金币</value>
-  </data>
   <data name="BoxOfKundunPlus5" xml:space="preserve">
     <value>昆顿宝箱+5</value>
-  </data>
-  <data name="BoxOfKundunPlus4Money" xml:space="preserve">
-    <value>昆顿宝箱+4：金币</value>
   </data>
   <data name="BoxOfKundunPlus4" xml:space="preserve">
     <value>昆顿宝箱+4</value>
   </data>
-  <data name="BoxOfKundunPlus3Money" xml:space="preserve">
-    <value>昆顿宝箱+3：金币</value>
-  </data>
   <data name="BoxOfKundunPlus3" xml:space="preserve">
     <value>昆顿宝箱+3</value>
   </data>
-  <data name="BoxOfKundunPlus2Money" xml:space="preserve">
-    <value>昆顿宝箱+2：金币</value>
-  </data>
   <data name="BoxOfKundunPlus2" xml:space="preserve">
     <value>昆顿宝箱+2</value>
-  </data>
-  <data name="BoxOfKundunPlus1Money" xml:space="preserve">
-    <value>昆顿宝箱+1：金币</value>
   </data>
   <data name="BoxOfKundunPlus1" xml:space="preserve">
     <value>昆顿宝箱+1</value>
