@@ -14,6 +14,7 @@ using Nito.Disposables.Internals;
 public sealed class DevilSquareContext : MiniGameContext
 {
     private readonly ConcurrentDictionary<string, PlayerGameState> _gameStates = new();
+    private readonly DevilSquareCycleState _cycleState = new();
 
     private IReadOnlyCollection<(string Name, int Score, int BonusExp, int BonusMoney)>? _highScoreTable;
 
@@ -45,6 +46,8 @@ public sealed class DevilSquareContext : MiniGameContext
     /// <inheritdoc />
     protected override async ValueTask OnGameStartAsync(ICollection<Player> players)
     {
+        this._cycleState.TryStart();
+
         foreach (var player in players)
         {
             this._gameStates.TryAdd(player.Name, new PlayerGameState(player));
@@ -56,6 +59,11 @@ public sealed class DevilSquareContext : MiniGameContext
     /// <inheritdoc />
     protected override async ValueTask GameEndedAsync(ICollection<Player> finishers)
     {
+        if (!this._cycleState.TryComplete(finishers.Count))
+        {
+            return;
+        }
+
         var sortedFinishers = finishers
             .Select(this.GetGameStateOfFinisher)
             .WhereNotNull()
