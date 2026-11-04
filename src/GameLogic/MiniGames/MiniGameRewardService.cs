@@ -147,6 +147,7 @@ internal sealed class MiniGameRewardService
                 if (!player.TryAddMoney(reward.RewardAmount))
                 {
                     await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.AwardMoneyFailByFullInventory)).ConfigureAwait(false);
+                    return (0, 0);
                 }
 
                 return (0, reward.RewardAmount);
