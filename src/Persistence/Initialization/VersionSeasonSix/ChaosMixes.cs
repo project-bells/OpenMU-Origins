@@ -14,12 +14,6 @@ using MUnique.OpenMU.Interfaces;
 /// <summary>
 /// Initializer for chaos mixes.
 /// </summary>
-/// <remarks>
-/// Currently, there are no Talisman of Luck supported. If someone wants to add them, you'd have to do the following steps:
-///   - The <see cref="ItemDefinition"/> for the TOL needs to be created somewhere.
-///   - The created item definition needs to be added as <see cref="ItemCraftingRequiredItem"/>
-///     to the corresponding <see cref="ItemCrafting"/>s with MinimumAmount of 0, Maximum of 1, AddPercentage of 25.
-/// </remarks>
 public class ChaosMixes : InitializerBase
 {
     /// <summary>
@@ -134,6 +128,15 @@ public class ChaosMixes : InitializerBase
         soul.FailResult = MixResult.Disappear;
         soul.PossibleItems.Add(this.GameConfiguration.Items.First(i => i.Name.ValueInNeutralLanguage == "Jewel of Soul"));
         craftingSettings.RequiredItems.Add(soul);
+
+        var talisman = this.Context.CreateNew<ItemCraftingRequiredItem>();
+        talisman.MinimumAmount = 0;
+        talisman.MaximumAmount = 1;
+        talisman.AddPercentage = 10;
+        talisman.SuccessResult = MixResult.Disappear;
+        talisman.FailResult = MixResult.Disappear;
+        talisman.PossibleItems.Add(this.GameConfiguration.Items.First(i => i.Group == 14 && i.Number == 53));
+        craftingSettings.RequiredItems.Add(talisman);
 
         // Result:
         var upgrade = this.Context.CreateNew<ItemCraftingResultItem>();

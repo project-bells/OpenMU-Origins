@@ -941,5 +941,11 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
         /// <summary>Gets the localized ExtendJewelOfLifeOptionsUpdatePlugIn_Description text.</summary>
         public static string ExtendJewelOfLifeOptionsUpdatePlugIn_Description => ResourceManager.GetString("ExtendJewelOfLifeOptionsUpdatePlugIn_Description", resourceCulture)!;
 
+        /// <summary>Gets the localized AddTalismanOfLuckUpdatePlugIn_Name text.</summary>
+        public static string AddTalismanOfLuckUpdatePlugIn_Name => ResourceManager.GetString("AddTalismanOfLuckUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized AddTalismanOfLuckUpdatePlugIn_Description text.</summary>
+        public static string AddTalismanOfLuckUpdatePlugIn_Description => ResourceManager.GetString("AddTalismanOfLuckUpdatePlugIn_Description", resourceCulture)!;
+
     }
 }

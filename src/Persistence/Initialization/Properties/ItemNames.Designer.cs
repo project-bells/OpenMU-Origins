@@ -4906,5 +4906,8 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("OldJewelleryCase", resourceCulture);
             }
         }
+        /// <summary>Gets Talisman of Luck from the configuration name resources.</summary>
+        public static string TalismanOfLuck => ResourceManager.GetString("TalismanOfLuck", resourceCulture)!;
+
     }
 }
