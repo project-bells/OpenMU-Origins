@@ -155,7 +155,10 @@ public class ItemConsumptionTest
     [TestCase(2, true)]
     [TestCase(3, true)]
     [TestCase(4, true)]
-    [TestCase(5, false)]
+    [TestCase(5, true)]
+    [TestCase(6, true)]
+    [TestCase(7, true)]
+    [TestCase(8, false)]
     public async ValueTask JewelOfLifeAsync(int numberOfOptions, bool consumptionExpectation)
     {
         var consumeHandler = new LifeJewelConsumeHandlerPlugIn();
@@ -555,7 +558,7 @@ public class ItemConsumptionTest
         var option = new Mock<ItemOptionDefinition>();
         option.SetupAllProperties();
         option.Setup(o => o.PossibleOptions).Returns(new List<IncreasableItemOption>());
-        option.Object.MaximumOptionsPerItem = 4;
+        option.Object.MaximumOptionsPerItem = 7;
         option.Object.AddsRandomly = true;
         option.Name = "Damage Option";
 
@@ -564,7 +567,7 @@ public class ItemConsumptionTest
         possibleOption.Setup(o => o.LevelDependentOptions).Returns(new List<ItemOptionOfLevel>());
         possibleOption.Object.OptionType = optionType ?? ItemOptionTypes.Option;
         option.Object.PossibleOptions.Add(possibleOption.Object);
-        for (int level = 1; hasLevelDependentOptions && level <= 4; level++)
+        for (int level = 1; hasLevelDependentOptions && level <= 7; level++)
         {
             var levelDependentOption = new ItemOptionOfLevel();
             levelDependentOption.Level = level;

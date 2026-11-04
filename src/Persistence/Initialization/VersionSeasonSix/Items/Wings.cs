@@ -37,6 +37,9 @@ public class Wings : WingsInitializerBase
     /// <inheritdoc />
     protected override int MaximumItemLevel => 15;
 
+    /// <inheritdoc />
+    protected override int MaximumOptionLevel => 7;
+
     /// <summary>
     /// Initializes all wings.
     /// </summary>

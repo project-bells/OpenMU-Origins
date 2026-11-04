@@ -30,6 +30,9 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
     }
 
     /// <inheritdoc />
+    protected override int MaximumOptionLevel => 7;
+
+    /// <inheritdoc />
     protected override double RandomItemDropChance => 0.6;
 
     /// <inheritdoc />

@@ -935,5 +935,11 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
         /// <summary>Gets the localized FixKantataExcellentDamageChanceUpdatePlugIn_Description text.</summary>
         public static string FixKantataExcellentDamageChanceUpdatePlugIn_Description => ResourceManager.GetString("FixKantataExcellentDamageChanceUpdatePlugIn_Description", resourceCulture)!;
 
+        /// <summary>Gets the localized ExtendJewelOfLifeOptionsUpdatePlugIn_Name text.</summary>
+        public static string ExtendJewelOfLifeOptionsUpdatePlugIn_Name => ResourceManager.GetString("ExtendJewelOfLifeOptionsUpdatePlugIn_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized ExtendJewelOfLifeOptionsUpdatePlugIn_Description text.</summary>
+        public static string ExtendJewelOfLifeOptionsUpdatePlugIn_Description => ResourceManager.GetString("ExtendJewelOfLifeOptionsUpdatePlugIn_Description", resourceCulture)!;
+
     }
 }

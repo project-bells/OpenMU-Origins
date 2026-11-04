@@ -28,6 +28,9 @@ internal class Jewelery : Version095d.Items.Jewelery
     {
     }
 
+    /// <inheritdoc />
+    protected override int MaximumOptionLevel => 7;
+
     /// <inheritdoc/>
     protected override void CreateItems()
     {
