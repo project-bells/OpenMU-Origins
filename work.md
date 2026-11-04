@@ -13,10 +13,13 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `049df5424` - `test(chaos-castle): cover full event cycles`
+- `724972a1a` - `test(events): cover Blood Castle and Devil Square entry data`
 
 Recent completed work:
 
+- `724972a1a` - Added fresh Season 6 configuration coverage for all Blood
+  Castle 1-8 and Devil Square 1-7 normal/special/master entrance brackets,
+  event maps, invitation levels, party policy, and shared-map policy.
 - `049df5424` - Added deterministic Chaos Castle full-cycle tests for early
   last-survivor victory, ranked timeout victory, no-survivor completion, reset,
   concurrent terminal arbitration, and exactly-once reward/ranking completion.
@@ -54,9 +57,10 @@ Recent completed work:
 Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
-  (183 existing warnings).
-- Targeted Chaos Castle test run: 9 passed, 0 failed.
-- Full `MUnique.OpenMU.Tests` run: 1,996 passed, 0 failed.
+  and 0 warnings in the final incremental build.
+- Targeted Blood Castle/Devil Square initialization run: 2 passed, 0 failed.
+- Full `MUnique.OpenMU.Persistence.Initialization.Tests` run: 664 passed,
+  7 skipped, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
 
@@ -134,8 +138,9 @@ behavior with an original ENG 1.04d client packet trace and in-game observation.
 
 Audit all configured levels (Blood Castle 1-8, Devil Square 1-7):
 
-- normal-level and master-level brackets;
-- invitation/ticket level and consumption timing;
+- normal-level and master-level brackets - fresh configuration coverage added
+  by `724972a1a`;
+- invitation/ticket level covered by `724972a1a`; consumption timing remains;
 - party behavior and entrance failure results;
 - monster definitions, counts, spawn positions, and wave timing;
 - Blood Castle gate/statue/Archangel weapon quest sequence;
