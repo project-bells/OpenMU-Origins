@@ -97,7 +97,12 @@ public class EnterMiniGameAction
             return;
         }
 
-        // TODO: Check Duel state when duels are implemented
+        if (player.DuelRoom is { State: DuelState.DuelRequested or DuelState.DuelAccepted or DuelState.DuelStarted })
+        {
+            await player.InvokeViewPlugInAsync<IShowMiniGameEnterResultPlugIn>(p => p.ShowResultAsync(miniGameType, EnterResult.Failed)).ConfigureAwait(false);
+            return;
+        }
+
         if (miniGameDefinition.MapCreationPolicy == MiniGameMapCreationPolicy.Shared)
         {
             var miniGameStrategy = player.GameContext.PlugInManager.GetStrategy<MiniGameType, IPeriodicMiniGameStartPlugIn>(miniGameDefinition.Type);
