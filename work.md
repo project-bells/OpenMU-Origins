@@ -13,10 +13,13 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `b76e44d9f` - `test(devil-square): cover full event cycles`
+- `049df5424` - `test(chaos-castle): cover full event cycles`
 
 Recent completed work:
 
+- `049df5424` - Added deterministic Chaos Castle full-cycle tests for early
+  last-survivor victory, ranked timeout victory, no-survivor completion, reset,
+  concurrent terminal arbitration, and exactly-once reward/ranking completion.
 - `b76e44d9f` - Added deterministic Devil Square full-cycle tests for start,
   survival timeout with finishers, empty-event completion, reset, concurrent
   terminal arbitration, and exactly-once reward/ranking completion.
@@ -52,8 +55,8 @@ Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
   (183 existing warnings).
-- Targeted Devil Square test run: 7 passed, 0 failed.
-- Full `MUnique.OpenMU.Tests` run: 1,990 passed, 0 failed.
+- Targeted Chaos Castle test run: 9 passed, 0 failed.
+- Full `MUnique.OpenMU.Tests` run: 1,996 passed, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
 
@@ -82,7 +85,7 @@ build after source changes, and use conventional commit subjects.
 
 ## Recommended next development rounds
 
-### Round 1 - Event state-machine tests (highest-value next step)
+### Round 1 - Event state-machine tests (completed)
 
 Add deterministic full-cycle integration tests before changing more event logic.
 Start with the event implementations which already exist:
@@ -101,7 +104,9 @@ Start with the event implementations which already exist:
 6. Devil Square - start, survival timeout/empty completion, reset, concurrent
    terminal arbitration, and exactly-once reward/ranking completion covered by
    `b76e44d9f`
-7. Chaos Castle
+7. Chaos Castle - early last-survivor victory, ranked timeout victory,
+   no-survivor completion, reset, concurrent terminal arbitration, and
+   exactly-once reward/ranking completion covered by `049df5424`
 
 Each test must cover:
 
