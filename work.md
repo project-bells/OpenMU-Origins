@@ -13,10 +13,13 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `e5b8970bc` - `fix(events): reject entry during active duels`
+- `dc3ec9fff` - `test(kanturu): cover full state-machine cycles`
 
 Recent completed work:
 
+- `dc3ec9fff` - Added deterministic Kanturu Maya-to-Nightmare full-cycle tests
+  for success, Maya timeout, Nightmare timeout, reset to the next cycle, ordered
+  phase execution, and exactly-once successful reward completion.
 - `8ac41073f` - Fixed a Mu Helper self-deadlock when the helper loop stops itself
   after the character can no longer pay the Zen charge.
 - `e5b8970bc` - Event entry now rejects characters whose duel is requested,
@@ -32,9 +35,10 @@ Recent completed work:
 
 Last verification performed:
 
-- `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors.
-- Targeted `MUnique.OpenMU.Tests` run for mini-games and Zen consumption:
-  72 passed, 0 failed.
+- `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
+  (183 existing warnings).
+- Targeted Kanturu test run: 92 passed, 0 failed.
+- Full `MUnique.OpenMU.Tests` run: 1,968 passed, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
 
@@ -68,7 +72,8 @@ build after source changes, and use conventional commit subjects.
 Add deterministic full-cycle integration tests before changing more event logic.
 Start with the event implementations which already exist:
 
-1. Kanturu (Maya and Nightmare)
+1. Kanturu (Maya and Nightmare) - full-cycle success/timeout/reset and
+   exactly-once completion covered by `dc3ec9fff`
 2. Doppelganger
 3. Imperial Guardian
 4. Raklion (Selupan)
