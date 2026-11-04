@@ -55,6 +55,7 @@ public sealed class DoppelgangerContext : MiniGameContext
     private readonly IGameContext _gameContext;
     private readonly DoppelgangerEventDefinition _definition;
     private readonly IList<DoppelgangerPathArea> _path;
+    private readonly DoppelgangerCycleState _cycleState;
 
     /// <summary>
     /// The players for which the event already ended with a result, e.g. because they died.
@@ -75,7 +76,6 @@ public sealed class DoppelgangerContext : MiniGameContext
 
     private DateTime _gameStartedUtc;
     private DateTime _gameEndsAtUtc;
-    private int _goalCount;
     private int _lastShownMonsterPosition = -1;
     private int _initialPlayerCount;
     private MonsterMultipliers _monsterMultipliers = MonsterMultipliers.None;
@@ -101,6 +101,7 @@ public sealed class DoppelgangerContext : MiniGameContext
 
         // The definition is resolved once, so that a configuration change doesn't affect a running game.
         this._definition = GetEventDefinition(gameContext);
+        this._cycleState = new DoppelgangerCycleState(this._definition.MaximumGoalCount);
         var mapNumber = (short)this.Map.MapId;
         this._path = this._definition.Paths.FirstOrDefault(path => path.MapNumber == mapNumber)?.Areas ?? [];
     }
@@ -108,7 +109,7 @@ public sealed class DoppelgangerContext : MiniGameContext
     /// <summary>
     /// Gets a value indicating whether the defense failed, because too many monsters reached the magic circle.
     /// </summary>
-    public bool IsDefenseFailed => Volatile.Read(ref this._goalCount) >= this._definition.MaximumGoalCount;
+    public bool IsDefenseFailed => this._cycleState.IsDefenseFailed;
 
     /// <inheritdoc />
     protected override TimeSpan RemainingTime
@@ -131,16 +132,13 @@ public sealed class DoppelgangerContext : MiniGameContext
             return;
         }
 
-        var goalCount = Interlocked.Increment(ref this._goalCount);
-
-        // When several monsters reach the magic circle at the same time, the count can exceed the maximum.
-        var shownGoalCount = Math.Min(goalCount, this._definition.MaximumGoalCount);
+        var (shownGoalCount, failedNow) = this._cycleState.RegisterGoal();
         await this.ForEachPlayerAsync(player => player.InvokeViewPlugInAsync<IDoppelgangerEventViewPlugIn>(p =>
             p.ShowMonsterGoalAsync(shownGoalCount, this._definition.MaximumGoalCount)).AsTask()).ConfigureAwait(false);
 
-        if (goalCount == this._definition.MaximumGoalCount)
+        if (failedNow)
         {
-            this.Logger.LogInformation("{context}: The defense failed, because {goalCount} monsters reached the magic circle.", this, goalCount);
+            this.Logger.LogInformation("{context}: The defense failed, because {goalCount} monsters reached the magic circle.", this, shownGoalCount);
             this.FinishEvent();
         }
     }
@@ -301,7 +299,7 @@ public sealed class DoppelgangerContext : MiniGameContext
         // The play info is sent periodically, but the state and the goal count only when they change.
         if (args.Object is Player player && this.State == MiniGameState.Playing)
         {
-            var shownGoalCount = Math.Min(Volatile.Read(ref this._goalCount), this._definition.MaximumGoalCount);
+            var shownGoalCount = this._cycleState.GoalCount;
             await player.InvokeViewPlugInAsync<IDoppelgangerEventViewPlugIn>(async p =>
             {
                 await p.ShowStateAsync(DoppelgangerState.Playing).ConfigureAwait(false);
@@ -329,6 +327,7 @@ public sealed class DoppelgangerContext : MiniGameContext
         this._iceWalkers.Clear();
         this._interimChests.Clear();
 
+        var completedSuccessNow = this._cycleState.TryCompleteSuccess();
         var result = this.IsDefenseFailed ? DoppelgangerResult.MonstersReachedMagicCircle : DoppelgangerResult.Success;
         foreach (var player in finishers)
         {
@@ -345,7 +344,7 @@ public sealed class DoppelgangerContext : MiniGameContext
             }).ConfigureAwait(false);
         }
 
-        if (result == DoppelgangerResult.Success && finishers.FirstOrDefault(player => player.IsAlive) is { } firstFinisher)
+        if (completedSuccessNow && finishers.FirstOrDefault(player => player.IsAlive) is { } firstFinisher)
         {
             this._finalChest = await this.SpawnDestructibleAsync(this._definition.FinalRewardChest, GetAreaAround(firstFinisher.Position, 1)).ConfigureAwait(false);
         }
