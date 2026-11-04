@@ -31,27 +31,26 @@ public class EventTimetableTests
     }
 
     /// <summary>
-    /// Tests that the default invasion timetables are the staggered four-hour rotation,
-    /// offset by half an hour so that they never collide with the mini games.
+    /// Tests the default invasion timetables.
     /// </summary>
     [Test]
     public void InvasionTimetablesMatchTheRotation()
     {
         Assert.Multiple(() =>
         {
-            Assert.That(Golden.Timetable, Is.EqualTo(TimesAtHalfPast(0, 4, 8, 12, 16, 20)));
+            Assert.That(Golden.Timetable, Is.EqualTo(TimesAt(Enumerable.Range(0, 24).ToArray())));
             Assert.That(RedDragon.Timetable, Is.EqualTo(TimesAtHalfPast(1, 5, 9, 13, 17, 21)));
             Assert.That(WhiteWizard.Timetable, Is.EqualTo(TimesAtHalfPast(2, 6, 10, 14, 18, 22)));
         });
     }
 
     /// <summary>
-    /// Tests that no two events open their entrance in the same minute.
+    /// Tests that no two mini games open their entrance in the same minute.
     /// </summary>
     [Test]
     public void NoTwoEventsOpenTheirEntranceAtTheSameTime()
     {
-        var collidingTimes = AllDefaults()
+        var collidingTimes = MiniGameDefaults()
             .SelectMany(entry => entry.Configuration.Timetable.Select(time => (Time: time, entry.Name)))
             .GroupBy(entry => entry.Time)
             .Where(group => group.Count() > 1)

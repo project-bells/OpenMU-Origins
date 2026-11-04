@@ -124,6 +124,7 @@ public class ViewPlugInContainerTest
         gameContext.Setup(c => c.PersistenceContextProvider).Returns(new Mock<IPersistenceContextProvider>().Object);
         gameContext.Setup(c => c.Configuration).Returns(new GameConfiguration());
         gameContext.Setup(c => c.PlugInManager).Returns(plugInManager);
+        gameContext.Setup(c => c.FeaturePlugIns).Returns(new FeaturePlugInContainer(plugInManager));
         gameContext.Setup(c => c.LoggerFactory).Returns(new NullLoggerFactory());
         return new RemotePlayer(gameContext.Object, new Mock<IConnection>().Object, default);
     }

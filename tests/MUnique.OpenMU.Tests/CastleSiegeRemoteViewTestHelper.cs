@@ -49,6 +49,11 @@ internal static class CastleSiegeRemoteViewTestHelper
     /// <returns>The remote player and output stream.</returns>
     internal static (RemotePlayer Player, MemoryStream Output) CreatePlayer(IGameServerContext gameContext, ClientVersion clientVersion = default)
     {
+        if (gameContext.FeaturePlugIns is null)
+        {
+            Mock.Get(gameContext).Setup(c => c.FeaturePlugIns).Returns(new FeaturePlugInContainer(gameContext.PlugInManager));
+        }
+
         var output = new MemoryStream();
         var writer = PipeWriter.Create(output, new StreamPipeWriterOptions(leaveOpen: true));
         var connection = new Mock<IConnection>();
