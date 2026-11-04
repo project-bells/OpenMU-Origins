@@ -13,6 +13,8 @@ using MUnique.OpenMU.GameLogic.PlayerActions.Items;
 /// </summary>
 public class RestoreItemCrafting : SimpleItemCraftingHandler
 {
+    private static readonly int[] PricePerOptionLevel = [100_000, 110_000, 120_000, 130_000, 140_000, 150_000, 200_000, 220_000, 240_000, 280_000, 320_000, 360_000, 400_000, 500_000];
+
     /// <summary>
     /// Initializes a new instance of the <see cref="RestoreItemCrafting"/> class.
     /// </summary>
@@ -22,15 +24,14 @@ public class RestoreItemCrafting : SimpleItemCraftingHandler
     {
     }
 
-    private static int[] PricePerOptLvl => [100_000, 110_000, 120_000, 130_000, 140_000, 150_000, 200_000, 220_000, 240_000, 280_000, 320_000, 360_000, 400_000, 500_000];
-
     /// <inheritdoc />
     protected override int GetPrice(byte successRate, IList<CraftingRequiredItemLink> requiredItems)
     {
-        return PricePerOptLvl[requiredItems.FirstOrDefault()?
+        var optionLevel = requiredItems.FirstOrDefault()?
             .Items.FirstOrDefault()?
             .ItemOptions.FirstOrDefault(io => io.ItemOption?.OptionType == ItemOptionTypes.HarmonyOption)?
-            .Level ?? 0];
+            .Level ?? 0;
+        return PricePerOptionLevel[Math.Min(optionLevel, PricePerOptionLevel.Length - 1)];
     }
 
     /// <inheritdoc />
