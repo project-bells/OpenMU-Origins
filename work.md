@@ -13,10 +13,13 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `dc3ec9fff` - `test(kanturu): cover full state-machine cycles`
+- `9f331b7c0` - `test(doppelganger): cover full outcome cycles`
 
 Recent completed work:
 
+- `9f331b7c0` - Added deterministic Doppelganger outcome-cycle tests for
+  time-limit success, goal-threshold failure, concurrent terminal events, reset,
+  and exactly-once final reward completion.
 - `dc3ec9fff` - Added deterministic Kanturu Maya-to-Nightmare full-cycle tests
   for success, Maya timeout, Nightmare timeout, reset to the next cycle, ordered
   phase execution, and exactly-once successful reward completion.
@@ -37,8 +40,8 @@ Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
   (183 existing warnings).
-- Targeted Kanturu test run: 92 passed, 0 failed.
-- Full `MUnique.OpenMU.Tests` run: 1,968 passed, 0 failed.
+- Targeted Doppelganger test run: 36 passed, 0 failed.
+- Full `MUnique.OpenMU.Tests` run: 1,972 passed, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
 
@@ -74,7 +77,8 @@ Start with the event implementations which already exist:
 
 1. Kanturu (Maya and Nightmare) - full-cycle success/timeout/reset and
    exactly-once completion covered by `dc3ec9fff`
-2. Doppelganger
+2. Doppelganger - success/failure/reset, concurrent terminal events, and
+   exactly-once final reward completion covered by `9f331b7c0`
 3. Imperial Guardian
 4. Raklion (Selupan)
 5. Blood Castle
