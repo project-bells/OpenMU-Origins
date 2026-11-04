@@ -269,20 +269,24 @@ public class ItemConsumptionTest
     }
 
     /// <summary>
-    /// Tests the jewel of harmony consume.
+    /// Tests that the jewel of harmony can't be applied to a socket item.
     /// </summary>
-    public void JewelOfHarmony()
+    [Test]
+    public async ValueTask JewelOfHarmonyDoesNotApplyToSocketItemAsync()
     {
-        Assert.That(true, Is.False);
-    }
+        var consumeHandler = new HarmonyJewelConsumeHandlerPlugIn();
+        var player = await this.GetPlayerAsync().ConfigureAwait(false);
+        var socketItem = this.GetItemWithPossibleOption(optionType: ItemOptionTypes.HarmonyOption);
+        socketItem.Definition!.MaximumSockets = 5;
+        await player.Inventory!.AddItemAsync((byte)(ItemSlot + 1), socketItem).ConfigureAwait(false);
+        var harmony = this.GetItem();
+        await player.Inventory.AddItemAsync(ItemSlot, harmony).ConfigureAwait(false);
 
-    /// <summary>
-    /// Tests the refine stone consume.
-    /// </summary>
-    public void RefineStone()
-    {
-        // refine stone consume handler is not implemented yet
-        Assert.That(true, Is.False);
+        var consumed = await consumeHandler.ConsumeItemAsync(player, harmony, socketItem, FruitUsage.Undefined).ConfigureAwait(false);
+
+        Assert.That(consumed, Is.False);
+        Assert.That(harmony.Durability, Is.EqualTo(1));
+        Assert.That(socketItem.ItemOptions, Is.Empty);
     }
 
     /// <summary>
@@ -530,7 +534,7 @@ public class ItemConsumptionTest
         return player;
     }
 
-    private Item GetItemWithPossibleOption(bool hasLevelDependentOptions = true)
+    private Item GetItemWithPossibleOption(bool hasLevelDependentOptions = true, ItemOptionType? optionType = null)
     {
         var item = new Mock<Item>();
         item.SetupAllProperties();
@@ -558,7 +562,7 @@ public class ItemConsumptionTest
         var possibleOption = new Mock<IncreasableItemOption>();
         possibleOption.SetupAllProperties();
         possibleOption.Setup(o => o.LevelDependentOptions).Returns(new List<ItemOptionOfLevel>());
-        possibleOption.Object.OptionType = ItemOptionTypes.Option;
+        possibleOption.Object.OptionType = optionType ?? ItemOptionTypes.Option;
         option.Object.PossibleOptions.Add(possibleOption.Object);
         for (int level = 1; hasLevelDependentOptions && level <= 4; level++)
         {

@@ -30,7 +30,7 @@ public class HarmonyJewelConsumeHandlerPlugIn : ItemUpgradeConsumeHandlerPlugIn
     /// <inheritdoc />
     protected override bool ItemCanHaveOption(Item item)
     {
-        if (item.IsAncient())
+        if (item.IsAncient() || item.Definition?.MaximumSockets > 0)
         {
             // Until S16E2 ancient and socket items couldn't have harmony options: https://muonline.webzen.com/en/gameinfo/guide/detail/117
             return false;
