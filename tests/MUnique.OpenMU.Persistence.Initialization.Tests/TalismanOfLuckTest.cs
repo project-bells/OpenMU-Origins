@@ -9,9 +9,10 @@ using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Configuration.ItemCrafting;
 using MUnique.OpenMU.Persistence.Initialization.Updates;
 using MUnique.OpenMU.Persistence.InMemory;
+using ItemLevelUpgradeHandler = MUnique.OpenMU.GameLogic.PlayerActions.Craftings.ItemLevelUpgradeCrafting;
 
 /// <summary>
-/// Tests the Talisman of Luck configuration.
+/// Tests the item-upgrade talisman configuration.
 /// </summary>
 [TestFixture]
 internal class TalismanOfLuckTest
@@ -39,11 +40,15 @@ internal class TalismanOfLuckTest
         var (context, configuration) = await CreateSeason6ConfigurationAsync().ConfigureAwait(false);
         using var _ = context;
         var talisman = configuration.Items.Single(item => item.Group == 14 && item.Number == 53);
+        var protectionTalisman = configuration.Items.Single(item => item.Group == 14 && item.Number == 96);
         configuration.Items.Remove(talisman);
+        configuration.Items.Remove(protectionTalisman);
         foreach (var crafting in GetUpgradeCraftings(configuration))
         {
-            var requirement = crafting.SimpleCraftingSettings!.RequiredItems.Single(item => item.PossibleItems.Contains(talisman));
-            crafting.SimpleCraftingSettings.RequiredItems.Remove(requirement);
+            var settings = crafting.SimpleCraftingSettings!;
+            settings.RequiredItems.Remove(settings.RequiredItems.Single(item => item.PossibleItems.Contains(talisman)));
+            settings.RequiredItems.Remove(settings.RequiredItems.Single(item => item.PossibleItems.Contains(protectionTalisman)));
+            crafting.ItemCraftingHandlerClassName = string.Empty;
         }
 
         foreach (var package in configuration.CashShopConfiguration!.Packages.Where(package => package.PackageSequence is 98 or 99 or 389))
@@ -65,14 +70,22 @@ internal class TalismanOfLuckTest
     private static void AssertTalismanConfiguration(GameConfiguration configuration)
     {
         var talisman = configuration.Items.Single(item => item.Group == 14 && item.Number == 53);
+        var protectionTalisman = configuration.Items.Single(item => item.Group == 14 && item.Number == 96);
         foreach (var crafting in GetUpgradeCraftings(configuration))
         {
-            var requirement = crafting.SimpleCraftingSettings!.RequiredItems.Single(item => item.PossibleItems.Contains(talisman));
+            var settings = crafting.SimpleCraftingSettings!;
+            var requirement = settings.RequiredItems.Single(item => item.PossibleItems.Contains(talisman));
+            var protectionRequirement = settings.RequiredItems.Single(item => item.PossibleItems.Contains(protectionTalisman));
             Assert.Multiple(() =>
             {
+                Assert.That(crafting.ItemCraftingHandlerClassName, Is.EqualTo(typeof(ItemLevelUpgradeHandler).FullName));
                 Assert.That(requirement.MinimumAmount, Is.Zero);
                 Assert.That(requirement.MaximumAmount, Is.EqualTo(1));
                 Assert.That(requirement.AddPercentage, Is.EqualTo(10));
+                Assert.That(requirement.Reference, Is.EqualTo(ItemLevelUpgradeHandler.TalismanOfLuckReference));
+                Assert.That(protectionRequirement.MinimumAmount, Is.Zero);
+                Assert.That(protectionRequirement.MaximumAmount, Is.EqualTo(1));
+                Assert.That(protectionRequirement.Reference, Is.EqualTo(ItemLevelUpgradeHandler.TalismanOfChaosAssemblyReference));
             });
         }
 

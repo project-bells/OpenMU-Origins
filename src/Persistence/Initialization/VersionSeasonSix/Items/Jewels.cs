@@ -35,6 +35,22 @@ public class Jewels : Version097d.Items.Jewels
         this.GameConfiguration.Items.Add(this.CreateLowerRefineStone());
         this.GameConfiguration.Items.Add(this.CreateHigherRefineStone());
         this.GameConfiguration.Items.Add(this.CreateTalismanOfLuck());
+        this.GameConfiguration.Items.Add(this.CreateTalismanOfChaosAssembly());
+    }
+
+    private ItemDefinition CreateTalismanOfChaosAssembly()
+    {
+        var itemDefinition = this.Context.CreateNew<ItemDefinition>();
+        LocalizedStringResources.Register(nameof(ItemNames), ItemNames.ResourceManager);
+        itemDefinition.Name = ItemNames.ResourceManager.GetLocalizedString("TalismanOfChaosAssembly");
+        itemDefinition.Number = 96;
+        itemDefinition.Group = 14;
+        itemDefinition.DropsFromMonsters = false;
+        itemDefinition.Durability = 1;
+        itemDefinition.Width = 1;
+        itemDefinition.Height = 1;
+        itemDefinition.SetGuid(itemDefinition.Group, itemDefinition.Number);
+        return itemDefinition;
     }
 
     private ItemDefinition CreateTalismanOfLuck()

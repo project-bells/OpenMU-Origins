@@ -32,6 +32,11 @@ public abstract class BaseItemCraftingHandler : IItemCraftingHandler
             return (error, null);
         }
 
+        if (this.ValidateMix(items, socketSlot) is { } validationError)
+        {
+            return (validationError, null);
+        }
+
         player.Logger.LogInformation("Crafting success chance: {successRate} %", successRate);
 
         var price = this.GetPrice(successRate, items);
@@ -68,7 +73,7 @@ public abstract class BaseItemCraftingHandler : IItemCraftingHandler
         player.BackupInventory = null;
         foreach (var i in items)
         {
-            await this.RequiredItemChangeAsync(player, i, false).ConfigureAwait(false);
+            await this.RequiredItemChangeAsync(player, i, items, false).ConfigureAwait(false);
         }
 
         return (CraftingResult.Failed, null);
@@ -76,6 +81,17 @@ public abstract class BaseItemCraftingHandler : IItemCraftingHandler
 
     /// <inheritdoc/>
     public abstract CraftingResult? TryGetRequiredItems(Player player, out IList<CraftingRequiredItemLink> items, out byte successRateByItems);
+
+    /// <summary>
+    /// Validates crafting parameters which are not represented by the required items.
+    /// </summary>
+    /// <param name="requiredItems">The matched required items.</param>
+    /// <param name="socketSlot">The selected socket slot.</param>
+    /// <returns>The error result, or <see langword="null"/> when the parameters are valid.</returns>
+    protected virtual CraftingResult? ValidateMix(IList<CraftingRequiredItemLink> requiredItems, byte socketSlot)
+    {
+        return null;
+    }
 
     /// <summary>
     /// Gets the price based on the success rate and the required items.
@@ -109,7 +125,7 @@ public abstract class BaseItemCraftingHandler : IItemCraftingHandler
     {
         foreach (var requiredItemLink in requiredItems)
         {
-            await this.RequiredItemChangeAsync(player, requiredItemLink, true).ConfigureAwait(false);
+            await this.RequiredItemChangeAsync(player, requiredItemLink, requiredItems, true).ConfigureAwait(false);
         }
 
         var resultItems = await this.CreateOrModifyResultItemsAsync(requiredItems, player, socketSlot, successRate).ConfigureAwait(false);
@@ -117,14 +133,28 @@ public abstract class BaseItemCraftingHandler : IItemCraftingHandler
     }
 
     /// <summary>
-    /// Changes the <see cref="CraftingRequiredItemLink.Items"/> depending on the success.
+    /// Gets the result which should be applied to an input item.
+    /// </summary>
+    /// <param name="itemLink">The input item link.</param>
+    /// <param name="requiredItems">All matched input items.</param>
+    /// <param name="success"><c>true</c> when the mix succeeded.</param>
+    /// <returns>The result to apply.</returns>
+    protected virtual MixResult GetMixResult(CraftingRequiredItemLink itemLink, IList<CraftingRequiredItemLink> requiredItems, bool success)
+    {
+        return success ? itemLink.ItemRequirement.SuccessResult : itemLink.ItemRequirement.FailResult;
+    }
+
+    /// <summary>
+    /// Changes an input item according to its configured mix result.
     /// </summary>
     /// <param name="player">The player.</param>
-    /// <param name="itemLink">The item link.</param>
-    /// <param name="success"><c>true</c>, if the crafting was successful; Otherwise, <c>false</c>.</param>
-    private async ValueTask RequiredItemChangeAsync(Player player, CraftingRequiredItemLink itemLink, bool success)
+    /// <param name="itemLink">The input item link.</param>
+    /// <param name="requiredItems">All matched input items.</param>
+    /// <param name="success"><c>true</c> when the mix succeeded.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    private async ValueTask RequiredItemChangeAsync(Player player, CraftingRequiredItemLink itemLink, IList<CraftingRequiredItemLink> requiredItems, bool success)
     {
-        var mixResult = success ? itemLink.ItemRequirement.SuccessResult : itemLink.ItemRequirement.FailResult;
+        var mixResult = this.GetMixResult(itemLink, requiredItems, success);
 
         switch (mixResult)
         {
@@ -138,6 +168,16 @@ public abstract class BaseItemCraftingHandler : IItemCraftingHandler
                     point?.ItemDestroyed(item);
                 }
 
+                break;
+            case MixResult.ResetItemLevel:
+                itemLink.Items.ForEach(item =>
+                {
+                    var previousLevel = item.Level;
+                    var previousMaxDurability = item.GetMaximumDurabilityOfOnePiece();
+                    item.Level = 0;
+                    item.Durability = item.GetMaximumDurabilityOfOnePiece() * item.Durability / previousMaxDurability;
+                    player.Logger.LogDebug("Item {0} was reset from level {1} to level 0.", item, previousLevel);
+                });
                 break;
             case MixResult.ChaosWeaponAndFirstWingsDowngradedRandom:
                 itemLink.Items.ForEach(item =>

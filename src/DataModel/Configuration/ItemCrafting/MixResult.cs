@@ -28,4 +28,9 @@ public enum MixResult
     /// The item will be downgraded 2 or 3 levels and its item option will be removed.
     /// </summary>
     ThirdWingsDowngradedRandom = 3,
+
+    /// <summary>
+    /// The item will stay, but its level will be reset to zero.
+    /// </summary>
+    ResetItemLevel = 4,
 }

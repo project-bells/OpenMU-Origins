@@ -10,6 +10,7 @@ using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.PlayerActions.Craftings;
 using MUnique.OpenMU.Interfaces;
+using ItemLevelUpgradeHandler = MUnique.OpenMU.GameLogic.PlayerActions.Craftings.ItemLevelUpgradeCrafting;
 
 /// <summary>
 /// Initializer for chaos mixes.
@@ -85,6 +86,7 @@ public class ChaosMixes : InitializerBase
         var craftingSettings = this.Context.CreateNew<SimpleCraftingSettings>();
 
         crafting.SimpleCraftingSettings = craftingSettings;
+        crafting.ItemCraftingHandlerClassName = typeof(ItemLevelUpgradeHandler).FullName!;
         craftingSettings.Money = 2_000_000 * (targetLevel - 9);
         var baseSuccessPercent = 75 - ((targetLevel - 10) / 2 * 5);
         craftingSettings.SuccessPercent = (byte)Math.Min(100, baseSuccessPercent + (targetLevel >= 11 ? 10 : 0));
@@ -96,7 +98,7 @@ public class ChaosMixes : InitializerBase
 
         // Requirements:
         var item = this.Context.CreateNew<ItemCraftingRequiredItem>();
-        item.Reference = 1;
+        item.Reference = ItemLevelUpgradeHandler.UpgradeItemReference;
         item.MinimumAmount = 1;
         item.MaximumAmount = 1;
         item.MinimumItemLevel = (byte)(targetLevel - 1);
@@ -130,6 +132,7 @@ public class ChaosMixes : InitializerBase
         craftingSettings.RequiredItems.Add(soul);
 
         var talisman = this.Context.CreateNew<ItemCraftingRequiredItem>();
+        talisman.Reference = ItemLevelUpgradeHandler.TalismanOfLuckReference;
         talisman.MinimumAmount = 0;
         talisman.MaximumAmount = 1;
         talisman.AddPercentage = 10;
@@ -138,9 +141,18 @@ public class ChaosMixes : InitializerBase
         talisman.PossibleItems.Add(this.GameConfiguration.Items.First(i => i.Group == 14 && i.Number == 53));
         craftingSettings.RequiredItems.Add(talisman);
 
+        var protectionTalisman = this.Context.CreateNew<ItemCraftingRequiredItem>();
+        protectionTalisman.Reference = ItemLevelUpgradeHandler.TalismanOfChaosAssemblyReference;
+        protectionTalisman.MinimumAmount = 0;
+        protectionTalisman.MaximumAmount = 1;
+        protectionTalisman.SuccessResult = MixResult.Disappear;
+        protectionTalisman.FailResult = MixResult.Disappear;
+        protectionTalisman.PossibleItems.Add(this.GameConfiguration.Items.First(i => i.Group == 14 && i.Number == 96));
+        craftingSettings.RequiredItems.Add(protectionTalisman);
+
         // Result:
         var upgrade = this.Context.CreateNew<ItemCraftingResultItem>();
-        upgrade.Reference = 1;
+        upgrade.Reference = ItemLevelUpgradeHandler.UpgradeItemReference;
         upgrade.AddLevel = 1;
         craftingSettings.ResultItems.Add(upgrade);
         return crafting;

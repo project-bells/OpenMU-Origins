@@ -392,6 +392,6 @@
   <data name="FixKantataExcellentDamageChanceUpdatePlugIn_Description" xml:space="preserve"><value>This update corrects the Kantata ancient set's excellent damage chance from 1000 percent to 10 percent.</value></data>
   <data name="ExtendJewelOfLifeOptionsUpdatePlugIn_Name" xml:space="preserve"><value>Extend Jewel of Life options</value></data>
   <data name="ExtendJewelOfLifeOptionsUpdatePlugIn_Description" xml:space="preserve"><value>This update extends regular item options from level 4 to level 7 for Jewel of Life upgrades.</value></data>
-  <data name="AddTalismanOfLuckUpdatePlugIn_Name" xml:space="preserve"><value>Add Talisman of Luck</value></data>
-  <data name="AddTalismanOfLuckUpdatePlugIn_Description" xml:space="preserve"><value>This update adds the 10 percent Talisman of Luck to item upgrade combinations from +10 to +15 and enables its cash-shop packages.</value></data>
+  <data name="AddTalismanOfLuckUpdatePlugIn_Name" xml:space="preserve"><value>Add item-upgrade talismans</value></data>
+  <data name="AddTalismanOfLuckUpdatePlugIn_Description" xml:space="preserve"><value>This update adds the Talisman of Luck and Talisman of Chaos Assembly to item upgrade combinations from +10 to +15 and enables the Talisman of Luck cash-shop packages.</value></data>
 </root>

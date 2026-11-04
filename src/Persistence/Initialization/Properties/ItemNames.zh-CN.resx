@@ -2094,4 +2094,10 @@
   <data name="OldJewelleryCase" xml:space="preserve">
     <value>古旧首饰盒</value>
   </data>
+  <data name="TalismanOfChaosAssembly" xml:space="preserve">
+    <value>混沌组合护符</value>
+  </data>
+  <data name="TalismanOfLuck" xml:space="preserve">
+    <value>幸运护符</value>
+  </data>
 </root>

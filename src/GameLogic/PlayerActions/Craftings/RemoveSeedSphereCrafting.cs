@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.GameLogic.PlayerActions.Craftings;
 using MUnique.OpenMU.DataModel.Configuration.ItemCrafting;
 using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.GameLogic.PlayerActions.Items;
+using MUnique.OpenMU.GameLogic.Views.NPC;
 
 /// <summary>
 /// Crafting to remove a mounted seed sphere from a socket item.
@@ -26,6 +27,15 @@ public class RemoveSeedSphereCrafting : SimpleItemCraftingHandler
     /// Gets the reference to the socket item which must be specified in the <see cref="ItemCraftingRequiredItem.Reference"/>.
     /// </summary>
     public static byte SocketItemReference { get; } = 0x88;
+
+    /// <inheritdoc />
+    protected override CraftingResult? ValidateMix(IList<CraftingRequiredItemLink> requiredItems, byte socketSlot)
+    {
+        var socketItem = requiredItems.Single(i => i.ItemRequirement.Reference == SocketItemReference).Items.Single();
+        return socketItem.ItemOptions.Any(optionLink => optionLink.ItemOption?.OptionType == ItemOptionTypes.SocketOption && optionLink.Index == socketSlot)
+            ? null
+            : CraftingResult.IncorrectMixItems;
+    }
 
     /// <inheritdoc />
     protected override async ValueTask<List<Item>> CreateOrModifyResultItemsAsync(IList<CraftingRequiredItemLink> requiredItems, Player player, byte socketSlot, byte successRate)

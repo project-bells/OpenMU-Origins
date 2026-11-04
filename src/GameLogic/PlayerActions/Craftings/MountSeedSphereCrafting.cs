@@ -60,6 +60,19 @@ public class MountSeedSphereCrafting : SimpleItemCraftingHandler
     }
 
     /// <inheritdoc />
+    protected override CraftingResult? ValidateMix(IList<CraftingRequiredItemLink> requiredItems, byte socketSlot)
+    {
+        var socketItem = requiredItems.Single(i => i.ItemRequirement.Reference == SocketItemReference).Items.Single();
+        if (socketItem.SocketCount <= socketSlot
+            || socketItem.ItemOptions.Any(link => link.Index == socketSlot && link.ItemOption?.OptionType == ItemOptionTypes.SocketOption))
+        {
+            return CraftingResult.IncorrectMixItems;
+        }
+
+        return null;
+    }
+
+    /// <inheritdoc />
     protected override async ValueTask<List<Item>> CreateOrModifyResultItemsAsync(IList<CraftingRequiredItemLink> requiredItems, Player player, byte socketSlot, byte successRate)
     {
         var seedSphere = requiredItems.Single(i => i.ItemRequirement.Reference == SeedSphereReference).Items.Single();
