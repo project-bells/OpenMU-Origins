@@ -54,6 +54,7 @@ public sealed class ChaosCastleContext : MiniGameContext
 
     private readonly IGameContext _gameContext;
     private readonly IMapInitializer _mapInitializer;
+    private readonly ChaosCastleCycleState _cycleState = new();
     private readonly ConcurrentDictionary<string, PlayerGameState> _gameStates = new();
     private readonly ConcurrentDictionary<Monster, byte> _monsters = new();
 
@@ -185,6 +186,7 @@ public sealed class ChaosCastleContext : MiniGameContext
     protected override async ValueTask OnGameStartAsync(ICollection<Player> players)
     {
         this.Logger.LogDebug("Starting the game... Event: {0}, game id {1}", this.Definition.Name, (this._gameContext as IGameServerContext)?.Id ?? 0);
+        this._cycleState.TryStart();
         foreach (var player in players)
         {
             this._gameStates.TryAdd(player.Name, new PlayerGameState(player));
@@ -201,6 +203,11 @@ public sealed class ChaosCastleContext : MiniGameContext
     protected override async ValueTask GameEndedAsync(ICollection<Player> finishers)
     {
         this.Logger.LogDebug("Game ended... Event: {0}, game id {1}", this.Definition.Name, (this._gameContext as IGameServerContext)?.Id ?? 0);
+        if (!this._cycleState.TryComplete(finishers.Count))
+        {
+            return;
+        }
+
         this._currentCastleStatus = ChaosCastleStatus.Ended;
         await this.UpdateStateForAllAsync().ConfigureAwait(false);
 
@@ -447,19 +454,19 @@ public sealed class ChaosCastleContext : MiniGameContext
     private bool HasGameEnded()
     {
         var playerCount = this.PlayerCount;
+        if (!this._cycleState.ShouldFinishEarly(playerCount, this._aliveMonstersCount))
+        {
+            return false;
+        }
+
         if (playerCount <= 0)
         {
             this.Logger.LogDebug("Game ended - all players dead. Event: {0}, game id {1}", this.Definition.Name, (this._gameContext as IGameServerContext)?.Id ?? 0);
             return true;
         }
 
-        if (playerCount == 1 && this._aliveMonstersCount == 0)
-        {
-            this.Logger.LogDebug("Game ended - last player remaining. Event: {0}, game id {1}", this.Definition.Name, (this._gameContext as IGameServerContext)?.Id ?? 0);
-            return true;
-        }
-
-        return false;
+        this.Logger.LogDebug("Game ended - last player remaining. Event: {0}, game id {1}", this.Definition.Name, (this._gameContext as IGameServerContext)?.Id ?? 0);
+        return true;
     }
 
     private async ValueTask CheckForFallenUsersAsync()
