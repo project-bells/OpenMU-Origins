@@ -81,9 +81,6 @@
   <data name="LifeStone" xml:space="preserve">
     <value>生命之石</value>
   </data>
-  <data name="IllusionTempleTicket" xml:space="preserve">
-    <value>幻影寺院入场道具合成</value>
-  </data>
   <data name="BloodCastleTicket" xml:space="preserve">
     <value>血色城堡入场道具合成</value>
   </data>

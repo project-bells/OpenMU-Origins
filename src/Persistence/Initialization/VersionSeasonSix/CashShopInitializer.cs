@@ -280,7 +280,7 @@ internal sealed class CashShopInitializer : InitializerBase
         this.AddPackage(configuration, 116, LocalizedString.FromResource(() => CashShopPackageNames.BloodCastleTicket), 100, CashShopCoinType.WCoinC, isForSale: true, isGiftable: false, isBundle: false)
             .AddProduct(13, 22, 100, 13, 47, 0, 1, 0)
             .AddProduct(13, 23, 900, 13, 47, 0, 10, 0);
-        this.AddPackage(configuration, 104, LocalizedString.FromResource(() => CashShopPackageNames.IllusionTempleTicket), 150, CashShopCoinType.WCoinC, isForSale: true, isGiftable: false, isBundle: false)
+        this.AddPackage(configuration, 104, LocalizedString.FromResource(() => CashShopPackageNames.IllusionTempleTicket), 150, CashShopCoinType.WCoinC, isForSale: false, isGiftable: false, isBundle: false)
             .AddProduct(19, 29, 150, 13, 61, 0, 1, 0)
             .AddProduct(19, 30, 1350, 13, 61, 0, 10, 0);
         this.AddPackage(configuration, 56, LocalizedString.FromResource(() => CashShopPackageNames.KalimaTicket), 80, CashShopCoinType.WCoinC, isForSale: true, isGiftable: false, isBundle: false)
@@ -698,7 +698,7 @@ internal sealed class CashShopInitializer : InitializerBase
         this.AddPackage(configuration, 117, LocalizedString.FromResource(() => CashShopPackageNames.BracketedBloodCastleTicket), 100, CashShopCoinType.WCoinP, isForSale: true, isGiftable: true, isBundle: false)
             .AddProduct(13, 22, 100, 13, 47, 0, 1, 0)
             .AddProduct(13, 23, 900, 13, 47, 0, 10, 0);
-        this.AddPackage(configuration, 105, LocalizedString.FromResource(() => CashShopPackageNames.BracketedIllusionTempleTicket), 150, CashShopCoinType.WCoinP, isForSale: true, isGiftable: true, isBundle: false)
+        this.AddPackage(configuration, 105, LocalizedString.FromResource(() => CashShopPackageNames.BracketedIllusionTempleTicket), 150, CashShopCoinType.WCoinP, isForSale: false, isGiftable: false, isBundle: false)
             .AddProduct(19, 29, 150, 13, 61, 0, 1, 0)
             .AddProduct(19, 30, 1350, 13, 61, 0, 10, 0);
         this.AddPackage(configuration, 57, LocalizedString.FromResource(() => CashShopPackageNames.BracketedKalimaTicket), 80, CashShopCoinType.WCoinP, isForSale: true, isGiftable: true, isBundle: false)

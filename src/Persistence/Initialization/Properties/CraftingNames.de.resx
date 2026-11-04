@@ -90,9 +90,6 @@
   <data name="LifeStone" xml:space="preserve">
     <value>Lebensstein</value>
   </data>
-  <data name="IllusionTempleTicket" xml:space="preserve">
-    <value>Illusionstempel-Ticket</value>
-  </data>
   <data name="BloodCastleTicket" xml:space="preserve">
     <value>Blutburg-Ticket</value>
   </data>

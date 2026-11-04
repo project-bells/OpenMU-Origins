@@ -394,4 +394,10 @@
   <data name="ExtendJewelOfLifeOptionsUpdatePlugIn_Description" xml:space="preserve"><value>This update extends regular item options from level 4 to level 7 for Jewel of Life upgrades.</value></data>
   <data name="AddTalismanOfLuckUpdatePlugIn_Name" xml:space="preserve"><value>Add item-upgrade talismans</value></data>
   <data name="AddTalismanOfLuckUpdatePlugIn_Description" xml:space="preserve"><value>This update adds the Talisman of Luck and Talisman of Chaos Assembly to item upgrade combinations from +10 to +15 and enables the Talisman of Luck cash-shop packages.</value></data>
+  <data name="DisableIncompleteIllusionTempleUpdatePlugIn_Name" xml:space="preserve">
+    <value>Disable incomplete Illusion Temple</value>
+  </data>
+  <data name="DisableIncompleteIllusionTempleUpdatePlugIn_Description" xml:space="preserve">
+    <value>This mandatory update disables Illusion Temple ticket crafting and cash-shop packages until the event runtime is implemented.</value>
+  </data>
 </root>

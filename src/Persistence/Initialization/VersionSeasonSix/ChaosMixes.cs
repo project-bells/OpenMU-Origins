@@ -44,7 +44,6 @@ public class ChaosMixes : InitializerBase
         chaosGoblin.ItemCraftings.Add(this.ItemLevelUpgradeCrafting(50, 15));
         chaosGoblin.ItemCraftings.Add(this.BloodCastleTicketCrafting());
         chaosGoblin.ItemCraftings.Add(this.DevilSquareTicketCrafting());
-        chaosGoblin.ItemCraftings.Add(this.IllusionTempleTicketCrafting());
         chaosGoblin.ItemCraftings.Add(this.LifeStoneCrafting());
         chaosGoblin.ItemCraftings.Add(this.SmallShieldPotionCrafting());
         chaosGoblin.ItemCraftings.Add(this.MediumShieldPotionCrafting());
@@ -810,15 +809,6 @@ public class ChaosMixes : InitializerBase
         crafting.Name = LocalizedString.FromResource(() => CraftingNames.DevilsSquareTicket);
         crafting.Number = 2;
         crafting.ItemCraftingHandlerClassName = typeof(DevilSquareTicketCrafting).FullName!;
-        return crafting;
-    }
-
-    private ItemCrafting IllusionTempleTicketCrafting()
-    {
-        var crafting = this.Context.CreateNew<ItemCrafting>();
-        crafting.Name = LocalizedString.FromResource(() => CraftingNames.IllusionTempleTicket);
-        crafting.Number = 37;
-        crafting.ItemCraftingHandlerClassName = typeof(IllusionTempleTicketCrafting).FullName!;
         return crafting;
     }
 

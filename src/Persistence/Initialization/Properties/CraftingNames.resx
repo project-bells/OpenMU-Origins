@@ -81,9 +81,6 @@
   <data name="LifeStone" xml:space="preserve">
     <value>Life Stone</value>
   </data>
-  <data name="IllusionTempleTicket" xml:space="preserve">
-    <value>Illusion Temple Ticket</value>
-  </data>
   <data name="BloodCastleTicket" xml:space="preserve">
     <value>Blood Castle Ticket</value>
   </data>

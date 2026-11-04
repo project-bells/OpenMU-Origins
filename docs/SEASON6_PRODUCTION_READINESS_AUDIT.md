@@ -63,6 +63,8 @@ Relevant areas:
 
 ### Events and runtime safety
 
+- [x] Illusion Temple ticket crafting and cash-shop packages are disabled for
+  fresh and existing databases until the missing runtime is implemented.
 - [x] Golden Invasion timetable tests match the hourly configuration.
 - [x] Event timetable collision checks distinguish entrance events from
   invasions which do not open an entrance.
@@ -119,11 +121,12 @@ These are release-validation tasks. Passing unit tests alone cannot close them.
 
 1. **Illusion Temple runtime**
 
-   The maps, ticket crafting, and cash-shop data exist, but there is no
-   `IllusionTempleContext` or corresponding state-machine implementation under
-   `src/GameLogic/MiniGames`. Implement team assignment, relic transport,
-   skills, scoring, rewards, disconnect/rejoin behavior, and the complete reset
-   loop before advertising this event as supported.
+   The maps and ticket definitions exist, but there is no `IllusionTempleContext`
+   or corresponding state-machine implementation under
+   `src/GameLogic/MiniGames`. Ticket crafting and the relevant cash-shop
+   packages are deliberately disabled. Implement team assignment, relic
+   transport, skills, scoring, rewards, disconnect/rejoin behavior, and the
+   complete reset loop before enabling ticket acquisition again.
 
 2. **Event state-machine integration tests**
 
