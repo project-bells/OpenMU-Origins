@@ -45,7 +45,13 @@ public class AddItemRuleFlagsPlugIn : UpdatePlugInBase
     public override bool IsMandatory => true;
 
     /// <inheritdoc />
+    public override int Version => 2;
+
+    /// <inheritdoc />
     public override DateTime CreatedAt => new(2026, 09, 26, 16, 0, 0, DateTimeKind.Utc);
+
+    /// <inheritdoc />
+    public override DateTime UpdatedAt => new(2026, 11, 4, 3, 0, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
     protected override ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration)

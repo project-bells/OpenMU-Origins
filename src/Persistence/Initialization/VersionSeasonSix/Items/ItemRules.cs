@@ -158,7 +158,7 @@ public class ItemRules : InitializerBase
         Rule(14, 19, Blocked.Repair), // Devil's Invitation
         Rule(14, 21, Blocked.Trade, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Rena
         Rule(14, 22, Blocked.Repair), // Jewel of Creation
-        Rule(14, 23, Blocked.Trade, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Scroll of the Emperor
+        Rule(14, 23, Blocked.Trade, Blocked.Drop, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Scroll of the Emperor
         Rule(14, 24, Blocked.Trade, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Broken Sword
         Rule(14, 25, Blocked.Trade, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Tear of Elf
         Rule(14, 26, Blocked.Trade, Blocked.Store, Blocked.PersonalStore, Blocked.Repair), // Soul Shard of Wizard
