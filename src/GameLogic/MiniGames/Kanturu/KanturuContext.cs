@@ -351,35 +351,21 @@ public sealed class KanturuContext : MiniGameContext
                     mayaAttackCts.Token);
             }
 
-            foreach (var phase in this._definition.Phases)
-            {
-                if (phase.Kind == KanturuPhaseKind.Transition && !mayaAttackCts.IsCancellationRequested)
+            var stateMachine = new KanturuStateMachine(
+                async (phase, cancellationToken) =>
                 {
-                    // Maya explodes during the transition, so her attack visuals stop here.
-                    await mayaAttackCts.CancelAsync().ConfigureAwait(false);
-                }
+                    if (phase.Kind == KanturuPhaseKind.Transition && !mayaAttackCts.IsCancellationRequested)
+                    {
+                        // Maya explodes during the transition, so her attack visuals stop here.
+                        await mayaAttackCts.CancelAsync().ConfigureAwait(false);
+                    }
 
-                this.Logger.LogDebug("Kanturu: starting phase {Phase}.", phase.Name);
-                if (!await this.RunPhaseAsync(phase, ct).ConfigureAwait(false))
-                {
-                    // The wave failed (its time limit expired) - the event is lost.
-                    this.FinishEvent();
-                    return;
-                }
-            }
-
-            Interlocked.Exchange(ref this._isVictory, 1);
-            this._killTracker.ClearPhase();
-
-            // The fire-and-forget call from OnMonsterDied already opened the barrier; this is
-            // a fallback for the case that no boss death was registered. The Interlocked guard
-            // in OpenElphisBarrierAsync makes sure that it only executes once.
-            await this.OpenElphisBarrierAsync().ConfigureAwait(false);
-
-            await this.ShowGoldenMessageIfConfiguredAsync(this._definition.TowerConqueredMessageKey).ConfigureAwait(false);
-            await this.RunTowerOfRefinementAsync(this._towerOpenDuration, this._definition.TowerClosingWarningOffset, ct).ConfigureAwait(false);
-
-            this.FinishEvent();
+                    this.Logger.LogDebug("Kanturu: starting phase {Phase}.", phase.Name);
+                    return await this.RunPhaseAsync(phase, cancellationToken).ConfigureAwait(false);
+                },
+                this.CompleteSuccessfulCycleAsync,
+                this.FinishEvent);
+            await stateMachine.RunAsync(this._definition.Phases, ct).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -389,6 +375,22 @@ public sealed class KanturuContext : MiniGameContext
         {
             this.Logger.LogError(ex, "Unexpected error in Kanturu game loop.");
         }
+    }
+
+    private async Task CompleteSuccessfulCycleAsync(CancellationToken ct)
+    {
+        Interlocked.Exchange(ref this._isVictory, 1);
+        this._killTracker.ClearPhase();
+
+        // The fire-and-forget call from OnMonsterDied already opened the barrier; this is
+        // a fallback for the case that no boss death was registered. The Interlocked guard
+        // in OpenElphisBarrierAsync makes sure that it only executes once.
+        await this.OpenElphisBarrierAsync().ConfigureAwait(false);
+
+        await this.ShowGoldenMessageIfConfiguredAsync(this._definition.TowerConqueredMessageKey).ConfigureAwait(false);
+        await this.RunTowerOfRefinementAsync(this._towerOpenDuration, this._definition.TowerClosingWarningOffset, ct).ConfigureAwait(false);
+
+        this.FinishEvent();
     }
 
     private Task<bool> RunPhaseAsync(KanturuPhaseDefinition phase, CancellationToken ct)
