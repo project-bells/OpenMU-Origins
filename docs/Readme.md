@@ -49,6 +49,10 @@ can be searched and navigated.
 * [Cash shop](CashShop.md): the design and implementation of the in-game cash
   shop, the facts about the game client it's based on, and what's left to do
 
+* [Season 6 production readiness audit](SEASON6_PRODUCTION_READINESS_AUDIT.md):
+  completed audit work, remaining gameplay gaps, release risks and the
+  recommended order of work for the ENG 1.04d target
+
 * [architecture overview.png](architecture%20overview.png): the big picture,
   explained on the
   [architecture page](../docs-website/docs/development/architecture.md) of the
