@@ -197,39 +197,8 @@ public sealed class ImperialGuardianContext : MiniGameContext
     {
         try
         {
-            for (var zone = 0; zone < this.ZoneCount; zone++)
-            {
-                if (zone > 0)
-                {
-                    Volatile.Write(ref this._zone, zone);
-                    await this.SpawnGatesAsync(zone).ConfigureAwait(false);
-                    this.SetTimer(ImperialGuardianTimerType.Standby, this._definition.StandbyDuration);
-                    await this.ForEachPlayerAsync(player => this.ShowZoneAsync(player).AsTask()).ConfigureAwait(false);
-                    await this.DelayWithSkipAsync(this._definition.StandbyDuration, cancellationToken).ConfigureAwait(false);
-                }
-
-                this.SetTimer(ImperialGuardianTimerType.TimeAttack, this._definition.ZoneDuration);
-                this.SetGatesAttackable(this._definition.EarlyAttackableGateNumbers);
-                await this.SpawnMonstersAsync(zone).ConfigureAwait(false);
-
-                var isLastZone = zone == this.ZoneCount - 1;
-                if (!await this.WaitUntilZoneIsClearedAsync(isLastZone, cancellationToken).ConfigureAwait(false))
-                {
-                    await this.FailAsync().ConfigureAwait(false);
-                    return;
-                }
-
-                this.SetGatesAttackable(this._definition.LateAttackableGateNumbers);
-                if (isLastZone)
-                {
-                    await this.CompleteAsync().ConfigureAwait(false);
-                    return;
-                }
-
-                this.Logger.LogDebug("{context}: Zone {zone} cleared.", this, zone);
-                await this.ForEachPlayerAsync(player => player.InvokeViewPlugInAsync<IImperialGuardianViewPlugIn>(p =>
-                    p.ShowResultAsync(ImperialGuardianResult.ZoneCleared, 0)).AsTask()).ConfigureAwait(false);
-            }
+            var stateMachine = new ImperialGuardianStateMachine(this.RunZoneAsync, this.CompleteAsync, this.FailAsync);
+            await stateMachine.RunAsync(this.ZoneCount, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -239,6 +208,38 @@ public sealed class ImperialGuardianContext : MiniGameContext
         {
             this.Logger.LogError(ex, "{context}: Unexpected error during the zones.", this);
         }
+    }
+
+    private async Task<bool> RunZoneAsync(int zone, CancellationToken cancellationToken)
+    {
+        if (zone > 0)
+        {
+            Volatile.Write(ref this._zone, zone);
+            await this.SpawnGatesAsync(zone).ConfigureAwait(false);
+            this.SetTimer(ImperialGuardianTimerType.Standby, this._definition.StandbyDuration);
+            await this.ForEachPlayerAsync(player => this.ShowZoneAsync(player).AsTask()).ConfigureAwait(false);
+            await this.DelayWithSkipAsync(this._definition.StandbyDuration, cancellationToken).ConfigureAwait(false);
+        }
+
+        this.SetTimer(ImperialGuardianTimerType.TimeAttack, this._definition.ZoneDuration);
+        this.SetGatesAttackable(this._definition.EarlyAttackableGateNumbers);
+        await this.SpawnMonstersAsync(zone).ConfigureAwait(false);
+
+        var isLastZone = zone == this.ZoneCount - 1;
+        if (!await this.WaitUntilZoneIsClearedAsync(isLastZone, cancellationToken).ConfigureAwait(false))
+        {
+            return false;
+        }
+
+        this.SetGatesAttackable(this._definition.LateAttackableGateNumbers);
+        if (!isLastZone)
+        {
+            this.Logger.LogDebug("{context}: Zone {zone} cleared.", this, zone);
+            await this.ForEachPlayerAsync(player => player.InvokeViewPlugInAsync<IImperialGuardianViewPlugIn>(p =>
+                p.ShowResultAsync(ImperialGuardianResult.ZoneCleared, 0)).AsTask()).ConfigureAwait(false);
+        }
+
+        return true;
     }
 
     /// <summary>
