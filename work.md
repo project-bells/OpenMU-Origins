@@ -334,11 +334,33 @@ rounding without treating the current configuration as its own oracle.
 
 ### Round 7 - Guild, Gens, duel, and Castle Siege
 
-Create multiplayer and multi-server integration scenarios. Castle Siege needs a
-complete registration-to-ownership cycle, crown/switch races, NPC persistence,
-tax concurrency, reward recovery, disconnects, and service restarts in every
-schedule state. Also validate guild alliances/hostility, Gens rank and rewards,
-and duel cleanup/re-entry behavior.
+Completed in `11109a549`, `049352e07`, `efda25310`, `ae3c9f87a`,
+`b33b153bc`, `ffb92b299`, and `33e517512`.
+
+The multiplayer integration coverage now exercises the Castle Siege
+registration-to-ownership flow, guild selection and participation, crown and
+switch contention, capture/result persistence, NPC upgrade and destruction
+state, and recovery after each scheduled-state restart. It also covers remote
+view cleanup after disconnects and pending rewards for online, offline,
+reconnected, and next-login players without duplicate delivery. Fifty
+concurrent store payments verify that player money and castle tribute are both
+updated exactly once under the shared execution lock.
+
+Guild scenarios cover alliance and hostility propagation across two game-server
+endpoints. Gens scenarios cover relationship restrictions, ranking, monthly
+rewards, and single-claim behavior. Duel lifecycle tests cover immediate
+re-entry after request cleanup, spectator removal and re-entry, and delayed
+cleanup of an old duel without releasing a newly allocated replacement room.
+The duel cleanup implementation now clears player/spectator room ownership and
+only returns the room instance which still owns its manager slot.
+
+The final GameLogic build passes with zero errors (existing repository warnings
+remain). The focused Round 7 run passes all four duel/tax tests, and the full
+GameLogic suite passes all 2,041 tests with no skips or failures.
+
+These are deterministic in-process integration tests, including two simulated
+game-server endpoints. A real multi-process 24-hour concurrency/soak run remains
+a production blocker below; Round 7 does not claim that external certification.
 
 ## Known production blockers
 
