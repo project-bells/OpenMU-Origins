@@ -13,10 +13,13 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `7b45641fc` - `test(events): cover event rewards`
+- `ebaed4c5e` - `test(events): cover empty event cleanup`
 
 Recent completed work:
 
+- `ebaed4c5e` - Added Blood Castle and Devil Square lifecycle coverage proving
+  that the last player leaving a running event cancels it, clears registration,
+  and reports an empty finisher set.
 - `7b45641fc` - Added fresh Season 6 configuration coverage for Blood Castle
   1-8 score, experience, Zen, and Jewel of Chaos rewards, plus Devil Square
   1-7 rank-based experience and Zen rewards.
@@ -75,10 +78,10 @@ Recent completed work:
 Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
-  (55 existing warnings in the final incremental build).
-- Targeted `BloodCastleAndDevilSquareDataTest` run: 7 passed, 0 failed.
-- Full `MUnique.OpenMU.Persistence.Initialization.Tests` run: 669 passed,
-  7 skipped, 0 failed.
+  and 0 warnings in the final incremental build.
+- Targeted Blood Castle, Devil Square, and mini-game lifecycle run: 15 passed,
+  0 failed.
+- Full `MUnique.OpenMU.Tests` run: 2,010 passed, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
 
@@ -169,7 +172,8 @@ Audit all configured levels (Blood Castle 1-8, Devil Square 1-7):
 - quest hand-in ownership and duplicate-claim prevention covered by
   `ce6025736`;
 - score, experience, Zen, and item rewards covered by `7b45641fc`;
-- timeout and empty-event cleanup.
+- timeout covered by `6162a7189` and `b76e44d9f`; empty-event lifecycle cleanup
+  covered by `ebaed4c5e`.
 
 Any persisted configuration correction requires both:
 
