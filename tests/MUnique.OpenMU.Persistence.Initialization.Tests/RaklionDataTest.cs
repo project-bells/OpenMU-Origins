@@ -25,6 +25,39 @@ internal class RaklionDataTest
     private const short FallSkillNumber = 253;
     private const short IronKnightNumber = 458;
 
+    private static readonly (short Monster, byte X, byte Y)[] ExpectedEggs =
+    {
+        (460, 141, 27),
+        (461, 141, 28),
+        (462, 142, 28),
+        (460, 146, 34),
+        (462, 147, 34),
+        (461, 146, 33),
+        (460, 152, 31),
+        (460, 152, 30),
+        (461, 151, 30),
+        (462, 146, 29),
+        (462, 146, 30),
+        (461, 147, 29),
+        (460, 145, 24),
+        (460, 144, 24),
+        (461, 144, 25),
+    };
+
+    private static readonly (byte X, byte Y)[] ExpectedSummons =
+    {
+        (144, 25),
+        (144, 29),
+        (144, 32),
+        (144, 35),
+        (144, 38),
+        (153, 24),
+        (153, 28),
+        (153, 32),
+        (153, 35),
+        (153, 38),
+    };
+
     /// <summary>
     /// Tests that the monsters of the hatchery of a new database are spawned by the event.
     /// </summary>
@@ -176,11 +209,15 @@ internal class RaklionDataTest
         Assert.That((selupan[0].X1, selupan[0].Y1), Is.EqualTo((145, 31)));
 
         var eggs = spawns.Where(spawn => spawn.WaveNumber == definition.SpiderEggWaveNumber).ToList();
-        Assert.That(eggs.Sum(spawn => spawn.Quantity), Is.EqualTo(15));
-        Assert.That(eggs.Select(spawn => spawn.MonsterDefinition!.Number), Is.All.InRange(460, 462));
+        Assert.That(
+            eggs.Select(spawn => (spawn.MonsterDefinition!.Number, spawn.X1, spawn.Y1)),
+            Is.EqualTo(ExpectedEggs));
+        Assert.That(eggs, Has.All.Matches<MonsterSpawnArea>(spawn => spawn.Quantity == 1 && spawn.X1 == spawn.X2 && spawn.Y1 == spawn.Y2));
 
         var summons = spawns.Where(spawn => spawn.WaveNumber == definition.SummonWaveNumber).ToList();
-        Assert.That(summons.Sum(spawn => spawn.Quantity), Is.EqualTo(10));
-        Assert.That(summons.Select(spawn => spawn.MonsterDefinition!.Number), Is.All.EqualTo(457));
+        Assert.That(
+            summons.Select(spawn => (spawn.X1, spawn.Y1)),
+            Is.EqualTo(ExpectedSummons));
+        Assert.That(summons, Has.All.Matches<MonsterSpawnArea>(spawn => spawn.MonsterDefinition!.Number == 457 && spawn.Quantity == 1 && spawn.X1 == spawn.X2 && spawn.Y1 == spawn.Y2));
     }
 }
