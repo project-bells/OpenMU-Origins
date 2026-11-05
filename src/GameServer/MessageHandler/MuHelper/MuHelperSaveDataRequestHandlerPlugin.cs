@@ -31,6 +31,11 @@ public class MuHelperSaveDataRequestHandlerPlugin : IPacketHandlerPlugIn
     /// <inheritdoc />
     public async ValueTask HandlePacketAsync(Player player, Memory<byte> packet)
     {
+        if (packet.Length != MuHelperSaveDataRequest.Length)
+        {
+            return;
+        }
+
         MuHelperSaveDataRequest message = packet;
         var dataSize = message.HelperData.Length;
         using var memoryOwner = MemoryPool<byte>.Shared.Rent(dataSize);

@@ -42,7 +42,10 @@ using MUnique.OpenMU.GameLogic.MuHelper;
 /// </summary>
 public static class MuHelperSettingsSerializer
 {
-    private const int MinBlobLength = 69;
+    /// <summary>
+    /// The exact byte length of the MU Helper settings payload in the ENG 1.04d protocol.
+    /// </summary>
+    public const int BlobLength = 257;
 
     private const int PickupFlagsOffset = 1;
     private const int RangeFlagsOffset = 2;
@@ -123,7 +126,7 @@ public static class MuHelperSettingsSerializer
     /// <param name="blob">The raw Mu Helper configuration.</param>
     public static IMuHelperSettings? TryDeserialize(byte[]? blob)
     {
-        if (blob is null || blob.Length < MinBlobLength)
+        if (blob is null || blob.Length != BlobLength)
         {
             return null;
         }

@@ -10,6 +10,7 @@ using MUnique.OpenMU.AttributeSystem;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.PlugIns.ChatCommands;
 using MUnique.OpenMU.GameLogic.Views.MuHelper;
+using Nito.AsyncEx;
 
 /// <summary>
 /// Implements the logic of the 'MU Helper'.
@@ -32,9 +33,12 @@ public class MuHelper : AsyncDisposable
     /// </summary>
     private readonly MuHelperConfiguration _configuration;
 
+    private readonly AsyncLock _lifecycleLock = new();
+
     private CancellationTokenSource? _stopCts;
     private Task? _runTask;
     private DateTime _startTimestamp;
+    private bool _isStopping;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MuHelper"/> class.
@@ -51,7 +55,8 @@ public class MuHelper : AsyncDisposable
     /// </summary>
     public async ValueTask<bool> TryStartAsync()
     {
-        if (this._runTask is not null)
+        using var lifecycleLock = await this._lifecycleLock.LockAsync().ConfigureAwait(false);
+        if (this._runTask is not null || this._isStopping)
         {
             await this._player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.MuHelperAlreadyRunning)).ConfigureAwait(false);
             return false;
@@ -105,10 +110,21 @@ public class MuHelper : AsyncDisposable
 
     private async ValueTask StopAsync(bool waitForRunTask)
     {
-        if (this._runTask is not { } runTask
-            || this._stopCts is not { } stopCts)
+        Task runTask;
+        CancellationTokenSource stopCts;
+        using (await this._lifecycleLock.LockAsync().ConfigureAwait(false))
         {
-            return;
+            if (this._runTask is not { } currentRunTask
+                || this._stopCts is not { } currentStopCts)
+            {
+                return;
+            }
+
+            runTask = currentRunTask;
+            stopCts = currentStopCts;
+            this._isStopping = true;
+            this._runTask = null;
+            this._stopCts = null;
         }
 
         try
@@ -122,15 +138,18 @@ public class MuHelper : AsyncDisposable
                 await runTask.ConfigureAwait(false);
             }
 
-            this._runTask = null;
             stopCts.Dispose();
-            this._stopCts = null;
 
             await this._player.InvokeViewPlugInAsync<IMuHelperStatusUpdatePlugIn>(p => p.StopAsync()).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             this._player.Logger.LogWarning(ex, "Exception during stopping the mu helper for {CharacterName}: {Error}", this._player.Name, ex.Message);
+        }
+        finally
+        {
+            using var lifecycleLock = await this._lifecycleLock.LockAsync().ConfigureAwait(false);
+            this._isStopping = false;
         }
     }
 
