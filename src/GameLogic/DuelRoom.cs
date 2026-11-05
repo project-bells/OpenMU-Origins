@@ -199,17 +199,20 @@ public sealed class DuelRoom : AsyncDisposable
     /// <param name="spectator">The spectator which should be removed.</param>
     public async ValueTask RemoveSpectatorAsync(Player spectator)
     {
+        Player[] remainingSpectators;
         using (await this._spectatorLock.LockAsync().ConfigureAwait(false))
         {
             if (!this.Spectators.Remove(spectator))
             {
                 return;
             }
+
+            spectator.DuelRoom = null;
+            remainingSpectators = this.Spectators.ToArray();
         }
 
-        for (int j = this.Spectators.Count; j >= 0; --j)
+        foreach (var player in remainingSpectators)
         {
-            var player = this.Spectators[j];
             await player.InvokeViewPlugInAsync<IDuelSpectatorRemovedPlugIn>(p => p.SpectatorRemovedAsync(spectator)).ConfigureAwait(false);
         }
 
@@ -341,6 +344,7 @@ public sealed class DuelRoom : AsyncDisposable
 
             spectators = this.Spectators.ToArray();
             this.Spectators.Add(player);
+            player.DuelRoom = this;
         }
 
         await player.AddInvisibleEffectAsync().ConfigureAwait(false);

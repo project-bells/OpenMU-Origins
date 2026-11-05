@@ -63,7 +63,10 @@ public class DuelRoomManager
     public async ValueTask GiveBackDuelRoomAsync(DuelRoom duelRoom)
     {
         using var l = await this._lock.LockAsync().ConfigureAwait(false);
-        this._duelRooms[duelRoom.Index] = null;
+        if (ReferenceEquals(this._duelRooms[duelRoom.Index], duelRoom))
+        {
+            this._duelRooms[duelRoom.Index] = null;
+        }
     }
 
     /// <summary>
