@@ -13,10 +13,13 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `f0708e6bc` - `test(events): cover Chaos Castle PvP damage`
+- `9fafe62ad` - `test(events): cover Chaos Castle floor collapse`
 
 Recent completed work:
 
+- `9fafe62ad` - Added fresh Season 6 configuration coverage for Chaos Castle
+  1-7 safezone removal, kill thresholds, and all three exact floor-collapse
+  stages, including terrain attributes and client-update behavior.
 - `f0708e6bc` - Added deterministic Chaos Castle PvP damage coverage for
   shield-era and classic PvP, including the Dark Raven exception.
 - `276b5bb9d` - Added Chaos Castle entry coverage proving that the entrant is
@@ -86,9 +89,10 @@ Recent completed work:
 Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
-  (40 existing warnings in the final incremental build).
-- Targeted `ChaosCastlePvpDamageTests` run: 4 passed, 0 failed.
-- Full `MUnique.OpenMU.Tests` run: 2,015 passed, 0 failed.
+  (55 existing warnings in the final incremental build).
+- Targeted `ChaosCastleDataTest` run: 2 passed, 0 failed.
+- Full `MUnique.OpenMU.Persistence.Initialization.Tests` run: 671 passed,
+  7 skipped, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
 
@@ -199,7 +203,7 @@ Audit Chaos Castle 1-7:
   and in-event regroup prevention covered by `276b5bb9d`;
 - PvP damage rules, including classic PvP and Dark Raven, covered by
   `f0708e6bc`;
-- floor-collapse stages and safe tiles;
+- floor-collapse stages and safe tiles covered by `9fafe62ad`;
 - explosion traps and knockback/death handling;
 - winner selection when the last deaths occur close together;
 - Ancient Item reward generation and exactly-once delivery.
