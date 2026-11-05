@@ -13,10 +13,13 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `30923029f` - `test(events): cover event monster waves`
+- `75e7b8714` - `test(events): cover Blood Castle quest sequence`
 
 Recent completed work:
 
+- `75e7b8714` - Added fresh Season 6 configuration coverage for the Blood
+  Castle 1-8 gate, statue, and Archangel weapon quest sequence, including
+  kill scaling, terrain changes, health scaling, and guaranteed quest drop.
 - `30923029f` - Added fresh Season 6 configuration coverage for Blood Castle
   1-8 monster definitions, spawn counts, quantities, triggers, map references,
   and coordinates, plus Devil Square 1-7 monster sets and wave timing.
@@ -66,10 +69,9 @@ Recent completed work:
 Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
-  (183 existing warnings in the clean build; final affected-project build had
-  0 warnings).
-- Targeted Blood Castle and Devil Square configuration run: 4 passed, 0 failed.
-- Full `MUnique.OpenMU.Persistence.Initialization.Tests` run: 666 passed,
+  (55 existing warnings; affected-project build had 0 warnings).
+- Targeted Blood Castle and Devil Square configuration run: 5 passed, 0 failed.
+- Full `MUnique.OpenMU.Persistence.Initialization.Tests` run: 667 passed,
   7 skipped, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
@@ -156,7 +158,8 @@ Audit all configured levels (Blood Castle 1-8, Devil Square 1-7):
   `c3a11316d`;
 - monster definitions, counts, spawn positions, and wave timing covered by
   `30923029f`;
-- Blood Castle gate/statue/Archangel weapon quest sequence;
+- Blood Castle gate/statue/Archangel weapon quest sequence covered by
+  `75e7b8714`;
 - quest hand-in ownership and duplicate-claim prevention;
 - score, experience, Zen, and item rewards;
 - timeout and empty-event cleanup.
