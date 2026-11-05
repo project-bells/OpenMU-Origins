@@ -10,6 +10,7 @@ using MUnique.OpenMU.GameLogic.NPC;
 using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameLogic.Views.Character;
 using MUnique.OpenMU.GameLogic.Views.Inventory;
+using Nito.AsyncEx;
 using Nito.Disposables.Internals;
 
 /// <summary>
@@ -58,6 +59,7 @@ public sealed class BloodCastleContext : MiniGameContext
 
     private readonly ConcurrentDictionary<string, PlayerGameState> _gameStates = new();
     private readonly BloodCastleCycleState _cycleState = new();
+    private readonly AsyncLock _questHandInLock = new();
 
     private IReadOnlyCollection<(string Name, int Score, int BonusExp, int BonusMoney)>? _highScoreTable;
     private TimeSpan _remainingTime;
@@ -101,33 +103,36 @@ public sealed class BloodCastleContext : MiniGameContext
     /// <param name="player">The player who talks to Archangel.</param>
     public async ValueTask TalkToNpcArchangelAsync(Player player)
     {
-        if (this._winner is not null)
+        using (await this._questHandInLock.LockAsync().ConfigureAwait(false))
         {
-            await player.InvokeViewPlugInAsync<IShowDialogPlugIn>(p => p.ShowDialogAsync(DialogCategoryMain, (byte)DialogNumber.EventFinished)).ConfigureAwait(false);
-            return;
-        }
+            if (this._winner is not null)
+            {
+                await player.InvokeViewPlugInAsync<IShowDialogPlugIn>(p => p.ShowDialogAsync(DialogCategoryMain, (byte)DialogNumber.EventFinished)).ConfigureAwait(false);
+                return;
+            }
 
-        if (!this.IsEventRunning)
-        {
-            await player.InvokeViewPlugInAsync<IShowDialogPlugIn>(p => p.ShowDialogAsync(DialogCategoryMain, (byte)DialogNumber.EventNotRunning)).ConfigureAwait(false);
-            return;
-        }
+            if (!this.IsEventRunning)
+            {
+                await player.InvokeViewPlugInAsync<IShowDialogPlugIn>(p => p.ShowDialogAsync(DialogCategoryMain, (byte)DialogNumber.EventNotRunning)).ConfigureAwait(false);
+                return;
+            }
 
-        if (!await this.TryRemoveQuestItemFromPlayerAsync(player).ConfigureAwait(false))
-        {
-            await player.InvokeViewPlugInAsync<IShowDialogPlugIn>(p => p.ShowDialogAsync(DialogCategoryMain, (byte)DialogNumber.EventQuestItemMissing)).ConfigureAwait(false);
-            return;
-        }
+            if (!await this.TryRemoveQuestItemFromPlayerAsync(player).ConfigureAwait(false))
+            {
+                await player.InvokeViewPlugInAsync<IShowDialogPlugIn>(p => p.ShowDialogAsync(DialogCategoryMain, (byte)DialogNumber.EventQuestItemMissing)).ConfigureAwait(false);
+                return;
+            }
 
-        if (!this._cycleState.TryCompleteSuccessfully())
-        {
-            await player.InvokeViewPlugInAsync<IShowDialogPlugIn>(p => p.ShowDialogAsync(DialogCategoryMain, (byte)DialogNumber.EventFinished)).ConfigureAwait(false);
-            return;
-        }
+            if (!this._cycleState.TryCompleteSuccessfully())
+            {
+                await player.InvokeViewPlugInAsync<IShowDialogPlugIn>(p => p.ShowDialogAsync(DialogCategoryMain, (byte)DialogNumber.EventFinished)).ConfigureAwait(false);
+                return;
+            }
 
-        this._winner = player;
-        await player.InvokeViewPlugInAsync<IShowDialogPlugIn>(p => p.ShowDialogAsync(DialogCategoryMain, (byte)DialogNumber.EventWinner)).ConfigureAwait(false);
-        this.FinishEvent();
+            this._winner = player;
+            await player.InvokeViewPlugInAsync<IShowDialogPlugIn>(p => p.ShowDialogAsync(DialogCategoryMain, (byte)DialogNumber.EventWinner)).ConfigureAwait(false);
+            this.FinishEvent();
+        }
     }
 
     /// <inheritdoc/>
