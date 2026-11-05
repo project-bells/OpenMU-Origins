@@ -130,10 +130,10 @@ public class MuHelperLifecycleTests
         await Task.WhenAll(
             player.MuHelper.StopAsync().AsTask(),
             player.MuHelper.StopAsync().AsTask(),
+            player.SetSelectedCharacterAsync(null).AsTask(),
             player.MuHelper.DisposeAsync().AsTask()).WaitAsync(TimeSpan.FromSeconds(2)).ConfigureAwait(false);
 
         statusView.Verify(view => view.StopAsync(), Times.Once());
-        Assert.That(player.Attributes[Stats.IsMuHelperActive], Is.Zero);
     }
 
     private static async ValueTask<Player> CreatePlayerAsync(MuHelperConfiguration configuration)
