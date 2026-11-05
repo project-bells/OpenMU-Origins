@@ -87,6 +87,30 @@ public class CharacterInitializationTest
     }
 
     /// <summary>
+    /// Tests that reinitializing a character after a reset or reconnect preserves learned master skills.
+    /// </summary>
+    [Test]
+    public void ReinitializationPreservesLearnedMasterSkills()
+    {
+        var characterClass = this.CreateCharacterClass();
+        characterClass.IsMasterClass = true;
+        var character = this._context.CreateNew<Character>();
+        var skill = this._context.CreateNew<Skill>();
+        skill.MasterDefinition = this._context.CreateNew<MasterSkillDefinition>();
+        var learnedSkill = this._context.CreateNew<SkillEntry>();
+        learnedSkill.Skill = skill;
+        learnedSkill.Level = 10;
+        character.LearnedSkills.Add(learnedSkill);
+
+        this._context.InitializeNewCharacter(character, characterClass);
+        this._context.InitializeNewCharacter(character, characterClass);
+
+        Assert.That(character.LearnedSkills, Has.Count.EqualTo(1));
+        Assert.That(character.LearnedSkills.Single(), Is.SameAs(learnedSkill));
+        Assert.That(learnedSkill.Level, Is.EqualTo(10));
+    }
+
+    /// <summary>
     /// Tests that a new character starts on the home map of its class, at a spawn gate.
     /// </summary>
     [Test]
