@@ -13,10 +13,13 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `ce6025736` - `fix(events): serialize Blood Castle quest hand-in`
+- `7b45641fc` - `test(events): cover event rewards`
 
 Recent completed work:
 
+- `7b45641fc` - Added fresh Season 6 configuration coverage for Blood Castle
+  1-8 score, experience, Zen, and Jewel of Chaos rewards, plus Devil Square
+  1-7 rank-based experience and Zen rewards.
 - `ce6025736` - Serialized Blood Castle Archangel quest hand-ins so only the
   winning owner consumes a quest item, with coverage for non-owner attempts and
   duplicate claims retaining the losing claimant's item.
@@ -72,9 +75,10 @@ Recent completed work:
 Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
-  (40 existing warnings in the final incremental build).
-- Targeted Blood Castle hand-in/state-machine run: 10 passed, 0 failed.
-- Full `MUnique.OpenMU.Tests` run: 2,008 passed, 0 failed.
+  (55 existing warnings in the final incremental build).
+- Targeted `BloodCastleAndDevilSquareDataTest` run: 7 passed, 0 failed.
+- Full `MUnique.OpenMU.Persistence.Initialization.Tests` run: 669 passed,
+  7 skipped, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
 
@@ -164,7 +168,7 @@ Audit all configured levels (Blood Castle 1-8, Devil Square 1-7):
   `75e7b8714`;
 - quest hand-in ownership and duplicate-claim prevention covered by
   `ce6025736`;
-- score, experience, Zen, and item rewards;
+- score, experience, Zen, and item rewards covered by `7b45641fc`;
 - timeout and empty-event cleanup.
 
 Any persisted configuration correction requires both:
