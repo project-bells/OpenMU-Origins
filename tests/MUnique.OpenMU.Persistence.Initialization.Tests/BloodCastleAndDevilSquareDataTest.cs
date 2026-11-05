@@ -54,6 +54,29 @@ internal class BloodCastleAndDevilSquareDataTest
 
     private static readonly int[] BloodCastleStatueHealth = { 65_000, 105_000, 145_000, 185_000, 225_000, 265_000, 305_000, 345_000 };
 
+    private static readonly (int GateExperience, int StatueExperience, int SuccessExperience, int ExperiencePerSecond, int WinnerMoney, int LoserMoney)[] BloodCastleRewards =
+    {
+        (20_000, 20_000, 5_000, 160, 20_000, 10_000),
+        (50_000, 50_000, 10_000, 180, 50_000, 25_000),
+        (80_000, 80_000, 15_000, 200, 100_000, 50_000),
+        (90_000, 90_000, 20_000, 220, 150_000, 80_000),
+        (100_000, 100_000, 25_000, 240, 200_000, 100_000),
+        (110_000, 110_000, 30_000, 260, 250_000, 120_000),
+        (120_000, 120_000, 35_000, 280, 250_000, 120_000),
+        (130_000, 130_000, 40_000, 300, 250_000, 120_000),
+    };
+
+    private static readonly (int[] Experience, int[] Money)[] DevilSquareRewards =
+    {
+        ([6_000, 4_000, 2_000, 1_000], [30_000, 25_000, 20_000, 15_000]),
+        ([8_000, 6_000, 4_000, 2_000], [40_000, 35_000, 30_000, 25_000]),
+        ([10_000, 8_000, 6_000, 4_000], [50_000, 45_000, 40_000, 35_000]),
+        ([20_000, 10_000, 8_000, 6_000], [60_000, 55_000, 50_000, 45_000]),
+        ([22_000, 20_000, 10_000, 8_000], [70_000, 65_000, 60_000, 55_000]),
+        ([24_000, 22_000, 20_000, 10_000], [80_000, 75_000, 70_000, 65_000]),
+        ([26_000, 24_000, 22_000, 20_000], [150_000, 140_000, 120_000, 90_000]),
+    };
+
     /// <summary>
     /// Tests all configured Blood Castle entrance brackets, maps, and ticket levels.
     /// </summary>
@@ -232,6 +255,75 @@ internal class BloodCastleAndDevilSquareDataTest
         }
     }
 
+    /// <summary>
+    /// Tests all configured Blood Castle experience, money, item, and score rewards.
+    /// </summary>
+    [Test]
+    public async Task FreshDatabaseContainsAllBloodCastleRewardsAsync()
+    {
+        var configuration = await CreateSeason6ConfigurationAsync().ConfigureAwait(false);
+        var jewelOfChaos = configuration.Items.Single(item => item is { Group: 12, Number: 15 });
+        var definitions = configuration.MiniGameDefinitions
+            .Where(definition => definition.Type == MiniGameType.BloodCastle)
+            .OrderBy(definition => definition.GameLevel)
+            .ToList();
+
+        for (var index = 0; index < definitions.Count; index++)
+        {
+            var definition = definitions[index];
+            var expected = BloodCastleRewards[index];
+            var rewards = definition.Rewards;
+            Assert.That(rewards, Has.Count.EqualTo(13), $"Blood Castle {definition.GameLevel} reward count");
+            Assert.Multiple(() =>
+            {
+                AssertReward(rewards, MiniGameRewardType.Experience, expected.GateExperience, MiniGameSuccessFlags.None, requiredKill: 131);
+                AssertReward(rewards, MiniGameRewardType.Experience, expected.StatueExperience, MiniGameSuccessFlags.None, requiredKill: 132);
+                AssertReward(rewards, MiniGameRewardType.Experience, expected.SuccessExperience, MiniGameSuccessFlags.WinnerOrInWinningParty);
+                AssertReward(rewards, MiniGameRewardType.ExperiencePerRemainingSeconds, expected.ExperiencePerSecond, MiniGameSuccessFlags.None);
+                AssertReward(rewards, MiniGameRewardType.Money, expected.WinnerMoney, MiniGameSuccessFlags.WinnerOrInWinningParty);
+                AssertReward(rewards, MiniGameRewardType.Money, expected.LoserMoney, MiniGameSuccessFlags.Loser);
+
+                var itemReward = rewards.Single(reward => reward.RewardType == MiniGameRewardType.ItemDrop);
+                Assert.That(itemReward.RewardAmount, Is.EqualTo(1));
+                Assert.That(itemReward.RequiredSuccess, Is.EqualTo(MiniGameSuccessFlags.WinnerOrInWinningParty | MiniGameSuccessFlags.Alive));
+                Assert.That(itemReward.ItemReward?.PossibleItems, Is.EqualTo(new[] { jewelOfChaos }));
+
+                AssertReward(rewards, MiniGameRewardType.Score, 600, MiniGameSuccessFlags.Alive | MiniGameSuccessFlags.WinnerExists);
+                AssertReward(rewards, MiniGameRewardType.Score, 300, MiniGameSuccessFlags.Dead | MiniGameSuccessFlags.WinnerExists);
+                AssertReward(rewards, MiniGameRewardType.Score, index < 2 ? 400 : 405, MiniGameSuccessFlags.Winner | MiniGameSuccessFlags.WinnerExists);
+                AssertReward(rewards, MiniGameRewardType.Score, 200, MiniGameSuccessFlags.WinningParty | MiniGameSuccessFlags.Alive | MiniGameSuccessFlags.WinnerExists);
+                AssertReward(rewards, MiniGameRewardType.Score, 100, MiniGameSuccessFlags.WinningParty | MiniGameSuccessFlags.Dead | MiniGameSuccessFlags.WinnerExists);
+                AssertReward(rewards, MiniGameRewardType.Score, -300, MiniGameSuccessFlags.WinnerNotExists);
+            });
+        }
+    }
+
+    /// <summary>
+    /// Tests all configured Devil Square rank-based experience and money rewards.
+    /// </summary>
+    [Test]
+    public async Task FreshDatabaseContainsAllDevilSquareRewardsAsync()
+    {
+        var configuration = await CreateSeason6ConfigurationAsync().ConfigureAwait(false);
+        var definitions = configuration.MiniGameDefinitions
+            .Where(definition => definition.Type == MiniGameType.DevilSquare)
+            .OrderBy(definition => definition.GameLevel)
+            .ToList();
+
+        for (var levelIndex = 0; levelIndex < definitions.Count; levelIndex++)
+        {
+            var definition = definitions[levelIndex];
+            var expected = DevilSquareRewards[levelIndex];
+            Assert.That(definition.Rewards, Has.Count.EqualTo(8), $"Devil Square {definition.GameLevel} reward count");
+            for (var rankIndex = 0; rankIndex < 4; rankIndex++)
+            {
+                var rank = rankIndex + 1;
+                AssertReward(definition.Rewards, MiniGameRewardType.Experience, expected.Experience[rankIndex], MiniGameSuccessFlags.None, rank: rank);
+                AssertReward(definition.Rewards, MiniGameRewardType.Money, expected.Money[rankIndex], MiniGameSuccessFlags.None, rank: rank);
+            }
+        }
+    }
+
     private static async Task<GameConfiguration> CreateSeason6ConfigurationAsync()
     {
         var contextProvider = new InMemoryPersistenceContextProvider();
@@ -251,6 +343,22 @@ internal class BloodCastleAndDevilSquareDataTest
         });
 
         return (change.StartX, change.StartY, change.EndX, change.EndY, change.TerrainAttribute);
+    }
+
+    private static void AssertReward(
+        IEnumerable<MiniGameReward> rewards,
+        MiniGameRewardType rewardType,
+        int amount,
+        MiniGameSuccessFlags requiredSuccess,
+        int? rank = null,
+        short? requiredKill = null)
+    {
+        var reward = rewards.Single(candidate => candidate.RewardType == rewardType
+            && candidate.RewardAmount == amount
+            && candidate.RequiredSuccess == requiredSuccess
+            && candidate.Rank == rank
+            && candidate.RequiredKill?.Number == requiredKill);
+        Assert.That(reward.ItemReward, Is.Null);
     }
 
     private static void AssertEntranceDefinitions(
