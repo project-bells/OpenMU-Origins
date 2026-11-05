@@ -13,10 +13,13 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `d70e90125` - `test(events): cover Chaos Castle population`
+- `276b5bb9d` - `test(events): cover Chaos Castle party isolation`
 
 Recent completed work:
 
+- `276b5bb9d` - Added Chaos Castle entry coverage proving that the entrant is
+  removed alone from its existing party, the remaining party stays intact, and
+  regrouping from inside the event is rejected.
 - `d70e90125` - Added fresh Season 6 configuration coverage for Chaos Castle
   1-7 player capacity, randomized entrance domain, 99-monster population,
   per-level monster pairs, manual spawn triggers, and unique arena positions.
@@ -81,10 +84,9 @@ Recent completed work:
 Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
-  (55 existing warnings in the final incremental build).
-- Targeted `ChaosCastleDataTest` run: 1 passed, 0 failed.
-- Full `MUnique.OpenMU.Persistence.Initialization.Tests` run: 670 passed,
-  7 skipped, 0 failed.
+  (40 existing warnings in the final incremental build).
+- Targeted Chaos Castle party isolation run: 1 passed, 0 failed.
+- Full `MUnique.OpenMU.Tests` run: 2,011 passed, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
 
@@ -191,7 +193,8 @@ idempotent application.
 Audit Chaos Castle 1-7:
 
 - player/monster population and random placement covered by `d70e90125`;
-- disguise and party removal behavior;
+- client-side disguise map identities covered by `d70e90125`; party removal
+  and in-event regroup prevention covered by `276b5bb9d`;
 - PvP damage rules;
 - floor-collapse stages and safe tiles;
 - explosion traps and knockback/death handling;
