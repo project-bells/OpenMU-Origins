@@ -303,18 +303,34 @@ packet C# or generated packet documentation directly.
 
 ### Round 6 - Character classes and master skills
 
-Perform a data-driven audit for all seven classes: DK, DW, Elf, MG, DL,
-Summoner, and Rage Fighter. Check:
+The automatable data and lifecycle audit is complete in `047f23f0e`:
 
-- base/evolution class requirements and point progression;
-- every normal and master skill requirement;
-- master point allocation and prerequisite graph;
-- damage, multi-hit count, cooldown, range, buffs, and resource cost;
-- Rage Fighter formulas and client-visible behavior in particular;
-- reset/reconnect persistence of learned master skills.
+- all seven class progressions (DK, DW, Elf, MG, DL, Summoner, and Rage
+  Fighter) have one creatable base class, the configured evolution chain, one
+  terminal master class, and master-point progression data;
+- every configured normal and master skill has a unique identifier and valid
+  damage, hit-count, range, class qualification, requirement, and resource-cost
+  references;
+- every master skill has valid allocation bounds, formulas, root/rank data,
+  class qualification, prerequisite references, and replacement links;
+- the audit covers both master-skill prerequisites and normal-skill
+  prerequisites, matching the two paths enforced by `AddMasterPointAction`;
+- Rage Fighter and Fist Master combat relationships consume configured total
+  strength, agility, vitality, and energy attributes rather than hard-coded
+  GameLogic class branches;
+- repeated character initialization (the reset/reconnect path) preserves the
+  learned master-skill instance and its level.
 
-Prefer configured attribute relationships and skill data over hard-coded class
-branches in GameLogic.
+The full GameLogic suite passes with 2,037 tests. The Persistence
+Initialization run passes 676 other tests with seven existing skips, and the
+final four-test Round 6 audit passes after its last rebuild. The full
+solution builds with zero errors (existing repository warnings remain).
+
+Round 6 client-visible certification still requires an original ENG 1.04d
+capture and in-game observations. The server-side audit locks the configured
+values and graph consistency, but it cannot independently prove client-rendered
+cooldowns, buff text, animation timing, or displayed Rage Fighter formula
+rounding without treating the current configuration as its own oracle.
 
 ### Round 7 - Guild, Gens, duel, and Castle Siege
 
