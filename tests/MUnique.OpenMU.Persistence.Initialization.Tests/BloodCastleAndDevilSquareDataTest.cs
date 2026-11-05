@@ -48,6 +48,12 @@ internal class BloodCastleAndDevilSquareDataTest
         [434, 435, 438, 439, 436, 437, 440],
     };
 
+    private static readonly short[] BloodCastleSpiritSorcererNumbers = { 89, 95, 112, 118, 124, 130, 143, 433 };
+
+    private static readonly int[] BloodCastleGateHealth = { 150_000, 205_000, 260_000, 325_000, 400_000, 480_000, 565_000, 650_000 };
+
+    private static readonly int[] BloodCastleStatueHealth = { 65_000, 105_000, 145_000, 185_000, 225_000, 265_000, 305_000, 345_000 };
+
     /// <summary>
     /// Tests all configured Blood Castle entrance brackets, maps, and ticket levels.
     /// </summary>
@@ -163,6 +169,69 @@ internal class BloodCastleAndDevilSquareDataTest
         }
     }
 
+    /// <summary>
+    /// Tests the configured Blood Castle gate, statue, and Archangel weapon quest sequence.
+    /// </summary>
+    [Test]
+    public async Task FreshDatabaseContainsBloodCastleQuestSequenceAsync()
+    {
+        var configuration = await CreateSeason6ConfigurationAsync().ConfigureAwait(false);
+        var questItem = configuration.Items.Single(item => item is { Group: 13, Number: 19 });
+        var statue = configuration.Monsters.Single(monster => monster.Number == 132);
+        var questDrop = statue.DropItemGroups.Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(statue.NumberOfMaximumItemDrops, Is.EqualTo(1));
+            Assert.That(questDrop.Monster, Is.SameAs(statue));
+            Assert.That(questDrop.Chance, Is.EqualTo(1));
+            Assert.That(questDrop.PossibleItems, Is.EqualTo(new[] { questItem }));
+        });
+
+        var definitions = configuration.MiniGameDefinitions
+            .Where(definition => definition.Type == MiniGameType.BloodCastle)
+            .OrderBy(definition => definition.GameLevel)
+            .ToList();
+        for (var index = 0; index < definitions.Count; index++)
+        {
+            var definition = definitions[index];
+            var events = definition.ChangeEvents.OrderBy(changeEvent => changeEvent.Index).ToList();
+            var gateSpawn = definition.Entrance!.Map!.MonsterSpawns.Single(spawn => spawn.MonsterDefinition?.Number == 131);
+
+            Assert.That(events.Select(changeEvent => changeEvent.Index), Is.EqualTo(new[] { 0, 1, 2, 3 }), $"Blood Castle {definition.GameLevel} event order");
+            Assert.Multiple(() =>
+            {
+                Assert.That(gateSpawn.SpawnTrigger, Is.EqualTo(SpawnTrigger.OnceAtEventStart), $"Blood Castle {definition.GameLevel} gate trigger");
+                Assert.That(gateSpawn.MaximumHealthOverride, Is.EqualTo(BloodCastleGateHealth[index]), $"Blood Castle {definition.GameLevel} gate health");
+
+                Assert.That(events[0].NumberOfKills, Is.Zero, $"Blood Castle {definition.GameLevel} initial event");
+                Assert.That(events[0].TerrainChanges.Select(TerrainChangeValues), Is.EquivalentTo(new[]
+                {
+                    (13, 15, 15, 23, TerrainAttributeType.Blocked),
+                    (11, 78, 25, 89, TerrainAttributeType.Blocked),
+                    (8, 78, 11, 83, TerrainAttributeType.Blocked),
+                }), $"Blood Castle {definition.GameLevel} initial terrain");
+
+                Assert.That(events[1].Target, Is.EqualTo(KillTarget.AnyMonster), $"Blood Castle {definition.GameLevel} bridge target");
+                Assert.That(events[1].NumberOfKills, Is.EqualTo(40), $"Blood Castle {definition.GameLevel} bridge kills");
+                Assert.That(events[1].MultiplyKillsByPlayers, Is.True, $"Blood Castle {definition.GameLevel} bridge scaling");
+                Assert.That(events[1].TerrainChanges.Select(TerrainChangeValues), Is.EqualTo(new[] { (13, 70, 15, 75, TerrainAttributeType.NoGround) }), $"Blood Castle {definition.GameLevel} bridge terrain");
+
+                Assert.That(events[2].Target, Is.EqualTo(KillTarget.Specific), $"Blood Castle {definition.GameLevel} gate target");
+                Assert.That(events[2].TargetDefinition?.Number, Is.EqualTo(131), $"Blood Castle {definition.GameLevel} gate definition");
+                Assert.That(events[2].NumberOfKills, Is.EqualTo(1), $"Blood Castle {definition.GameLevel} gate kills");
+                Assert.That(events[2].TerrainChanges.Select(TerrainChangeValues), Is.EqualTo(new[] { (13, 76, 15, 79, TerrainAttributeType.Blocked) }), $"Blood Castle {definition.GameLevel} gate terrain");
+
+                Assert.That(events[3].Target, Is.EqualTo(KillTarget.Specific), $"Blood Castle {definition.GameLevel} statue prerequisite");
+                Assert.That(events[3].TargetDefinition?.Number, Is.EqualTo(BloodCastleSpiritSorcererNumbers[index]), $"Blood Castle {definition.GameLevel} Spirit Sorcerer");
+                Assert.That(events[3].NumberOfKills, Is.EqualTo(2), $"Blood Castle {definition.GameLevel} Spirit Sorcerer kills");
+                Assert.That(events[3].MultiplyKillsByPlayers, Is.True, $"Blood Castle {definition.GameLevel} Spirit Sorcerer scaling");
+                Assert.That(events[3].SpawnArea?.MonsterDefinition, Is.SameAs(statue), $"Blood Castle {definition.GameLevel} statue definition");
+                Assert.That(events[3].SpawnArea?.MaximumHealthOverride, Is.EqualTo(BloodCastleStatueHealth[index]), $"Blood Castle {definition.GameLevel} statue health");
+                Assert.That(events[3].SpawnArea is { X1: 14, Y1: 95, X2: 14, Y2: 95, Quantity: 1, SpawnTrigger: SpawnTrigger.OnceAtWaveStart }, Is.True, $"Blood Castle {definition.GameLevel} statue spawn");
+            });
+        }
+    }
+
     private static async Task<GameConfiguration> CreateSeason6ConfigurationAsync()
     {
         var contextProvider = new InMemoryPersistenceContextProvider();
@@ -171,6 +240,17 @@ internal class BloodCastleAndDevilSquareDataTest
 
         using var context = contextProvider.CreateNewContext();
         return (await context.GetAsync<GameConfiguration>().ConfigureAwait(false)).Single();
+    }
+
+    private static (int StartX, int StartY, int EndX, int EndY, TerrainAttributeType Attribute) TerrainChangeValues(MiniGameTerrainChange change)
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(change.SetTerrainAttribute, Is.False);
+            Assert.That(change.IsClientUpdateRequired, Is.True);
+        });
+
+        return (change.StartX, change.StartY, change.EndX, change.EndY, change.TerrainAttribute);
     }
 
     private static void AssertEntranceDefinitions(
