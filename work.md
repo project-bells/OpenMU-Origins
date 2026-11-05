@@ -13,10 +13,15 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `f27fcd9ee` - `feat(events): configure Chaos Castle jewel drops`
+- `238569f27` - `test(events): cover boss and invasion parity data`
 
 Recent completed work:
 
+- `238569f27` - Added exact Season 6 Kanturu Maya/Nightmare wave, boss,
+  skill, health, drop-count, and respawn coverage; expanded Raklion coverage to
+  every spider-egg and Coolutin summon coordinate; and locked all nine Golden
+  Invasion tiers to their duration, pre-start delay, announcements, hourly
+  timetable, quantities, map eligibility, and random-coordinate strategy.
 - `f27fcd9ee` - Moved fixed Chaos Castle Bless/Soul monster drops into editable
   per-map Season 6 configuration, added a mandatory idempotent update for
   existing databases, and covered distinct-kill exactly-once generation.
@@ -96,11 +101,9 @@ Recent completed work:
 Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
-  (181 existing warnings in the final build).
-- Targeted Chaos Castle runtime/state/drop run: 9 passed, 0 failed.
-- Targeted `ChaosCastleDataTest` run: 5 passed, 0 failed.
-- Full `MUnique.OpenMU.Tests` run: 2,018 passed, 0 failed.
-- Full `MUnique.OpenMU.Persistence.Initialization.Tests` run: 674 passed,
+  (existing analyzer warnings remain).
+- Full `MUnique.OpenMU.Tests` run: 2,019 passed, 0 failed.
+- Full `MUnique.OpenMU.Persistence.Initialization.Tests` run: 676 passed,
   7 skipped, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
@@ -226,15 +229,28 @@ tests. Round 3 is complete.
 
 ### Round 4 - Bosses and invasions
 
-Add end-to-end parity tests for:
+Completed in `238569f27`, together with the Round 1 full-cycle tests in
+`dc3ec9fff` and `e0c721f76`:
 
-- Kanturu Maya and Nightmare;
-- Raklion Selupan;
-- Medusa;
-- all Golden Invasion tiers.
+- Kanturu Maya and Nightmare exact wave coordinates, skills, health, maximum
+  drops, and non-respawning event definitions;
+- Raklion Selupan, every spider-egg coordinate, every summoned Coolutin
+  coordinate, and all four Selupan skill multipliers;
+- all nine Golden Invasion tiers, including timing, announcements, quantities,
+  eligible maps, and random-coordinate strategy.
 
-Validate coordinates, timing, skills, announcements, drop ownership, cleanup,
-restart recovery, and the next scheduled run.
+The shared invasion lifecycle already covers start/end announcements and cleanup;
+the periodic-task tests cover restart isolation, forced starts, duration guards,
+and subsequent scheduled runs. Generic monster-drop tests cover killer/party
+ownership independently of the spawning event.
+
+Medusa remains blocked and Round 4 must not be claimed fully complete yet. The
+repository contains neither a Medusa monster definition nor an event plug-in.
+Webzen's Season 5.4 notice confirms only that Medusa appears at random times in
+the Swamp of Peace; it does not provide the ENG 1.04d monster ID, exact spawn
+coordinates, skills, timing distribution, or drop table. Obtain an original
+ENG 1.04d client trace plus in-game observations before implementing and testing
+those values; do not copy them from third-party server sources.
 
 ### Round 5 - Mu Helper protocol and economy
 
