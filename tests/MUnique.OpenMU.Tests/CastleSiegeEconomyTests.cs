@@ -123,6 +123,32 @@ public class CastleSiegeEconomyTests
     }
 
     /// <summary>
+    /// Verifies that concurrent purchases collect every tax payment without losing tribute updates.
+    /// </summary>
+    [Test]
+    public async ValueTask ConcurrentTaxesAreCollectedExactlyOnceAsync()
+    {
+        const int paymentCount = 50;
+        const int baseCost = 100;
+        const int taxRate = 2;
+        var fixture = await CreateFixtureAsync().ConfigureAwait(false);
+        var provider = new CastleSiegeTaxProvider();
+        fixture.Context.SiegeData.TaxStore = taxRate;
+        fixture.Visitor.Money = paymentCount * (baseCost + taxRate);
+
+        var payments = Enumerable.Range(0, paymentCount)
+            .Select(_ => provider.TryPayStoreCostAsync(fixture.Visitor, baseCost, fixture.Context).AsTask());
+        var results = await Task.WhenAll(payments).ConfigureAwait(false);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(results, Has.All.True);
+            Assert.That(fixture.Visitor.Money, Is.Zero);
+            Assert.That(fixture.Context.SiegeData.TributeMoney, Is.EqualTo(paymentCount * taxRate));
+        });
+    }
+
+    /// <summary>
     /// Verifies that a zero store-tax rate keeps the purchase hot path free of guild-server calls.
     /// </summary>
     [Test]
