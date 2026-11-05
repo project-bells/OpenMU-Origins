@@ -1,6 +1,6 @@
 # OpenMU Origins - Work Handoff
 
-Last updated: 2026-11-04  
+Last updated: 2026-11-05
 Target: MU Online Season 6 Episode 3, ENG protocol 1.04d  
 Branch: `master`  
 Remote: `origin` (`https://github.com/project-bells/OpenMU-Origins.git`)
@@ -13,10 +13,13 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `c3a11316d` - `test(events): cover party entry results`
+- `30923029f` - `test(events): cover event monster waves`
 
 Recent completed work:
 
+- `30923029f` - Added fresh Season 6 configuration coverage for Blood Castle
+  1-8 monster definitions, spawn counts, quantities, triggers, map references,
+  and coordinates, plus Devil Square 1-7 monster sets and wave timing.
 - `c3a11316d` - Added Blood Castle and Devil Square integration coverage for
   preserving party membership and reporting exact level, ticket, and capacity
   rejection results without consuming invitations.
@@ -63,9 +66,11 @@ Recent completed work:
 Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
-  (15 existing warnings in the final incremental build).
-- Targeted event-entry integration run: 10 passed, 0 failed.
-- Full `MUnique.OpenMU.Tests` run: 2,006 passed, 0 failed.
+  (183 existing warnings in the clean build; final affected-project build had
+  0 warnings).
+- Targeted Blood Castle and Devil Square configuration run: 4 passed, 0 failed.
+- Full `MUnique.OpenMU.Persistence.Initialization.Tests` run: 666 passed,
+  7 skipped, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
 
@@ -149,7 +154,8 @@ Audit all configured levels (Blood Castle 1-8, Devil Square 1-7):
   success and rejected entry covered by `51ee64e64`;
 - party preservation and level/ticket/capacity failure results covered by
   `c3a11316d`;
-- monster definitions, counts, spawn positions, and wave timing;
+- monster definitions, counts, spawn positions, and wave timing covered by
+  `30923029f`;
 - Blood Castle gate/statue/Archangel weapon quest sequence;
 - quest hand-in ownership and duplicate-claim prevention;
 - score, experience, Zen, and item rewards;
