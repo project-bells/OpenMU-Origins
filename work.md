@@ -13,10 +13,17 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `9fafe62ad` - `test(events): cover Chaos Castle floor collapse`
+- `f27fcd9ee` - `feat(events): configure Chaos Castle jewel drops`
 
 Recent completed work:
 
+- `f27fcd9ee` - Moved fixed Chaos Castle Bless/Soul monster drops into editable
+  per-map Season 6 configuration, added a mandatory idempotent update for
+  existing databases, and covered distinct-kill exactly-once generation.
+- `7602a67b0` - Made Chaos Castle explosion chance and knockback deterministic
+  under test without changing runtime behavior, covered push direction and map
+  boundaries, and verified all Chaos Castle 1-7 jewel/Ancient Item winner reward
+  groups, chances, success flags, and quantities.
 - `9fafe62ad` - Added fresh Season 6 configuration coverage for Chaos Castle
   1-7 safezone removal, kill thresholds, and all three exact floor-collapse
   stages, including terrain attributes and client-update behavior.
@@ -89,9 +96,11 @@ Recent completed work:
 Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
-  (55 existing warnings in the final incremental build).
-- Targeted `ChaosCastleDataTest` run: 2 passed, 0 failed.
-- Full `MUnique.OpenMU.Persistence.Initialization.Tests` run: 671 passed,
+  (181 existing warnings in the final build).
+- Targeted Chaos Castle runtime/state/drop run: 9 passed, 0 failed.
+- Targeted `ChaosCastleDataTest` run: 5 passed, 0 failed.
+- Full `MUnique.OpenMU.Tests` run: 2,018 passed, 0 failed.
+- Full `MUnique.OpenMU.Persistence.Initialization.Tests` run: 674 passed,
   7 skipped, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
@@ -204,13 +213,16 @@ Audit Chaos Castle 1-7:
 - PvP damage rules, including classic PvP and Dark Raven, covered by
   `f0708e6bc`;
 - floor-collapse stages and safe tiles covered by `9fafe62ad`;
-- explosion traps and knockback/death handling;
-- winner selection when the last deaths occur close together;
-- Ancient Item reward generation and exactly-once delivery.
+- explosion traps and knockback/death handling covered by `7602a67b0`;
+- winner selection when the last deaths occur close together covered by
+  `049df5424`;
+- Ancient Item reward generation covered by `7602a67b0`, with exactly-once
+  winner delivery covered by `049df5424`.
 
-`src/GameLogic/MiniGames/ChaosCastleDropGenerator.cs` still has fixed selection
-behavior which should be moved into Season 6 configuration. Add initialization
-data, an update plugin for existing databases, and deterministic drop tests.
+The fixed Bless/Soul selection in `ChaosCastleDropGenerator` was moved into
+Season 6 configuration by `f27fcd9ee`, including fresh initialization, a
+mandatory idempotent update for existing databases, and deterministic drop
+tests. Round 3 is complete.
 
 ### Round 4 - Bosses and invasions
 
