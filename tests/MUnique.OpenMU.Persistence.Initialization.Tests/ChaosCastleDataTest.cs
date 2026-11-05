@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.Persistence.Initialization.Tests;
 
 using Microsoft.Extensions.Logging.Abstractions;
 using MUnique.OpenMU.DataModel.Configuration;
+using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.Persistence.InMemory;
 
 /// <summary>
@@ -109,6 +110,44 @@ internal class ChaosCastleDataTest
         }
     }
 
+    /// <summary>
+    /// Tests the winner-only jewel and Ancient Item reward configuration of every level.
+    /// </summary>
+    [Test]
+    public async Task FreshDatabaseContainsAllChaosCastleWinnerRewardsAsync()
+    {
+        var configuration = await CreateSeason6ConfigurationAsync().ConfigureAwait(false);
+        var definitions = configuration.MiniGameDefinitions
+            .Where(definition => definition.Type == MiniGameType.ChaosCastle)
+            .OrderBy(definition => definition.GameLevel)
+            .ToList();
+
+        foreach (var definition in definitions)
+        {
+            var rewards = definition.Rewards.ToList();
+            var jewelReward = rewards.Single(reward => reward.ItemReward?.ItemType == SpecialItemType.None);
+            var ancientRewards = rewards.Where(reward => reward.ItemReward?.ItemType == SpecialItemType.Ancient).ToList();
+            Assert.Multiple(() =>
+            {
+                Assert.That(rewards, Has.Count.EqualTo(definition.GameLevel == 1 ? 1 : 2));
+                AssertWinnerDrop(jewelReward, 1.0);
+                Assert.That(jewelReward.ItemReward!.PossibleItems.Select(item => (item.Group, item.Number)), Is.EquivalentTo(new[]
+                {
+                    ((byte)12, (short)15),
+                    ((byte)14, (short)13),
+                    ((byte)14, (short)14),
+                    ((byte)14, (short)16),
+                    ((byte)14, (short)22),
+                }));
+                Assert.That(ancientRewards, Has.Count.EqualTo(definition.GameLevel == 1 ? 0 : 1));
+                if (definition.GameLevel > 1)
+                {
+                    AssertWinnerDrop(ancientRewards.Single(), definition.GameLevel / 10.0);
+                }
+            });
+        }
+    }
+
     private static async Task<GameConfiguration> CreateSeason6ConfigurationAsync()
     {
         var contextProvider = new InMemoryPersistenceContextProvider();
@@ -122,5 +161,13 @@ internal class ChaosCastleDataTest
     private static (byte StartX, byte StartY, byte EndX, byte EndY, bool SetAttribute, bool ClientUpdate, TerrainAttributeType Attribute) TerrainValues(MiniGameTerrainChange change)
     {
         return (change.StartX, change.StartY, change.EndX, change.EndY, change.SetTerrainAttribute, change.IsClientUpdateRequired, change.TerrainAttribute);
+    }
+
+    private static void AssertWinnerDrop(MiniGameReward reward, double chance)
+    {
+        Assert.That(reward.RewardType, Is.EqualTo(MiniGameRewardType.ItemDrop));
+        Assert.That(reward.RewardAmount, Is.EqualTo(1));
+        Assert.That(reward.RequiredSuccess, Is.EqualTo(MiniGameSuccessFlags.Winner | MiniGameSuccessFlags.Alive));
+        Assert.That(reward.ItemReward!.Chance, Is.EqualTo(chance).Within(0.0001));
     }
 }

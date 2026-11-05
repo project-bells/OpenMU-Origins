@@ -24,7 +24,7 @@ using Nito.Disposables.Internals;
 ///     * The map is filled up to 100 objects with NPCs
 ///   Then, these objects fight each other. If the player dies, the event is over for that player.
 ///   If a npc dies, it doesn't re-spawn. There is a 50% chance, that a died monster explodes and moves players nearby (range 3)
-///   by <see cref="BlowOutDistance"/>, depending on the distance to the killed monster.
+///   by a distance which depends on the distance to the killed monster.
 ///   During the game, the map is getting smaller (so-called "Trap Status") after a certain amount of objects died
 ///   at the following number of remaining objects:
 ///     * less than 40
@@ -44,16 +44,9 @@ public sealed class ChaosCastleContext : MiniGameContext
     private const int MonsterKillPoints = 2;
     private const int PlayerKillPoints = 1;
 
-    private static readonly (int Min, int Max)[] BlowOutDistance =
-    {
-        (3, 4),
-        (3, 4),
-        (2, 3),
-        (0, 1),
-    };
-
     private readonly IGameContext _gameContext;
     private readonly IMapInitializer _mapInitializer;
+    private readonly IRandomizer _randomizer;
     private readonly ChaosCastleCycleState _cycleState = new();
     private readonly ConcurrentDictionary<string, PlayerGameState> _gameStates = new();
     private readonly ConcurrentDictionary<Monster, byte> _monsters = new();
@@ -71,11 +64,13 @@ public sealed class ChaosCastleContext : MiniGameContext
     /// <param name="definition">The definition of the mini game.</param>
     /// <param name="gameContext">The game context, to which this game belongs.</param>
     /// <param name="mapInitializer">The map initializer, which is used when the event starts.</param>
-    public ChaosCastleContext(MiniGameMapKey key, MiniGameDefinition definition, IGameContext gameContext, IMapInitializer mapInitializer)
+    /// <param name="randomizer">The randomizer used for explosion chance and knockback.</param>
+    public ChaosCastleContext(MiniGameMapKey key, MiniGameDefinition definition, IGameContext gameContext, IMapInitializer mapInitializer, IRandomizer? randomizer = null)
         : base(key, definition, gameContext, mapInitializer)
     {
         this._gameContext = gameContext;
         this._mapInitializer = mapInitializer;
+        this._randomizer = randomizer ?? Rand.GetRandomizer();
 
         this.Logger.LogDebug("Event {0} created, game id {1}", this.Definition.Name, (this._gameContext as IGameServerContext)?.Id ?? 0);
     }
@@ -286,7 +281,7 @@ public sealed class ChaosCastleContext : MiniGameContext
             }
 
             // There is a 50 % chance, that a died monster explodes and moves players nearby(range 3) by one coordinate.
-            if (Rand.NextRandomBool(50))
+            if (this._randomizer.NextRandomBool(50))
             {
                 return;
             }
@@ -314,68 +309,11 @@ public sealed class ChaosCastleContext : MiniGameContext
             return;
         }
 
-        int directionX;
-        int directionY;
-        if (playerPosition.X > explosionPosition.X)
-        {
-            directionX = 1;
-        }
-        else if (playerPosition.X < explosionPosition.X)
-        {
-            directionX = -1;
-        }
-        else
-        {
-            directionX = Rand.NextRandomBool() ? 1 : -1;
-        }
-
-        if (playerPosition.Y > explosionPosition.Y)
-        {
-            directionY = 1;
-        }
-        else if (playerPosition.Y < explosionPosition.Y)
-        {
-            directionY = -1;
-        }
-        else
-        {
-            directionY = Rand.NextRandomBool() ? 1 : -1;
-        }
-
+        var directionX = ChaosCastleExplosion.GetDirection(playerPosition.X, explosionPosition.X, this._randomizer);
+        var directionY = ChaosCastleExplosion.GetDirection(playerPosition.Y, explosionPosition.Y, this._randomizer);
         for (int i = 0; i < 5; i++)
         {
-            var (min, max) = BlowOutDistance[distance];
-            var blowX = Rand.NextInt(min, max + 1);
-            var blowY = Rand.NextInt(min, max + 1);
-            if (Rand.NextRandomBool())
-            {
-                if (blowX >= max)
-                {
-                    blowX = max;
-                    blowY = min - Rand.NextInt(0, 2);
-                }
-            }
-            else if (blowY >= max)
-            {
-                blowY = max;
-                blowX = min - Rand.NextInt(0, 2);
-            }
-            else
-            {
-                // leave the random values like they are
-            }
-
-            blowX = Math.Max(0, blowX);
-            blowY = Math.Max(0, blowY);
-
-            var targetX = playerPosition.X + (blowX * directionX);
-            var targetY = playerPosition.Y + (blowY * directionY);
-            targetX = Math.Max(0, targetX);
-            targetX = Math.Min(0xFF, targetX);
-            targetY = Math.Max(0, targetY);
-            targetY = Math.Min(0xFF, targetY);
-
-            var targetPoint = new Point((byte)targetX, (byte)targetY);
+            var targetPoint = ChaosCastleExplosion.GetTargetPosition(playerPosition, distance, directionX, directionY, this._randomizer);
             var moved = await this.SetPlayerPositionAsync(player, targetPoint).ConfigureAwait(false);
             if (moved)
             {
