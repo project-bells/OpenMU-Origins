@@ -46,6 +46,11 @@ public enum SpecialItemType
     /// The jewel special item type.
     /// </summary>
     Jewel,
+
+    /// <summary>
+    /// A jewel which is distributed across Chaos Castle monster kills.
+    /// </summary>
+    ChaosCastleJewel,
 }
 
 /// <summary>

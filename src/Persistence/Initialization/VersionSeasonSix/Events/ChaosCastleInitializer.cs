@@ -100,6 +100,7 @@ internal class ChaosCastleInitializer : InitializerBase
         chaosCastle.AllowParty = false;
 
         this.CreateRewards(level, chaosCastle);
+        ChaosCastleJewelDropConfiguration.Ensure(this.Context, this.GameConfiguration, chaosCastle);
         this.CreateEvents(chaosCastle);
 
         return chaosCastle;

@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.Persistence.InMemory;
+using MUnique.OpenMU.Persistence.Initialization.Updates;
 
 /// <summary>
 /// Tests the population and placement configuration of Chaos Castle.
@@ -148,6 +149,55 @@ internal class ChaosCastleDataTest
         }
     }
 
+    /// <summary>
+    /// Tests the configured monster jewel drops of every level in a fresh database.
+    /// </summary>
+    [Test]
+    public async Task FreshDatabaseContainsAllChaosCastleMonsterJewelDropsAsync()
+    {
+        var configuration = await CreateSeason6ConfigurationAsync().ConfigureAwait(false);
+
+        AssertMonsterJewelDrops(configuration);
+    }
+
+    /// <summary>
+    /// Tests that the configuration update repairs missing jewel drops and stays idempotent.
+    /// </summary>
+    [Test]
+    public async Task UpdateRepairsChaosCastleMonsterJewelDropsIdempotentlyAsync()
+    {
+        var contextProvider = new InMemoryPersistenceContextProvider();
+        var initialization = new VersionSeasonSix.DataInitialization(contextProvider, new NullLoggerFactory());
+        await initialization.CreateInitialDataAsync(1, true).ConfigureAwait(false);
+        using var context = contextProvider.CreateNewContext();
+        var configuration = (await context.GetAsync<GameConfiguration>().ConfigureAwait(false)).Single();
+        var definitions = configuration.MiniGameDefinitions.Where(definition => definition.Type == MiniGameType.ChaosCastle).ToList();
+        var configuredGroups = definitions
+            .SelectMany(definition => definition.Entrance!.Map!.DropItemGroups)
+            .Where(group => group.ItemType == SpecialItemType.ChaosCastleJewel)
+            .ToHashSet();
+        foreach (var definition in definitions)
+        {
+            foreach (var group in configuredGroups)
+            {
+                definition.Entrance!.Map!.DropItemGroups.Remove(group);
+            }
+        }
+
+        foreach (var group in configuredGroups)
+        {
+            configuration.DropItemGroups.Remove(group);
+        }
+
+        var update = new AddChaosCastleJewelDropsUpdatePlugIn();
+        await update.ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+        var groupCount = configuration.DropItemGroups.Count;
+        await update.ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+
+        Assert.That(configuration.DropItemGroups, Has.Count.EqualTo(groupCount));
+        AssertMonsterJewelDrops(configuration);
+    }
+
     private static async Task<GameConfiguration> CreateSeason6ConfigurationAsync()
     {
         var contextProvider = new InMemoryPersistenceContextProvider();
@@ -169,5 +219,27 @@ internal class ChaosCastleDataTest
         Assert.That(reward.RewardAmount, Is.EqualTo(1));
         Assert.That(reward.RequiredSuccess, Is.EqualTo(MiniGameSuccessFlags.Winner | MiniGameSuccessFlags.Alive));
         Assert.That(reward.ItemReward!.Chance, Is.EqualTo(chance).Within(0.0001));
+    }
+
+    private static void AssertMonsterJewelDrops(GameConfiguration configuration)
+    {
+        var expected = new[] { (0, 2), (1, 1), (1, 2), (1, 2), (2, 1), (2, 2), (2, 3) };
+        var definitions = configuration.MiniGameDefinitions
+            .Where(definition => definition.Type == MiniGameType.ChaosCastle)
+            .OrderBy(definition => definition.GameLevel)
+            .ToList();
+        for (var index = 0; index < definitions.Count; index++)
+        {
+            var groups = definitions[index].Entrance!.Map!.DropItemGroups
+                .Where(group => group.ItemType == SpecialItemType.ChaosCastleJewel)
+                .ToList();
+            Assert.Multiple(() =>
+            {
+                Assert.That(groups, Has.Count.EqualTo(expected[index].Item1 + expected[index].Item2));
+                Assert.That(groups, Has.All.Matches<DropItemGroup>(group => group.Chance == 1 && group.PossibleItems.Count == 1));
+                Assert.That(groups.Count(group => group.PossibleItems.Single() is { Group: 14, Number: 13 }), Is.EqualTo(expected[index].Item1));
+                Assert.That(groups.Count(group => group.PossibleItems.Single() is { Group: 14, Number: 14 }), Is.EqualTo(expected[index].Item2));
+            });
+        }
     }
 }
