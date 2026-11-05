@@ -13,6 +13,7 @@ using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.MiniGames;
 using MUnique.OpenMU.GameLogic.PlayerActions.MiniGames;
+using MUnique.OpenMU.GameLogic.PlayerActions.Party;
 
 /// <summary>
 /// Tests ticket validation and consumption timing for shared-map mini games.
@@ -144,6 +145,38 @@ public class EnterMiniGameTicketConsumptionTests
         Assert.That(player.Party, Is.SameAs(party));
         Assert.That(party.PartyList, Does.Contain(player));
         Assert.That(party.PartyList, Does.Contain(partyMember));
+        this._gamesToDispose.Add(player.CurrentMiniGame!);
+    }
+
+    /// <summary>
+    /// Tests that entering Chaos Castle removes only the entrant from its party and prevents regrouping inside the event.
+    /// </summary>
+    [Test]
+    public async Task ChaosCastleEntry_RemovesEntrantFromPartyAndPreventsRegroupingAsync()
+    {
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        var firstPartyMember = await PlayerTestHelper.CreatePlayerAsync(player.GameContext).ConfigureAwait(false);
+        var secondPartyMember = await PlayerTestHelper.CreatePlayerAsync(player.GameContext).ConfigureAwait(false);
+        var party = new Party(new PartyManager(5, new NullLogger<Party>()), 5, new NullLogger<Party>());
+        await party.AddAsync(player).ConfigureAwait(false);
+        await party.AddAsync(firstPartyMember).ConfigureAwait(false);
+        await party.AddAsync(secondPartyMember).ConfigureAwait(false);
+        var definition = CreateDefinition(player, MiniGameType.ChaosCastle, 13, 29);
+        definition.AllowParty = false;
+        await AddTicketAsync(player, definition.TicketItem!, TicketLevel).ConfigureAwait(false);
+
+        await new EnterMiniGameAction().TryEnterMiniGameAsync(player, MiniGameType.ChaosCastle, definition.GameLevel, TicketSlot).ConfigureAwait(false);
+        await new PartyRequestAction().HandlePartyRequestAsync(player, firstPartyMember).ConfigureAwait(false);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(player.CurrentMiniGame, Is.Not.Null);
+            Assert.That(player.Party, Is.Null);
+            Assert.That(party.PartyList, Is.EqualTo(new[] { firstPartyMember, secondPartyMember }));
+            Assert.That(firstPartyMember.Party, Is.SameAs(party));
+            Assert.That(secondPartyMember.Party, Is.SameAs(party));
+            Assert.That(firstPartyMember.LastPartyRequester, Is.Null);
+        });
         this._gamesToDispose.Add(player.CurrentMiniGame!);
     }
 
