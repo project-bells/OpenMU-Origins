@@ -13,10 +13,12 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `276b5bb9d` - `test(events): cover Chaos Castle party isolation`
+- `f0708e6bc` - `test(events): cover Chaos Castle PvP damage`
 
 Recent completed work:
 
+- `f0708e6bc` - Added deterministic Chaos Castle PvP damage coverage for
+  shield-era and classic PvP, including the Dark Raven exception.
 - `276b5bb9d` - Added Chaos Castle entry coverage proving that the entrant is
   removed alone from its existing party, the remaining party stays intact, and
   regrouping from inside the event is rejected.
@@ -85,8 +87,8 @@ Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
   (40 existing warnings in the final incremental build).
-- Targeted Chaos Castle party isolation run: 1 passed, 0 failed.
-- Full `MUnique.OpenMU.Tests` run: 2,011 passed, 0 failed.
+- Targeted `ChaosCastlePvpDamageTests` run: 4 passed, 0 failed.
+- Full `MUnique.OpenMU.Tests` run: 2,015 passed, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
 
@@ -195,7 +197,8 @@ Audit Chaos Castle 1-7:
 - player/monster population and random placement covered by `d70e90125`;
 - client-side disguise map identities covered by `d70e90125`; party removal
   and in-event regroup prevention covered by `276b5bb9d`;
-- PvP damage rules;
+- PvP damage rules, including classic PvP and Dark Raven, covered by
+  `f0708e6bc`;
 - floor-collapse stages and safe tiles;
 - explosion traps and knockback/death handling;
 - winner selection when the last deaths occur close together;
