@@ -25,6 +25,13 @@ internal class ChaosCastleDataTest
         (53, 426, 427),
     };
 
+    private static readonly (byte StartX, byte StartY, byte EndX, byte EndY)[][] CollapseStages =
+    {
+        [(0x17, 0x4B, 0x2C, 0x4C), (0x2B, 0x4D, 0x2C, 0x6C), (0x17, 0x6B, 0x2A, 0x6C), (0x17, 0x4D, 0x18, 0x6A)],
+        [(0x19, 0x4D, 0x2A, 0x4E), (0x29, 0x4F, 0x2A, 0x6A), (0x19, 0x69, 0x28, 0x6A), (0x19, 0x4F, 0x1A, 0x68)],
+        [(0x1B, 0x4F, 0x28, 0x50), (0x27, 0x51, 0x28, 0x68), (0x1B, 0x67, 0x26, 0x68), (0x1B, 0x51, 0x1C, 0x66)],
+    };
+
     /// <summary>
     /// Tests player capacity, randomized entrance placement, and the 99-monster pool which fills the event to 100 objects.
     /// </summary>
@@ -64,6 +71,44 @@ internal class ChaosCastleDataTest
         }
     }
 
+    /// <summary>
+    /// Tests the initial safezone removal and all three configured floor-collapse stages of every level.
+    /// </summary>
+    [Test]
+    public async Task FreshDatabaseContainsAllChaosCastleFloorCollapseStagesAsync()
+    {
+        var configuration = await CreateSeason6ConfigurationAsync().ConfigureAwait(false);
+        var definitions = configuration.MiniGameDefinitions
+            .Where(definition => definition.Type == MiniGameType.ChaosCastle)
+            .OrderBy(definition => definition.GameLevel)
+            .ToList();
+
+        foreach (var definition in definitions)
+        {
+            var events = definition.ChangeEvents.OrderBy(changeEvent => changeEvent.Index).ToList();
+            Assert.That(events, Has.Count.EqualTo(4), $"Chaos Castle {definition.GameLevel} change event count");
+            Assert.Multiple(() =>
+            {
+                Assert.That(events.Select(changeEvent => changeEvent.NumberOfKills), Is.EqualTo(new short[] { 0, 60, 10, 10 }));
+                Assert.That(events, Has.All.Matches<MiniGameChangeEvent>(changeEvent => changeEvent.Target == KillTarget.AnyObject));
+
+                var safezoneChange = events[0].TerrainChanges.Single();
+                Assert.That(TerrainValues(safezoneChange), Is.EqualTo((23, 75, 44, 108, false, true, TerrainAttributeType.Safezone)));
+
+                for (var stageIndex = 0; stageIndex < CollapseStages.Length; stageIndex++)
+                {
+                    var actualAreas = events[stageIndex + 1].TerrainChanges
+                        .Select(change => (change.StartX, change.StartY, change.EndX, change.EndY))
+                        .ToList();
+                    Assert.That(actualAreas, Is.EqualTo(CollapseStages[stageIndex]), $"Chaos Castle {definition.GameLevel} collapse stage {stageIndex + 1}");
+                    Assert.That(events[stageIndex + 1].TerrainChanges, Has.All.Matches<MiniGameTerrainChange>(change => change.SetTerrainAttribute));
+                    Assert.That(events[stageIndex + 1].TerrainChanges, Has.All.Matches<MiniGameTerrainChange>(change => !change.IsClientUpdateRequired));
+                    Assert.That(events[stageIndex + 1].TerrainChanges, Has.All.Matches<MiniGameTerrainChange>(change => change.TerrainAttribute == TerrainAttributeType.NoGround));
+                }
+            });
+        }
+    }
+
     private static async Task<GameConfiguration> CreateSeason6ConfigurationAsync()
     {
         var contextProvider = new InMemoryPersistenceContextProvider();
@@ -72,5 +117,10 @@ internal class ChaosCastleDataTest
 
         using var context = contextProvider.CreateNewContext();
         return (await context.GetAsync<GameConfiguration>().ConfigureAwait(false)).Single();
+    }
+
+    private static (byte StartX, byte StartY, byte EndX, byte EndY, bool SetAttribute, bool ClientUpdate, TerrainAttributeType Attribute) TerrainValues(MiniGameTerrainChange change)
+    {
+        return (change.StartX, change.StartY, change.EndX, change.EndY, change.SetTerrainAttribute, change.IsClientUpdateRequired, change.TerrainAttribute);
     }
 }
