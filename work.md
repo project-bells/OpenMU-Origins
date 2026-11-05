@@ -13,10 +13,18 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `238569f27` - `test(events): cover boss and invasion parity data`
+- `9f2a830a7` - `test(mu-helper): cover concurrent disconnect cleanup`
 
 Recent completed work:
 
+- `9f2a830a7` - Extended the concurrent MU Helper shutdown test through the
+  player's real character-disconnect path while explicit stop and disposal race
+  it, proving that all three paths complete with one stop notification.
+- `c0ac42dbc` - Serialized MU Helper start/stop/dispose lifecycle transitions,
+  rejected malformed settings packets and blobs outside the exact 257-byte
+  payload, and added integration coverage for save/echo, reconnect restoration,
+  all decoded runtime settings, level gates, initial/recurring Zen charges,
+  insufficient-Zen shutdown, and concurrent shutdown calls.
 - `238569f27` - Added exact Season 6 Kanturu Maya/Nightmare wave, boss,
   skill, health, drop-count, and respawn coverage; expanded Raklion coverage to
   every spider-egg and Coolutin summon coordinate; and locked all nine Golden
@@ -102,7 +110,9 @@ Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
   (existing analyzer warnings remain).
-- Full `MUnique.OpenMU.Tests` run: 2,019 passed, 0 failed.
+- Targeted Mu Helper and offline behavior run: 149 passed, 0 failed.
+- Full `MUnique.OpenMU.Tests` run: 2,036 passed, 0 failed.
+- Full `MUnique.OpenMU.Network.Packets.Tests` run: 645 passed, 0 failed.
 - Full `MUnique.OpenMU.Persistence.Initialization.Tests` run: 676 passed,
   7 skipped, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
@@ -254,17 +264,30 @@ those values; do not copy them from third-party server sources.
 
 ### Round 5 - Mu Helper protocol and economy
 
-The server-side helper exists, and the known self-deadlock is fixed. Remaining
-work needs an original-client trace and integration coverage for:
+The automatable server-side scope is complete in `c0ac42dbc` and `9f2a830a7`:
 
-- settings save/load and exact packet round-trip;
-- minimum/maximum level checks;
-- initial Zen charge and recurring charge interval;
-- insufficient-Zen stop notification and absence of deadlock;
-- reconnect restoration;
-- skill selection, buffs, auto-potion, repair, movement, and pickup filters;
-- malformed or truncated helper settings;
-- concurrent stop/disconnect/dispose calls.
+- settings save/echo preserves the exact 257-byte payload and reconnect restores
+  the decoded settings;
+- short and oversized packets/blobs are rejected before parsing or persistence;
+- minimum and maximum levels are inclusive, with both rejection boundaries
+  covered;
+- the initial Zen charge and the first recurring interval are covered;
+- insufficient Zen stops once, sends the stop notification, clears the active
+  attribute, and does not self-deadlock;
+- concurrent stop/disconnect-style cleanup/dispose calls share one serialized
+  shutdown and one client notification;
+- the settings fixture covers attack and conditional skills, buffs, heal and
+  potion thresholds, repair, movement/regrouping, pet mode, and every pickup
+  filter; the offline handler suite covers their runtime behavior.
+
+The generated packet definitions remain the source of truth and the full packet
+structure suite passes. No generated packet C# or packet documentation was
+edited.
+
+Round 5 protocol certification still requires an original ENG 1.04d client
+capture. The current 257-byte field layout is now locked by integration tests,
+but a capture is required to independently prove every bit offset and client
+reaction instead of treating the existing implementation as its own oracle.
 
 Relevant locations:
 
