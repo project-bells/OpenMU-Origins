@@ -10,6 +10,7 @@ using Moq;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.MiniGames;
+using MUnique.OpenMU.GameLogic.PlayerActions.MiniGames;
 using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.PlugIns;
 
@@ -78,6 +79,35 @@ public class MiniGamePlugInPointTests
     }
 
     /// <summary>
+    /// Tests that Blood Castle and Devil Square stop cleanly when their last player leaves during play.
+    /// </summary>
+    [TestCase(MiniGameType.BloodCastle)]
+    [TestCase(MiniGameType.DevilSquare)]
+    public async Task LastPlayerLeavingRunningEventEndsWithNoFinishersAsync(MiniGameType gameType)
+    {
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        var gameContext = player.GameContext!;
+        var plugIn = new RecordingPlugIn();
+        gameContext.PlugInManager.RegisterPlugInAtPlugInPoint<IMiniGameEndedPlugIn>(plugIn);
+        var game = this.CreateGame(gameContext, minimumPlayerCount: 1, gameType, startImmediately: false);
+        Assert.That(await game.TryEnterAsync(player).ConfigureAwait(false), Is.EqualTo(EnterResult.Success));
+        game.EnsureGameLoopRunning();
+        await WaitUntilAsync(() => game.State == MiniGameState.Playing).ConfigureAwait(false);
+
+        await game.SimulatePlayerRemovedAsync(player).ConfigureAwait(false);
+        await WaitUntilAsync(() => plugIn.Calls.Contains("Ended")).ConfigureAwait(false);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(game.State, Is.EqualTo(MiniGameState.Ended));
+            Assert.That(game.PlayerCount, Is.Zero);
+            Assert.That(player.CurrentMiniGame, Is.Null);
+            Assert.That(plugIn.Finishers, Has.Count.EqualTo(1));
+            Assert.That(plugIn.Finishers.Single(), Is.Empty);
+        });
+    }
+
+    /// <summary>
     /// Tests that a failing plugin doesn't break the game.
     /// </summary>
     [Test]
@@ -115,7 +145,11 @@ public class MiniGamePlugInPointTests
         Assert.That(condition(), Is.True, "The condition wasn't met in time.");
     }
 
-    private TestGame CreateGame(IGameContext gameContext, int minimumPlayerCount)
+    private TestGame CreateGame(
+        IGameContext gameContext,
+        int minimumPlayerCount,
+        MiniGameType gameType = MiniGameType.BloodCastle,
+        bool startImmediately = true)
     {
         var mapDefinition = new GameMapDefinition { Number = 0 };
         var definitionMock = new Mock<MiniGameDefinition>();
@@ -124,7 +158,7 @@ public class MiniGamePlugInPointTests
         definitionMock.SetupGet(d => d.ChangeEvents).Returns(new List<MiniGameChangeEvent>());
         definitionMock.SetupGet(d => d.Entrance).Returns(new ExitGate { Map = mapDefinition });
         var definition = definitionMock.Object;
-        definition.Type = MiniGameType.BloodCastle;
+        definition.Type = gameType;
         definition.MapCreationPolicy = MiniGameMapCreationPolicy.Shared;
         definition.EnterDuration = TimeSpan.Zero;
         definition.GameDuration = TimeSpan.FromMinutes(5);
@@ -136,7 +170,11 @@ public class MiniGamePlugInPointTests
             .Returns<GameMapDefinition>(map => new GameMap(map, TimeSpan.FromMinutes(1), 16));
 
         var game = new TestGame(new MiniGameMapKey(0, 0, string.Empty), definition, gameContext, mapInitializerMock.Object, minimumPlayerCount);
-        game.EnsureGameLoopRunning();
+        if (startImmediately)
+        {
+            game.EnsureGameLoopRunning();
+        }
+
         this._gamesToDispose.Add(game);
         return game;
     }
@@ -161,6 +199,11 @@ public class MiniGamePlugInPointTests
         protected override int MinimumPlayerCount => this._minimumPlayerCount;
 
         public void Finish() => this.FinishEvent();
+
+        public ValueTask SimulatePlayerRemovedAsync(Player player)
+        {
+            return this.OnObjectRemovedFromMapAsync((this.Map, player));
+        }
     }
 
     [Guid("C892C41E-517F-4CC9-9CCC-E078049E5355")]
@@ -169,6 +212,8 @@ public class MiniGamePlugInPointTests
         public List<string> Calls { get; } = new();
 
         public List<MiniGameContext> Games { get; } = new();
+
+        public List<IReadOnlyCollection<Player>> Finishers { get; } = new();
 
         public ValueTask MiniGameEntranceOpenedAsync(MiniGameContext miniGame)
         {
@@ -184,6 +229,7 @@ public class MiniGamePlugInPointTests
 
         public ValueTask MiniGameEndedAsync(MiniGameContext miniGame, Player? winner, IReadOnlyCollection<Player> finishers)
         {
+            this.Finishers.Add(finishers);
             this.Record("Ended", miniGame);
             return ValueTask.CompletedTask;
         }
