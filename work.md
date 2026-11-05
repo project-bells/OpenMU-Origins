@@ -13,10 +13,13 @@ short operational handoff for continuing the work on another machine.
 
 Latest completed gameplay commit at the time of this handoff:
 
-- `ebaed4c5e` - `test(events): cover empty event cleanup`
+- `d70e90125` - `test(events): cover Chaos Castle population`
 
 Recent completed work:
 
+- `d70e90125` - Added fresh Season 6 configuration coverage for Chaos Castle
+  1-7 player capacity, randomized entrance domain, 99-monster population,
+  per-level monster pairs, manual spawn triggers, and unique arena positions.
 - `ebaed4c5e` - Added Blood Castle and Devil Square lifecycle coverage proving
   that the last player leaving a running event cancels it, clears registration,
   and reports an empty finisher set.
@@ -78,10 +81,10 @@ Recent completed work:
 Last verification performed:
 
 - `dotnet build src/MUnique.OpenMU.sln -p:ci=true`: succeeded with 0 errors
-  and 0 warnings in the final incremental build.
-- Targeted Blood Castle, Devil Square, and mini-game lifecycle run: 15 passed,
-  0 failed.
-- Full `MUnique.OpenMU.Tests` run: 2,010 passed, 0 failed.
+  (55 existing warnings in the final incremental build).
+- Targeted `ChaosCastleDataTest` run: 1 passed, 0 failed.
+- Full `MUnique.OpenMU.Persistence.Initialization.Tests` run: 670 passed,
+  7 skipped, 0 failed.
 - The solution still emits existing analyzer warnings. Do not treat the build as
   warning-clean.
 
@@ -187,7 +190,7 @@ idempotent application.
 
 Audit Chaos Castle 1-7:
 
-- player/monster population and random placement;
+- player/monster population and random placement covered by `d70e90125`;
 - disguise and party removal behavior;
 - PvP damage rules;
 - floor-collapse stages and safe tiles;
