@@ -14,6 +14,21 @@ using MUnique.OpenMU.Persistence.Initialization.Updates;
 internal class UpdateOrderingTest
 {
     /// <summary>
+    /// Ensures automatic startup updates include pending dependencies of mandatory updates without selecting unrelated optional updates.
+    /// </summary>
+    [Test]
+    public void MandatorySelectionIncludesDependenciesOnly()
+    {
+        var optionalDependency = new StubUpdatePlugIn(DateTime.UtcNow);
+        var mandatory = new StubUpdatePlugIn(DateTime.UtcNow, isMandatory: true, dependsOn: [optionalDependency.Key]);
+        var unrelatedOptional = new StubUpdatePlugIn(DateTime.UtcNow);
+
+        var selected = DataUpdateService.SelectMandatoryUpdates([optionalDependency, unrelatedOptional, mandatory]);
+
+        Assert.That(selected.Select(update => update.Key), Is.EqualTo(new[] { optionalDependency.Key, mandatory.Key }));
+    }
+
+    /// <summary>
     /// Tests that an update which depends on another update is applied after it,
     /// regardless of the input order.
     /// </summary>
@@ -176,11 +191,13 @@ internal class UpdateOrderingTest
         /// <param name="createdAt">The creation date.</param>
         /// <param name="updatedAt">The date of the last change, if different from the creation date.</param>
         /// <param name="dependsOn">The keys of the updates this stub depends on.</param>
-        public StubUpdatePlugIn(DateTime createdAt, DateTime? updatedAt = null, params Guid[] dependsOn)
+        /// <param name="isMandatory">Whether the update is mandatory.</param>
+        public StubUpdatePlugIn(DateTime createdAt, DateTime? updatedAt = null, Guid[]? dependsOn = null, bool isMandatory = false)
         {
             this.CreatedAt = createdAt;
             this.UpdatedAt = updatedAt ?? createdAt;
-            this.DependsOn = dependsOn.Select(key => (UpdateDependency)key).ToList();
+            this.DependsOn = dependsOn?.Select(key => (UpdateDependency)key).ToList() ?? [];
+            this.IsMandatory = isMandatory;
         }
 
         /// <inheritdoc />
@@ -196,7 +213,7 @@ internal class UpdateOrderingTest
         public string Description => string.Empty;
 
         /// <inheritdoc />
-        public bool IsMandatory => false;
+        public bool IsMandatory { get; }
 
         /// <inheritdoc />
         public DateTime CreatedAt { get; }
