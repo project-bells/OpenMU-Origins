@@ -12,7 +12,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForAccountCo
     public partial class AccountContextModel
     {
         private AccountContextModel()
-            : base(skipDetectChanges: false, modelId: new Guid("750f48d1-2329-4b96-b749-a5acd51a1bc1"), entityTypeCount: 46)
+            : base(skipDetectChanges: false, modelId: new Guid("51edf278-149b-4c5a-ab65-c5a0db92662c"), entityTypeCount: 47)
         {
         }
 
@@ -23,6 +23,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForAccountCo
             var appearanceData = AppearanceDataEntityType.Create(this);
             var attributeRelationship = AttributeRelationshipEntityType.Create(this);
             var cashShopCoinGrant = CashShopCoinGrantEntityType.Create(this);
+            var cashShopItemGrant = CashShopItemGrantEntityType.Create(this);
             var cashShopStorageItem = CashShopStorageItemEntityType.Create(this);
             var castleSiegeData = CastleSiegeDataEntityType.Create(this);
             var castleSiegeGuild = CastleSiegeGuildEntityType.Create(this);
@@ -69,6 +70,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForAccountCo
             AccountCharacterClassEntityType.CreateForeignKey1(accountCharacterClass, account);
             AttributeRelationshipEntityType.CreateForeignKey1(attributeRelationship, powerUpDefinitionValue);
             CashShopCoinGrantEntityType.CreateForeignKey1(cashShopCoinGrant, account);
+            CashShopItemGrantEntityType.CreateForeignKey1(cashShopItemGrant, account);
             CashShopStorageItemEntityType.CreateForeignKey1(cashShopStorageItem, account);
             CastleSiegeGuildEntityType.CreateForeignKey1(castleSiegeGuild, castleSiegeData);
             CastleSiegeNpcStateEntityType.CreateForeignKey1(castleSiegeNpcState, castleSiegeData);
@@ -100,6 +102,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForAccountCo
             AppearanceDataEntityType.CreateAnnotations(appearanceData);
             AttributeRelationshipEntityType.CreateAnnotations(attributeRelationship);
             CashShopCoinGrantEntityType.CreateAnnotations(cashShopCoinGrant);
+            CashShopItemGrantEntityType.CreateAnnotations(cashShopItemGrant);
             CashShopStorageItemEntityType.CreateAnnotations(cashShopStorageItem);
             CastleSiegeDataEntityType.CreateAnnotations(castleSiegeData);
             CastleSiegeGuildEntityType.CreateAnnotations(castleSiegeGuild);

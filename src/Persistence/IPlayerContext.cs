@@ -138,6 +138,16 @@ public interface IPlayerContext : IContext
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets the item grant with the specified external order reference.
+    /// </summary>
+    /// <param name="reference">The immutable reference of the external order.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The grant; Otherwise, <see langword="null"/>.</returns>
+    ValueTask<CashShopItemGrant?> GetCashShopItemGrantByReferenceAsync(
+        string reference,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets the grants of cash shop coins to an account which are not applied yet, ordered by the time they were granted.
     /// </summary>
     /// <param name="accountId">The persistent account identifier.</param>

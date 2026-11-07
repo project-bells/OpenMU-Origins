@@ -26,6 +26,10 @@ public class CashShopControllerTests
 
     private CashShopController _controller = null!;
 
+    private GameConfiguration _gameConfiguration = null!;
+
+    private IDataSource<GameConfiguration> _gameConfigurationSource = null!;
+
     /// <summary>
     /// Sets up an in-memory database with two accounts, and the controller.
     /// </summary>
@@ -34,11 +38,13 @@ public class CashShopControllerTests
     public async Task SetUpAsync()
     {
         this._persistenceContextProvider = new InMemoryPersistenceContextProvider();
+        this._gameConfiguration = CreateGameConfiguration();
         var gameConfigurationSource = new Mock<IDataSource<GameConfiguration>>();
         gameConfigurationSource
             .Setup(s => s.GetOwnerAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new GameConfiguration());
-        this._controller = new CashShopController(this._persistenceContextProvider, gameConfigurationSource.Object, Mock.Of<ILogger<CashShopController>>())
+            .ReturnsAsync(this._gameConfiguration);
+        this._gameConfigurationSource = gameConfigurationSource.Object;
+        this._controller = new CashShopController(this._persistenceContextProvider, this._gameConfigurationSource, Mock.Of<ILogger<CashShopController>>())
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() },
         };
@@ -131,6 +137,112 @@ public class CashShopControllerTests
         Assert.That(await this._controller.GrantAsync("buyer", unknownCoinType, CancellationToken.None).ConfigureAwait(false), Is.InstanceOf<ObjectResult>().With.Property(nameof(ObjectResult.StatusCode)).EqualTo(StatusCodes.Status400BadRequest));
     }
 
+    /// <summary>
+    /// An item grant creates storage entries from the server configuration, without accepting item data.
+    /// </summary>
+    [Test]
+    public async Task ItemGrantCreatesConfiguredStorageItemAsync()
+    {
+        var result = await this._controller.GrantItemAsync(
+            "buyer",
+            CreateItemGrantRequest(10, 101, "order-1"),
+            CancellationToken.None).ConfigureAwait(false);
+
+        Assert.That(((ObjectResult)result).StatusCode, Is.EqualTo(StatusCodes.Status201Created));
+        var grant = (CashShopItemGrantInfo)((ObjectResult)result).Value!;
+        Assert.That(grant.ItemCount, Is.EqualTo(1));
+
+        using var context = this._persistenceContextProvider.CreateNewPlayerContext(this._gameConfiguration);
+        var account = await context.GetAccountByLoginNameAsync("buyer").ConfigureAwait(false);
+        var storageItems = await context.GetCashShopStorageItemsAsync(account!.GetId()).ConfigureAwait(false);
+        Assert.That(storageItems, Has.Count.EqualTo(1));
+        Assert.That(storageItems[0].ProductSequence, Is.EqualTo(1001));
+        Assert.That(storageItems[0].PriceSequence, Is.EqualTo(101));
+    }
+
+    /// <summary>
+    /// Retrying the same external order returns the original grant and never duplicates storage items.
+    /// </summary>
+    [Test]
+    public async Task ItemGrantReferenceIsExactlyOnceAsync()
+    {
+        var request = CreateItemGrantRequest(10, 101, "order-1");
+        var firstResult = (ObjectResult)await this._controller.GrantItemAsync("buyer", request, CancellationToken.None).ConfigureAwait(false);
+        var first = (CashShopItemGrantInfo)firstResult.Value!;
+
+        var retry = await this._controller.GrantItemAsync("buyer", request, CancellationToken.None).ConfigureAwait(false);
+
+        Assert.That(retry, Is.InstanceOf<OkObjectResult>());
+        Assert.That(((CashShopItemGrantInfo)((OkObjectResult)retry).Value!).Id, Is.EqualTo(first.Id));
+        using var context = this._persistenceContextProvider.CreateNewPlayerContext(this._gameConfiguration);
+        var account = await context.GetAccountByLoginNameAsync("buyer").ConfigureAwait(false);
+        Assert.That(await context.GetCashShopStorageItemsAsync(account!.GetId()).ConfigureAwait(false), Has.Count.EqualTo(1));
+    }
+
+    /// <summary>
+    /// Reusing an order reference for another product or account is rejected.
+    /// </summary>
+    [Test]
+    public async Task ItemGrantReferenceMismatchIsConflictAsync()
+    {
+        await this._controller.GrantItemAsync("buyer", CreateItemGrantRequest(10, 101, "order-1"), CancellationToken.None).ConfigureAwait(false);
+
+        var changedProduct = await this._controller.GrantItemAsync("buyer", CreateItemGrantRequest(10, 102, "order-1"), CancellationToken.None).ConfigureAwait(false);
+        var changedAccount = await this._controller.GrantItemAsync("other", CreateItemGrantRequest(10, 101, "order-1"), CancellationToken.None).ConfigureAwait(false);
+
+        Assert.That(changedProduct, Is.InstanceOf<ConflictResult>());
+        Assert.That(changedAccount, Is.InstanceOf<ConflictResult>());
+    }
+
+    /// <summary>
+    /// Unknown, disabled, and ambiguous package selections are rejected without creating storage items.
+    /// </summary>
+    [Test]
+    public async Task InvalidItemSelectionIsRejectedAsync()
+    {
+        var unknown = await this._controller.GrantItemAsync("buyer", CreateItemGrantRequest(999, null, "unknown"), CancellationToken.None).ConfigureAwait(false);
+        var bundleWithPrice = await this._controller.GrantItemAsync("buyer", CreateItemGrantRequest(20, 201, "bundle-price"), CancellationToken.None).ConfigureAwait(false);
+        var optionWithoutPrice = await this._controller.GrantItemAsync("buyer", CreateItemGrantRequest(10, null, "missing-price"), CancellationToken.None).ConfigureAwait(false);
+
+        Assert.That(unknown, Is.InstanceOf<UnprocessableEntityResult>());
+        Assert.That(bundleWithPrice, Is.InstanceOf<UnprocessableEntityResult>());
+        Assert.That(optionWithoutPrice, Is.InstanceOf<UnprocessableEntityResult>());
+    }
+
+    /// <summary>
+    /// A bundle grant atomically creates every configured product in the storage.
+    /// </summary>
+    [Test]
+    public async Task BundleGrantCreatesAllConfiguredStorageItemsAsync()
+    {
+        var result = (ObjectResult)await this._controller.GrantItemAsync(
+            "buyer",
+            CreateItemGrantRequest(20, null, "bundle-1"),
+            CancellationToken.None).ConfigureAwait(false);
+
+        Assert.That(((CashShopItemGrantInfo)result.Value!).ItemCount, Is.EqualTo(2));
+        using var context = this._persistenceContextProvider.CreateNewPlayerContext(this._gameConfiguration);
+        var account = await context.GetAccountByLoginNameAsync("buyer").ConfigureAwait(false);
+        var storageItems = await context.GetCashShopStorageItemsAsync(account!.GetId()).ConfigureAwait(false);
+        Assert.That(storageItems.Select(item => item.ProductSequence), Is.EquivalentTo(new[] { 2001, 2002 }));
+    }
+
+    /// <summary>
+    /// The trusted catalog endpoint only exposes enabled packages and their immutable sequence identifiers.
+    /// </summary>
+    [Test]
+    public async Task AuthoritativeCatalogContainsEnabledOffersAsync()
+    {
+        var controller = new CashShopCatalogController(this._gameConfigurationSource);
+
+        var result = (OkObjectResult)await controller.GetAsync(CancellationToken.None).ConfigureAwait(false);
+
+        var packages = (IReadOnlyList<CashShopPackageInfo>)result.Value!;
+        Assert.That(packages.Select(package => package.PackageSequence), Is.EqualTo(new[] { 10, 20 }));
+        Assert.That(packages[0].Products.Select(product => (product.ProductSequence, product.PriceSequence)),
+            Is.EqualTo(new[] { (1001, 101), (1002, 102) }));
+    }
+
     private static CashShopCoinGrantRequest CreateRequest(int amount, string? reference)
     {
         return new CashShopCoinGrantRequest
@@ -140,5 +252,41 @@ public class CashShopControllerTests
             Reason = "Test",
             Reference = reference,
         };
+    }
+
+    private static CashShopItemGrantRequest CreateItemGrantRequest(int packageSequence, int? priceSequence, string reference)
+        => new()
+        {
+            PackageSequence = packageSequence,
+            PriceSequence = priceSequence,
+            Reference = reference,
+            Reason = "Web shop test",
+        };
+
+    private static GameConfiguration CreateGameConfiguration()
+    {
+        var configuration = new MUnique.OpenMU.Persistence.BasicModel.GameConfiguration();
+        var cashShop = new MUnique.OpenMU.Persistence.BasicModel.CashShopConfiguration();
+        configuration.CashShopConfiguration = cashShop;
+
+        var options = new MUnique.OpenMU.Persistence.BasicModel.CashShopPackage
+        {
+            PackageSequence = 10,
+            IsForSale = true,
+        };
+        options.Products.Add(new MUnique.OpenMU.Persistence.BasicModel.CashShopProduct { ProductSequence = 1001, PriceSequence = 101 });
+        options.Products.Add(new MUnique.OpenMU.Persistence.BasicModel.CashShopProduct { ProductSequence = 1002, PriceSequence = 102 });
+        cashShop.Packages.Add(options);
+
+        var bundle = new MUnique.OpenMU.Persistence.BasicModel.CashShopPackage
+        {
+            PackageSequence = 20,
+            IsForSale = true,
+            IsBundle = true,
+        };
+        bundle.Products.Add(new MUnique.OpenMU.Persistence.BasicModel.CashShopProduct { ProductSequence = 2001, PriceSequence = 201 });
+        bundle.Products.Add(new MUnique.OpenMU.Persistence.BasicModel.CashShopProduct { ProductSequence = 2002, PriceSequence = 202 });
+        cashShop.Packages.Add(bundle);
+        return configuration;
     }
 }

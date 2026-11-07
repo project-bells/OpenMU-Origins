@@ -362,6 +362,32 @@ These are deterministic in-process integration tests, including two simulated
 game-server endpoints. A real multi-process 24-hour concurrency/soak run remains
 a production blocker below; Round 7 does not claim that external certification.
 
+## Authoritative WebShop inventory API
+
+Implemented on 2026-11-07:
+
+- CashShop-role-only catalog discovery at `GET /api/cash-shop/catalog`;
+- exactly-once item delivery at
+  `POST /api/accounts/{loginName}/cash-shop/item-grants`;
+- server-side resolution of package/product sequences from the active OpenMU
+  configuration, with no accepted item hex, serial, price, or option bytes;
+- one transaction for the unique order audit record and every resulting cash
+  shop storage item, including bundle products;
+- reference replay returns the original result, while reference reuse for
+  another account or selection is rejected;
+- EF migration and regenerated BasicModel/EF/compiled models;
+- focused tests for success, retry, cross-account/product conflict, invalid
+  selection, bundle atomicity, and catalog discovery.
+
+`OpenMU-WebShop` now uses a persistent pending-order ledger, debits Credits once,
+and submits only the mapped package/price sequence to this API. Ambiguous
+timeouts remain pending and reuse the same browser-persisted reference; definitive
+safe failures refund exactly once, while reference conflicts require manual
+review. Admin mappings are checked against this catalog and persisted. Unmapped
+items, browser-selected item options, WCoin item purchases, group purchases, and
+refunds remain fail-closed. Enabling the old item-hex path would reintroduce the
+forgery and duplication risks this API removes.
+
 ## Known production blockers
 
 The following must be completed before calling the server production-ready:

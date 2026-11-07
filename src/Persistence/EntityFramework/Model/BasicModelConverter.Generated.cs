@@ -59,6 +59,7 @@ internal sealed class BasicModelConverter
             Buff value => this.Convert(value),
             CashShopCoinGrant value => this.Convert(value),
             CashShopConfiguration value => this.Convert(value),
+            CashShopItemGrant value => this.Convert(value),
             CashShopPackage value => this.Convert(value),
             CashShopProduct value => this.Convert(value),
             CashShopStorageItem value => this.Convert(value),
@@ -394,6 +395,27 @@ internal sealed class BasicModelConverter
             }
         }
 
+        return target;
+    }
+
+    private BasicModel.CashShopItemGrant Convert(CashShopItemGrant source)
+    {
+        if (this._converted.TryGetValue(source, out var converted))
+        {
+            return (BasicModel.CashShopItemGrant)converted;
+        }
+
+        var target = new BasicModel.CashShopItemGrant();
+        this._converted.Add(source, target);
+        target.Id = source.Id;
+        target.AccountId = source.AccountId;
+        target.PackageSequence = source.PackageSequence;
+        target.PriceSequence = source.PriceSequence;
+        target.ItemCount = source.ItemCount;
+        target.Reference = source.Reference;
+        target.GrantedBy = source.GrantedBy;
+        target.Reason = source.Reason;
+        target.CreatedAt = source.CreatedAt;
         return target;
     }
 

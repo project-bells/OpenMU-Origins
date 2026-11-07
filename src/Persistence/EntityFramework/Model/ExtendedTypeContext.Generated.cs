@@ -28,6 +28,7 @@ public class ExtendedTypeContext : Microsoft.EntityFrameworkCore.DbContext
         modelBuilder.Ignore<MUnique.OpenMU.DataModel.Entities.Account>();
         modelBuilder.Ignore<MUnique.OpenMU.DataModel.Entities.AppearanceData>();
         modelBuilder.Ignore<MUnique.OpenMU.DataModel.Entities.CashShopCoinGrant>();
+        modelBuilder.Ignore<MUnique.OpenMU.DataModel.Entities.CashShopItemGrant>();
         modelBuilder.Ignore<MUnique.OpenMU.DataModel.Entities.CashShopStorageItem>();
         modelBuilder.Ignore<MUnique.OpenMU.DataModel.Entities.CastleSiegeData>();
         modelBuilder.Ignore<MUnique.OpenMU.DataModel.Entities.CastleSiegeGuild>();

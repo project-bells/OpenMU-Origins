@@ -23,6 +23,7 @@ using MUnique.OpenMU.Web.AdminPanel.Services;
 public class CashShopController : ControllerBase
 {
     private readonly CashShopCoinService _coinService;
+    private readonly CashShopItemGrantService _itemGrantService;
     private readonly ILogger<CashShopController> _logger;
 
     /// <summary>
@@ -37,6 +38,7 @@ public class CashShopController : ControllerBase
         ILogger<CashShopController> logger)
     {
         this._coinService = new CashShopCoinService(persistenceContextProvider, gameConfigurationSource);
+        this._itemGrantService = new CashShopItemGrantService(persistenceContextProvider, gameConfigurationSource);
         this._logger = logger;
     }
 
@@ -100,6 +102,60 @@ public class CashShopController : ControllerBase
                 return this.Ok(grant);
             case CashShopCoinGrantStatus.AccountNotFound:
                 return this.NotFound();
+            default:
+                return this.Conflict();
+        }
+    }
+
+    /// <summary>
+    /// Grants products from the authoritative server cash shop configuration exactly once.
+    /// </summary>
+    /// <remarks>
+    /// The caller only selects configured sequence numbers. Item bytes, options, serials and
+    /// prices are deliberately not accepted from the caller.
+    /// </remarks>
+    [HttpPost("item-grants")]
+    public async Task<IActionResult> GrantItemAsync(
+        string loginName,
+        [FromBody] CashShopItemGrantRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.Reference))
+        {
+            this.ModelState.AddModelError(nameof(request.Reference), "The reference must not be empty.");
+        }
+
+        if (!this.ModelState.IsValid)
+        {
+            return this.BadRequest(new ValidationProblemDetails(this.ModelState));
+        }
+
+        var clientName = this.User.Identity?.Name;
+        var (status, grant) = await this._itemGrantService.GrantAsync(
+            loginName,
+            request.PackageSequence!.Value,
+            request.PriceSequence,
+            request.Reference!,
+            request.Reason,
+            clientName,
+            cancellationToken).ConfigureAwait(false);
+        switch (status)
+        {
+            case CashShopItemGrantStatus.Created:
+                this._logger.LogInformation(
+                    "API client {Client} granted cash shop package {PackageSequence}, price {PriceSequence} to account {LoginName}, reference {Reference}.",
+                    clientName,
+                    request.PackageSequence,
+                    request.PriceSequence,
+                    loginName,
+                    request.Reference);
+                return this.StatusCode(StatusCodes.Status201Created, grant);
+            case CashShopItemGrantStatus.AlreadyGranted:
+                return this.Ok(grant);
+            case CashShopItemGrantStatus.AccountNotFound:
+                return this.NotFound();
+            case CashShopItemGrantStatus.ProductNotFound:
+                return this.UnprocessableEntity();
             default:
                 return this.Conflict();
         }

@@ -400,3 +400,41 @@ doesn't define, or are time-limited.
 * **Plugin GUIDs** are generated, never typed or copied (rule 5).
 * **QuickGrid and `@key`** compare rows by `Id`. Objects from a persistence
   context have one; objects created with `new` in tests need one.
+
+## External shop item delivery API
+
+External shops must not write `Item`, vault, inventory, or cash-shop storage rows directly.
+They also must not submit serialized item bytes, serial numbers, prices, excellent options,
+socket options, or other item state. The server-authoritative flow is:
+
+1. Read the enabled offers with `GET /api/cash-shop/catalog`.
+2. Reserve/debit the order in the shop database under an immutable order reference.
+3. Call `POST /api/accounts/{loginName}/cash-shop/item-grants` with a CashShop API key:
+
+   ```json
+   {
+     "packageSequence": 10,
+     "priceSequence": 101,
+     "reference": "webshop:order:01J...",
+     "reason": "Web shop purchase"
+   }
+   ```
+
+   `priceSequence` is required for an option package and must be omitted for a bundle.
+4. Treat `201 Created` and `200 OK` as committed. Both return the same grant for the
+   same reference and selection. Retry timeouts with the exact same reference and body.
+5. Treat `409 Conflict` as an incident: the reference was already bound to another
+   account or selection. Treat `422 Unprocessable Entity` as stale/invalid catalog data.
+
+The grant audit row and all resulting `CashShopStorageItem` rows are saved in one database
+transaction. A unique database index on the reference is the final concurrency boundary.
+The game creates the actual item from its own `CashShopProduct` configuration when the
+player consumes it, so the external shop never controls item bytes or serials.
+
+For production, use a dedicated API key with only the `CashShop` role. Keep the Admin Panel
+API on a private network or allowlisted reverse proxy, require TLS, rate-limit it at the
+proxy, rotate the key periodically, and never expose the key to browser code. The shop must
+use an outbox/retry worker: an ambiguous HTTP timeout must remain pending and be retried,
+not refunded immediately. Absolute protection is impossible after a trusted service or its
+credential is compromised; network isolation, least privilege, audit alerts and key
+rotation are therefore part of the security boundary.

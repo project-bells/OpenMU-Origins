@@ -28,7 +28,8 @@ public enum ApiKeyRole
     Administrator,
 
     /// <summary>
-    /// The <see cref="AdminRoles.CashShop"/> role, which only allows to grant cash shop coins.
+    /// The <see cref="AdminRoles.CashShop"/> role, which only allows cash shop catalog access
+    /// and idempotent coin or configured-product grants.
     /// </summary>
     CashShop,
 }
