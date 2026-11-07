@@ -32,6 +32,7 @@ using MUnique.OpenMU.Persistence.AdminAuth;
 using MUnique.OpenMU.Persistence.EntityFramework;
 using MUnique.OpenMU.Persistence.EntityFramework.AdminAuth;
 using MUnique.OpenMU.Persistence.EntityFramework.Json;
+using MUnique.OpenMU.Persistence.Initialization.Updates;
 using MUnique.OpenMU.Persistence.Initialization.Version075;
 using MUnique.OpenMU.Persistence.InMemory;
 using MUnique.OpenMU.PlugIns;
@@ -710,7 +711,27 @@ internal sealed class Program : IDisposable
             // everything is fine and ready
         }
 
+        await this.ApplyMandatoryConfigurationUpdatesAsync(contextProvider, loggerFactory).ConfigureAwait(false);
+
         return contextProvider;
+    }
+
+    private async ValueTask ApplyMandatoryConfigurationUpdatesAsync(IPersistenceContextProvider contextProvider, ILoggerFactory loggerFactory)
+    {
+        var plugInManager = new PlugInManager(null, loggerFactory, null, null);
+        plugInManager.DiscoverAndRegisterPlugIns();
+        var updateService = new DataUpdateService(contextProvider, plugInManager);
+        var pendingUpdates = await updateService.DetermineAvailableUpdatesAsync().ConfigureAwait(false);
+        var mandatoryUpdates = DataUpdateService.SelectMandatoryUpdates(pendingUpdates);
+        if (mandatoryUpdates.Count == 0)
+        {
+            this._logger.Information("No mandatory configuration updates are pending.");
+            return;
+        }
+
+        this._logger.Information("Applying {count} mandatory configuration updates before loading the game configuration...", mandatoryUpdates.Count);
+        await updateService.ApplyUpdatesAsync(mandatoryUpdates, null).ConfigureAwait(false);
+        this._logger.Information("All mandatory configuration updates were applied successfully.");
     }
 
     private async Task ReadSystemConfigurationAsync(IPersistenceContextProvider persistenceContextProvider)

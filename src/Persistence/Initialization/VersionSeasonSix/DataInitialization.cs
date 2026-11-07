@@ -21,7 +21,7 @@ using MUnique.OpenMU.PlugIns;
 [Display(Name = nameof(PlugInResources.DataInitialization_Name), Description = nameof(PlugInResources.DataInitialization_Description), ResourceType = typeof(PlugInResources))]
 public class DataInitialization : DataInitializationBase
 {
-    private const int OriginsGameServerCount = 2;
+    private const int OriginsGameServerCount = 3;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataInitialization" /> class.
@@ -61,10 +61,16 @@ public class DataInitialization : DataInitializationBase
 
     /// <inheritdoc />
     protected override string GetGameServerDescription(int serverIndex)
-        => serverIndex == 0 ? "SV1-PVP" : "SV2-NON PVP";
+        => serverIndex switch
+        {
+            0 => "SV1-PVP",
+            1 => "SV2-NON PVP",
+            2 => "SV3-VIP",
+            _ => base.GetGameServerDescription(serverIndex),
+        };
 
     /// <inheritdoc />
-    protected override float GetGameServerExperienceRate(int serverIndex) => 100.0f;
+    protected override float GetGameServerExperienceRate(int serverIndex) => serverIndex == 2 ? 130.0f : 100.0f;
 
     /// <inheritdoc />
     protected override bool IsPvpEnabled(int serverIndex) => serverIndex == 0;

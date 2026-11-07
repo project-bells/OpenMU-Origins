@@ -24,6 +24,7 @@ public class CashShopController : ControllerBase
 {
     private readonly CashShopCoinService _coinService;
     private readonly CashShopItemGrantService _itemGrantService;
+    private readonly VipMembershipService _vipMembershipService;
     private readonly ILogger<CashShopController> _logger;
 
     /// <summary>
@@ -39,6 +40,7 @@ public class CashShopController : ControllerBase
     {
         this._coinService = new CashShopCoinService(persistenceContextProvider, gameConfigurationSource);
         this._itemGrantService = new CashShopItemGrantService(persistenceContextProvider, gameConfigurationSource);
+        this._vipMembershipService = new VipMembershipService(persistenceContextProvider, gameConfigurationSource);
         this._logger = logger;
     }
 
@@ -159,5 +161,45 @@ public class CashShopController : ControllerBase
             default:
                 return this.Conflict();
         }
+    }
+
+    /// <summary>
+    /// Extends the account's VIP membership exactly once.
+    /// </summary>
+    /// <param name="loginName">The account login name.</param>
+    /// <param name="request">The membership grant request.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The authoritative membership grant result.</returns>
+    [HttpPost("vip-grants")]
+    public async Task<IActionResult> GrantVipAsync(
+        string loginName,
+        [FromBody] VipMembershipGrantRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.DurationDays % 30 != 0)
+        {
+            this.ModelState.AddModelError(nameof(request.DurationDays), "The duration must be a whole number of 30-day periods.");
+        }
+
+        if (!this.ModelState.IsValid)
+        {
+            return this.BadRequest(new ValidationProblemDetails(this.ModelState));
+        }
+
+        var clientName = this.User.Identity?.Name;
+        var (status, grant) = await this._vipMembershipService.GrantAsync(
+            loginName,
+            request.DurationDays,
+            request.Reference!,
+            request.Reason,
+            clientName,
+            cancellationToken).ConfigureAwait(false);
+        return status switch
+        {
+            VipMembershipGrantStatus.Created => this.StatusCode(StatusCodes.Status201Created, grant),
+            VipMembershipGrantStatus.AlreadyGranted => this.Ok(grant),
+            VipMembershipGrantStatus.AccountNotFound => this.NotFound(),
+            _ => this.Conflict(),
+        };
     }
 }

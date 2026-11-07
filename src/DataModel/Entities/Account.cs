@@ -83,6 +83,11 @@ public class Account
     public DateTime? ChatBanUntil { get; set; }
 
     /// <summary>
+    /// Gets or sets the UTC date and time until which VIP-only server access is granted.
+    /// </summary>
+    public DateTime? VipUntil { get; set; }
+
+    /// <summary>
     /// Gets or sets the unlocked character classes which are locked by default.
     /// </summary>
     /// <remarks>

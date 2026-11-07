@@ -12,6 +12,8 @@ using MUnique.OpenMU.GameLogic.Views.Login;
 /// </summary>
 public class LoginAction
 {
+    private const byte VipServerId = 2;
+
     private static int _templateCounter;
 
     /// <summary>
@@ -150,6 +152,11 @@ public class LoginAction
                     return (false, null);
                 }
 
+                if (!await this.ValidateServerAccessAsync(player, offlineAccount, context).ConfigureAwait(false))
+                {
+                    return (false, null);
+                }
+
                 return (true, offlineAccount);
             }
 
@@ -185,6 +192,11 @@ public class LoginAction
                 return (true, loadedAccount);
             }
 
+            if (!await this.ValidateServerAccessAsync(player, loadedAccount, context).ConfigureAwait(false))
+            {
+                return (false, null);
+            }
+
             if (!reserved)
             {
                 context.Allowed = false;
@@ -202,6 +214,22 @@ public class LoginAction
             await player.InvokeViewPlugInAsync<IShowLoginResultPlugIn>(p => p.ShowLoginResultAsync(LoginResult.ConnectionError)).ConfigureAwait(false);
             return (false, null);
         }
+    }
+
+    private async ValueTask<bool> ValidateServerAccessAsync(Player player, Account account, StateMachine.StateChangeContext context)
+    {
+        if (player.GameContext is not IGameServerContext { Id: VipServerId }
+            || account.State is AccountState.GameMaster or AccountState.GameMasterInvisible
+            || (account.VipUntil is { } vipUntil && vipUntil > DateTime.UtcNow))
+        {
+            return true;
+        }
+
+        player.Logger.LogWarning("Account {Username} attempted to enter VIP server {ServerId} without an active membership.", account.LoginName, VipServerId);
+        await ReleaseLoginServerRegistrationAsync(player).ConfigureAwait(false);
+        await player.InvokeViewPlugInAsync<IShowLoginResultPlugIn>(p => p.ShowLoginResultAsync(LoginResult.SubscriptionTermOver)).ConfigureAwait(false);
+        context.Allowed = false;
+        return false;
     }
 
     private async ValueTask<Account?> HandleOfflineSessionHandoverAsync(Player player, string username)

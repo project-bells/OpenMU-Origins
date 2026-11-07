@@ -32,6 +32,40 @@ public class DataUpdateService
     public event AsyncEventHandler? UpdatesInstalled;
 
     /// <summary>
+    /// Selects all mandatory updates and their pending transitive dependencies.
+    /// </summary>
+    /// <param name="pendingUpdates">The pending updates in dependency order.</param>
+    /// <returns>The mandatory updates and dependencies, preserving the supplied order.</returns>
+    public static IReadOnlyList<IConfigurationUpdatePlugIn> SelectMandatoryUpdates(IReadOnlyCollection<IConfigurationUpdatePlugIn> pendingUpdates)
+    {
+        var pendingByKey = pendingUpdates.ToDictionary(update => update.Key);
+        var selectedKeys = new HashSet<Guid>();
+
+        void SelectWithDependencies(IConfigurationUpdatePlugIn update)
+        {
+            if (!selectedKeys.Add(update.Key))
+            {
+                return;
+            }
+
+            foreach (var dependency in update.DependsOn)
+            {
+                if (pendingByKey.TryGetValue(dependency.Key, out var pendingDependency))
+                {
+                    SelectWithDependencies(pendingDependency);
+                }
+            }
+        }
+
+        foreach (var update in pendingUpdates.Where(update => update.IsMandatory))
+        {
+            SelectWithDependencies(update);
+        }
+
+        return pendingUpdates.Where(update => selectedKeys.Contains(update.Key)).ToList();
+    }
+
+    /// <summary>
     /// Determines the available updates which are not installed yet,
     /// or which are installed in a previous version.
     /// </summary>
@@ -77,7 +111,7 @@ public class DataUpdateService
     /// </summary>
     /// <param name="updates">The updates. They are validated and ordered by their dependencies before anything is applied, so callers may pass a partial or unordered selection.</param>
     /// <param name="progress">The progress provider. Reports the progress back to the caller.</param>
-    public async ValueTask ApplyUpdatesAsync(IReadOnlyList<IConfigurationUpdatePlugIn> updates, IProgress<(Guid CurrentUpdatingKey, bool IsCompleted)> progress)
+    public async ValueTask ApplyUpdatesAsync(IReadOnlyList<IConfigurationUpdatePlugIn> updates, IProgress<(Guid CurrentUpdatingKey, bool IsCompleted)>? progress)
     {
         using var context = this._contextProvider.CreateNewContext();
         var installedVersions = await GetInstalledVersionsAsync(context).ConfigureAwait(false);
@@ -88,14 +122,14 @@ public class DataUpdateService
         var updateState = updateStates.FirstOrDefault() ?? context.CreateNew<ConfigurationUpdateState>();
         foreach (var update in orderedUpdates)
         {
-            progress.Report((update.Key, false));
+            progress?.Report((update.Key, false));
             await update.ApplyUpdateAsync(context, gameConfiguration).ConfigureAwait(false);
             updateState.InitializationKey = update.DataInitializationKey;
             await context.SaveChangesAsync().ConfigureAwait(false);
-            progress.Report((update.Key, true));
+            progress?.Report((update.Key, true));
         }
 
-        progress.Report((Guid.Empty, true));
+        progress?.Report((Guid.Empty, true));
         this.UpdatesInstalled?.SafeInvokeAsync();
     }
 

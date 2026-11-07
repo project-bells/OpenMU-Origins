@@ -243,6 +243,41 @@ public class CashShopControllerTests
             Is.EqualTo(new[] { (1001, 101), (1002, 102) }));
     }
 
+    /// <summary>
+    /// A VIP grant extends the authoritative account expiry and a replay never extends it twice.
+    /// </summary>
+    [Test]
+    public async Task VipMembershipGrantIsExactlyOnceAsync()
+    {
+        var request = new VipMembershipGrantRequest { DurationDays = 30, Reference = "webshop:vip:order-1", Reason = "Test" };
+        var first = (ObjectResult)await this._controller.GrantVipAsync("buyer", request, CancellationToken.None).ConfigureAwait(false);
+        var firstGrant = (VipMembershipGrantInfo)first.Value!;
+        var replay = (OkObjectResult)await this._controller.GrantVipAsync("buyer", request, CancellationToken.None).ConfigureAwait(false);
+
+        Assert.That(first.StatusCode, Is.EqualTo(StatusCodes.Status201Created));
+        Assert.That(((VipMembershipGrantInfo)replay.Value!).Id, Is.EqualTo(firstGrant.Id));
+        using var context = this._persistenceContextProvider.CreateNewPlayerContext(this._gameConfiguration);
+        var account = await context.GetAccountByLoginNameAsync("buyer").ConfigureAwait(false);
+        Assert.That(account!.VipUntil, Is.EqualTo(firstGrant.VipUntil));
+        Assert.That(account.VipUntil, Is.GreaterThan(DateTime.UtcNow.AddDays(29)));
+    }
+
+    /// <summary>
+    /// A VIP reference cannot be reused for another duration or account.
+    /// </summary>
+    [Test]
+    public async Task VipMembershipReferenceMismatchIsConflictAsync()
+    {
+        await this._controller.GrantVipAsync("buyer", new VipMembershipGrantRequest { DurationDays = 30, Reference = "webshop:vip:order-1" }, CancellationToken.None).ConfigureAwait(false);
+
+        Assert.That(
+            await this._controller.GrantVipAsync("buyer", new VipMembershipGrantRequest { DurationDays = 60, Reference = "webshop:vip:order-1" }, CancellationToken.None).ConfigureAwait(false),
+            Is.InstanceOf<ConflictResult>());
+        Assert.That(
+            await this._controller.GrantVipAsync("other", new VipMembershipGrantRequest { DurationDays = 30, Reference = "webshop:vip:order-1" }, CancellationToken.None).ConfigureAwait(false),
+            Is.InstanceOf<ConflictResult>());
+    }
+
     private static CashShopCoinGrantRequest CreateRequest(int amount, string? reference)
     {
         return new CashShopCoinGrantRequest

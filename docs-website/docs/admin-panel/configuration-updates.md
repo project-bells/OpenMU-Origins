@@ -31,6 +31,14 @@ your database to the current state without duplicating anything.
 * **Optional updates** can be selected or deselected individually, which lets you
   keep your own customizations where an update would overwrite them.
 
+The All-In-One server applies pending mandatory updates, including their required
+dependencies, automatically during startup before it loads the game
+configuration. If one of these updates fails, startup fails closed instead of
+running with a partially updated configuration. Optional updates remain an
+explicit operator choice on this page. Distributed deployments continue to use
+this page so that only one process performs configuration writes during a
+maintenance window.
+
 After the run, each update is marked as applied or, when something went wrong,
 as failed.
 

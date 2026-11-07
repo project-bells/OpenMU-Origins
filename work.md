@@ -1,5 +1,12 @@
 # OpenMU Origins - Work Handoff
 
+## Automatic mandatory configuration updates
+
+- [x] Apply pending mandatory configuration update plugins automatically before the All-In-One server loads game configuration.
+- [x] Include pending transitive dependencies without enabling unrelated optional/custom gameplay updates.
+- [x] Fail startup when a required update fails, preventing a partially updated server from accepting players.
+- [x] Preserve runtime plugin defaults: required plugins remain active, while security-sensitive GM/reset/custom plugins stay opt-in.
+
 Last updated: 2026-11-05
 Target: MU Online Season 6 Episode 3, ENG protocol 1.04d  
 Branch: `master`  
@@ -387,6 +394,20 @@ review. Admin mappings are checked against this catalog and persisted. Unmapped
 items, browser-selected item options, WCoin item purchases, group purchases, and
 refunds remain fail-closed. Enabling the old item-hex path would reintroduce the
 forgery and duplication risks this API removes.
+
+## In-game shop and VIP room 3
+
+Implemented on 2026-11-07:
+
+- the Season 6 Cash Shop configuration update is mandatory, enabling the stock
+  client X-button catalog for existing Origins databases;
+- fresh Season 6 configuration creates `SV3-VIP` (server ID 2) at EXP 130x;
+- `Account.VipUntil` is persisted through the `AddVipMembership` migration;
+- non-VIP and expired accounts are rejected from room 3 before login completes,
+  while active VIP and game-master accounts are accepted;
+- CashShop-role API grants 30-360 VIP days exactly once by immutable reference;
+- WebShop reserves Credits once, retries ambiguous results, refunds definitive
+  failures once, and mirrors only the expiry returned by OpenMU.
 
 ## Known production blockers
 

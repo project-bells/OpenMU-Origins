@@ -169,6 +169,7 @@ internal sealed class BasicModelConverter
         target.EMail = source.EMail;
         target.LanguageIsoCode = source.LanguageIsoCode;
         target.ChatBanUntil = source.ChatBanUntil;
+        target.VipUntil = source.VipUntil;
         if (source.UnlockedCharacterClasses is { } unlockedCharacterClassesItems)
         {
             foreach (var item in unlockedCharacterClassesItems)

@@ -129,6 +129,40 @@ public class LoginReservationTests
     }
 
     /// <summary>
+    /// The third game server accepts an active VIP account.
+    /// </summary>
+    [Test]
+    public async ValueTask VipServerAcceptsActiveMembershipAsync()
+    {
+        this._account!.VipUntil = DateTime.UtcNow.AddDays(1);
+        this.SetupReservation(true);
+        var player = await this.CreatePlayerAtLoginScreenAsync(2).ConfigureAwait(false);
+
+        await new LoginAction().LoginAsync(player, LoginName, "pw").ConfigureAwait(false);
+
+        Assert.That(player.Account, Is.SameAs(this._account));
+        this.VerifyLoginResult(player, LoginResult.Ok);
+    }
+
+    /// <summary>
+    /// The third game server rejects an expired or missing VIP membership and releases its reservation.
+    /// </summary>
+    [TestCase(false)]
+    [TestCase(true)]
+    public async ValueTask VipServerRejectsInactiveMembershipAsync(bool expired)
+    {
+        this._account!.VipUntil = expired ? DateTime.UtcNow.AddMinutes(-1) : null;
+        this.SetupReservation(true);
+        var player = await this.CreatePlayerAtLoginScreenAsync(2).ConfigureAwait(false);
+
+        await new LoginAction().LoginAsync(player, LoginName, "pw").ConfigureAwait(false);
+
+        Assert.That(player.Account, Is.Null);
+        this.VerifyLoginResult(player, LoginResult.SubscriptionTermOver);
+        this._loginServer.Verify(l => l.LogOffAsync(LoginName, 2), Times.Once);
+    }
+
+    /// <summary>
     /// A session which gave up its account doesn't save anymore.
     /// </summary>
     private void SetupReservation(bool result)
@@ -145,7 +179,7 @@ public class LoginReservationTests
             .Verify(p => p.ShowLoginResultAsync(result), Times.Once);
     }
 
-    private async ValueTask<Player> CreatePlayerAtLoginScreenAsync()
+    private async ValueTask<Player> CreatePlayerAtLoginScreenAsync(byte serverId = 0)
     {
         var gameConfiguration = new Persistence.BasicModel.GameConfiguration();
         gameConfiguration.Maps.Add(new Persistence.BasicModel.GameMapDefinition());
@@ -153,7 +187,7 @@ public class LoginReservationTests
         persistence.Setup(p => p.CreateNewPlayerContext(It.IsAny<GameConfiguration>())).Returns(this._playerContext.Object);
         var mapInitializer = new MapInitializer(gameConfiguration, new NullLogger<MapInitializer>(), NullDropGenerator.Instance, null);
         var gameServer = new GameServerContext(
-            new Persistence.BasicModel.GameServerDefinition { GameConfiguration = gameConfiguration, ServerConfiguration = new DataModel.Configuration.GameServerConfiguration() },
+            new Persistence.BasicModel.GameServerDefinition { ServerID = serverId, GameConfiguration = gameConfiguration, ServerConfiguration = new DataModel.Configuration.GameServerConfiguration() },
             new Mock<IGuildServer>().Object,
             this._eventPublisher.Object,
             this._loginServer.Object,

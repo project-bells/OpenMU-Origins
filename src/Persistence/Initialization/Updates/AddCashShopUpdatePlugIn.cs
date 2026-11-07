@@ -57,9 +57,9 @@ public class AddCashShopUpdatePlugIn : UpdatePlugInBase
 
     /// <inheritdoc />
     /// <remarks>
-    /// Not every server wants to offer a cash shop, so the update can be deselected.
+    /// Origins requires the in-game shop and its authoritative catalog for WebShop delivery.
     /// </remarks>
-    public override bool IsMandatory => false;
+    public override bool IsMandatory => true;
 
     /// <inheritdoc />
     public override DateTime CreatedAt => new(2026, 10, 07, 12, 0, 0, DateTimeKind.Utc);
