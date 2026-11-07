@@ -12,7 +12,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
     public partial class EntityDataContextModel
     {
         private EntityDataContextModel()
-            : base(skipDetectChanges: false, modelId: new Guid("edc7bef9-dc99-4de0-a4d1-866509c3e38e"), entityTypeCount: 121)
+            : base(skipDetectChanges: false, modelId: new Guid("b922ed46-a32a-49df-b52a-f349054d98d5"), entityTypeCount: 122)
         {
         }
 
@@ -29,6 +29,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
             var buff = BuffEntityType.Create(this);
             var cashShopCoinGrant = CashShopCoinGrantEntityType.Create(this);
             var cashShopConfiguration = CashShopConfigurationEntityType.Create(this);
+            var cashShopItemGrant = CashShopItemGrantEntityType.Create(this);
             var cashShopPackage = CashShopPackageEntityType.Create(this);
             var cashShopProduct = CashShopProductEntityType.Create(this);
             var cashShopStorageItem = CashShopStorageItemEntityType.Create(this);
@@ -163,6 +164,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
             BuffEntityType.CreateForeignKey1(buff, magicEffectDefinition);
             BuffEntityType.CreateForeignKey2(buff, monsterDefinition);
             CashShopCoinGrantEntityType.CreateForeignKey1(cashShopCoinGrant, account);
+            CashShopItemGrantEntityType.CreateForeignKey1(cashShopItemGrant, account);
             CashShopPackageEntityType.CreateForeignKey1(cashShopPackage, cashShopConfiguration);
             CashShopProductEntityType.CreateForeignKey1(cashShopProduct, cashShopPackage);
             CashShopProductEntityType.CreateForeignKey2(cashShopProduct, itemDefinition);
@@ -391,6 +393,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
             BuffEntityType.CreateAnnotations(buff);
             CashShopCoinGrantEntityType.CreateAnnotations(cashShopCoinGrant);
             CashShopConfigurationEntityType.CreateAnnotations(cashShopConfiguration);
+            CashShopItemGrantEntityType.CreateAnnotations(cashShopItemGrant);
             CashShopPackageEntityType.CreateAnnotations(cashShopPackage);
             CashShopProductEntityType.CreateAnnotations(cashShopProduct);
             CashShopStorageItemEntityType.CreateAnnotations(cashShopStorageItem);

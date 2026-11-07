@@ -36,6 +36,23 @@ internal static class CashShopExtensions
     }
 
     /// <summary>
+    /// Applies the settings for the <see cref="CashShopItemGrant"/> entity.
+    /// </summary>
+    /// <param name="builder">The builder.</param>
+    public static void Apply(this EntityTypeBuilder<CashShopItemGrant> builder)
+    {
+        builder.Property(grant => grant.Reference).HasMaxLength(128);
+        builder.Property(grant => grant.Reason).HasMaxLength(256);
+        builder.Property(grant => grant.GrantedBy).HasMaxLength(128);
+        builder.HasIndex(grant => grant.Reference).IsUnique();
+        builder.HasIndex(grant => new { grant.AccountId, grant.CreatedAt });
+        builder.HasOne<Account>()
+            .WithMany()
+            .HasForeignKey(grant => grant.AccountId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+
+    /// <summary>
     /// Applies the settings for the <see cref="CashShopCoinGrant"/> entity.
     /// </summary>
     /// <param name="builder">The builder.</param>

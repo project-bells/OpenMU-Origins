@@ -71,6 +71,11 @@ public class EntityDataContext : ExtendedTypeContext
     internal DbSet<CashShopStorageItem> CashShopStorageItems => this.Set<CashShopStorageItem>();
 
     /// <summary>
+    /// Gets the audit records of externally granted cash shop items.
+    /// </summary>
+    internal DbSet<CashShopItemGrant> CashShopItemGrants => this.Set<CashShopItemGrant>();
+
+    /// <summary>
     /// Gets the grants of cash shop coins to the accounts.
     /// </summary>
     internal DbSet<CashShopCoinGrant> CashShopCoinGrants => this.Set<CashShopCoinGrant>();
@@ -131,6 +136,7 @@ public class EntityDataContext : ExtendedTypeContext
         modelBuilder.Entity<CastleSiegeNpcState>().Apply();
         modelBuilder.Entity<CashShopPackage>().Apply();
         modelBuilder.Entity<CashShopStorageItem>().Apply();
+        modelBuilder.Entity<CashShopItemGrant>().Apply();
         modelBuilder.Entity<CashShopCoinGrant>().Apply();
         modelBuilder.Entity<DropItemGroup>().Apply();
         modelBuilder.Entity<ExitGate>().Apply();

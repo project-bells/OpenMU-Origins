@@ -128,6 +128,16 @@ public class PlayerInMemoryContext : InMemoryContext, IPlayerContext
     }
 
     /// <inheritdoc />
+    public async ValueTask<DataModel.Entities.CashShopItemGrant?> GetCashShopItemGrantByReferenceAsync(
+        string reference,
+        CancellationToken cancellationToken = default)
+    {
+        var grants = await this.Provider.GetRepository<CashShopItemGrant>()
+            .GetAllAsync(cancellationToken).ConfigureAwait(false);
+        return grants.FirstOrDefault(grant => grant.Reference == reference);
+    }
+
+    /// <inheritdoc />
     public async ValueTask<IReadOnlyList<DataModel.Entities.CashShopCoinGrant>> GetPendingCashShopCoinGrantsAsync(
         Guid accountId,
         CancellationToken cancellationToken = default)
