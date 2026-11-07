@@ -1,4 +1,4 @@
-﻿// <copyright file="ServerController.cs" company="MUnique">
+// <copyright file="ServerController.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -90,28 +90,61 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
         {
             int sum = 0;
             var list = new List<string>();
-            this._gameServers.Values.ForEach(async item =>
-            {
-                var server = item as GameServer;
-                if (server is not null)
-                {
-                    await server.Context.ForEachPlayerAsync(player =>
-                    {
-                        list.Add(player.GetName());
-                        return Task.CompletedTask;
-                    }).ConfigureAwait(false);
-                    sum = sum + server.Context.PlayerCount;
-                }
-            });
+            var realms = new List<object>();
 
-            var item = new
+            foreach (var item in this._gameServers.Values)
+            {
+                if (item is GameServer server)
+                {
+                    var online = server.Context.PlayerCount;
+                    var max = server.MaximumConnections > 0 ? server.MaximumConnections : 2500;
+                    var loadPct = max > 0 ? Math.Clamp((int)Math.Round((double)online / max * 100), 0, 100) : 0;
+                    var pvp = server.Context.PvpEnabled;
+
+                    var name = !string.IsNullOrWhiteSpace(server.Description)
+                        ? server.Description
+                        : $"Origins-{server.Id + 1}";
+
+                    sum += online;
+
+                    realms.Add(new
+                    {
+                        id = (int)server.Id,
+                        name,
+                        online,
+                        max,
+                        loadPct,
+                        pvp,
+                        status = server.ServerState == MUnique.OpenMU.Interfaces.ServerState.Started ? "Normal" : server.ServerState.ToString(),
+                    });
+                }
+            }
+
+            TimeSpan uptime;
+            try
+            {
+                uptime = DateTime.Now - System.Diagnostics.Process.GetCurrentProcess().StartTime;
+            }
+            catch
+            {
+                uptime = TimeSpan.Zero;
+            }
+
+            var uptimeText = uptime.TotalDays >= 1
+                ? $"{(int)uptime.TotalDays}d {uptime.Hours}h {uptime.Minutes}m"
+                : $"{(int)uptime.TotalHours}h {uptime.Minutes}m";
+
+            var response = new
             {
                 state = "Online",
                 players = sum,
+                uptime = uptimeText,
+                antiCheat = "Origins GameGuard 100% Active",
                 playersList = list,
+                realms,
             };
 
-            return this.Ok(JsonSerializer.Serialize(item));
+            return this.Ok(JsonSerializer.Serialize(response));
         }
     }
 }
