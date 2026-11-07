@@ -388,6 +388,20 @@ items, browser-selected item options, WCoin item purchases, group purchases, and
 refunds remain fail-closed. Enabling the old item-hex path would reintroduce the
 forgery and duplication risks this API removes.
 
+## In-game shop and VIP room 3
+
+Implemented on 2026-11-07:
+
+- the Season 6 Cash Shop configuration update is mandatory, enabling the stock
+  client X-button catalog for existing Origins databases;
+- fresh Season 6 configuration creates `SV3-VIP` (server ID 2) at EXP 130x;
+- `Account.VipUntil` is persisted through the `AddVipMembership` migration;
+- non-VIP and expired accounts are rejected from room 3 before login completes,
+  while active VIP and game-master accounts are accepted;
+- CashShop-role API grants 30-360 VIP days exactly once by immutable reference;
+- WebShop reserves Credits once, retries ambiguous results, refunds definitive
+  failures once, and mirrors only the expiry returned by OpenMU.
+
 ## Known production blockers
 
 The following must be completed before calling the server production-ready:

@@ -438,3 +438,19 @@ use an outbox/retry worker: an ambiguous HTTP timeout must remain pending and be
 not refunded immediately. Absolute protection is impossible after a trusted service or its
 credential is compromised; network isolation, least privilege, audit alerts and key
 rotation are therefore part of the security boundary.
+
+## VIP membership and sub-server 3
+
+Origins stores the authoritative UTC membership expiry in `Account.VipUntil`.
+A trusted WebShop extends it exactly once with
+`POST /api/accounts/{loginName}/cash-shop/vip-grants`; accepted durations are
+30-day periods from 30 through 360 days. Replaying the same reference and
+duration returns the original grant without extending the membership twice.
+
+Season 6 initialization creates `SV3-VIP` as game-server ID 2 (the third entry
+shown by the client) with EXP 130x. Normal accounts whose VIP expiry is absent
+or expired receive `SubscriptionTermOver`; game masters remain able to enter for
+operations. Existing databases must apply the `AddVipMembership` EF migration,
+run the mandatory *Add cash shop* and *Add Origins VIP game server*
+configuration updates, and restart the central/game servers. The first update
+installs the in-game shop catalog; the second creates or updates sub-server 3.

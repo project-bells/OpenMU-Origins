@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace MUnique.OpenMU.Persistence.EntityFramework.Migrations
 {
-    [DbContext(typeof(EntityDataContext))]
+    [DbContext(typeof(MUnique.OpenMU.Persistence.EntityFramework.EntityDataContext))]
     partial class EntityDataContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
@@ -85,6 +85,9 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.Migrations
                     b.Property<string>("VaultPassword")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("VipUntil")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("WCoinC")
                         .HasColumnType("integer");
