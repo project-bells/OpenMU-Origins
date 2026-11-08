@@ -51,7 +51,7 @@ public abstract class GameConfigurationInitializerBase : InitializerBase
     public override void Initialize()
     {
         this.GameConfiguration.ExperienceRate = 1.0f;
-        this.GameConfiguration.MinimumMonsterLevelForMasterExperience = 95;
+        this.GameConfiguration.MinimumMonsterLevelForMasterExperience = 0;
         this.GameConfiguration.MaximumLevel = 400;
         this.GameConfiguration.MaximumMasterLevel = 200;
         this.GameConfiguration.InfoRange = 12;
