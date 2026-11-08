@@ -102,6 +102,16 @@ public class Account
     public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
 
     /// <summary>
+    /// Gets or sets the cumulative number of seconds during which this account was logged in.
+    /// </summary>
+    /// <remarks>
+    /// This value is accrued and persisted exclusively by the game server. External reward systems
+    /// may use it as an authoritative, monotonic source of online time.
+    /// </remarks>
+    [Browsable(false)]
+    public long OnlineTimeSeconds { get; set; }
+
+    /// <summary>
     /// Gets or sets the state.
     /// </summary>
     public AccountState State { get; set; }

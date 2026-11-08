@@ -12,7 +12,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
     public partial class EntityDataContextModel
     {
         private EntityDataContextModel()
-            : base(skipDetectChanges: false, modelId: new Guid("c97fc619-515c-4df7-bda2-fdc8b16ec3b2"), entityTypeCount: 122)
+            : base(skipDetectChanges: false, modelId: new Guid("4da5f6c7-9e26-4431-8702-5ea0be12c4e6"), entityTypeCount: 123)
         {
         }
 
@@ -140,6 +140,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
             var statAttributeDefinition = StatAttributeDefinitionEntityType.Create(this);
             var systemConfiguration = SystemConfigurationEntityType.Create(this);
             var warpInfo = WarpInfoEntityType.Create(this);
+            var webShopAccountOperation = WebShopAccountOperationEntityType.Create(this);
 
             AccountEntityType.CreateForeignKey1(account, itemStorage);
             AccountCharacterClassEntityType.CreateForeignKey1(accountCharacterClass, account);
@@ -381,6 +382,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
             StatAttributeDefinitionEntityType.CreateForeignKey2(statAttributeDefinition, characterClass);
             WarpInfoEntityType.CreateForeignKey1(warpInfo, gameConfiguration);
             WarpInfoEntityType.CreateForeignKey2(warpInfo, exitGate);
+            WebShopAccountOperationEntityType.CreateForeignKey1(webShopAccountOperation, account);
 
             AccountEntityType.CreateAnnotations(account);
             AccountCharacterClassEntityType.CreateAnnotations(accountCharacterClass);
@@ -504,6 +506,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
             StatAttributeDefinitionEntityType.CreateAnnotations(statAttributeDefinition);
             SystemConfigurationEntityType.CreateAnnotations(systemConfiguration);
             WarpInfoEntityType.CreateAnnotations(warpInfo);
+            WebShopAccountOperationEntityType.CreateAnnotations(webShopAccountOperation);
 
             AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
             AddAnnotation("ProductVersion", "10.0.2");

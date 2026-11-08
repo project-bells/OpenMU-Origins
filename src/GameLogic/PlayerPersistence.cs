@@ -65,7 +65,11 @@ internal sealed class PlayerPersistence
         }
 
         return await this.RunExclusiveAsync(
-            () => this._player.PersistenceContext.SaveChangesAsync(cancellationToken),
+            () =>
+            {
+                this._player.AccrueOnlineTime(DateTime.UtcNow);
+                return this._player.PersistenceContext.SaveChangesAsync(cancellationToken);
+            },
             cancellationToken).ConfigureAwait(false);
     }
 

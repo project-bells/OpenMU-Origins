@@ -56,6 +56,12 @@ public class LoginReservationTests
             .Setup(c => c.GetAccountByLoginNameAsync(LoginName, It.IsAny<CancellationToken>()))
             .Callback(() => this._calls.Add("load"))
             .ReturnsAsync(() => this._account);
+        this._playerContext
+            .Setup(c => c.GetPendingCashShopCoinGrantsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<CashShopCoinGrant>());
+        this._playerContext
+            .Setup(c => c.GetPendingWebShopAccountOperationsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<WebShopAccountOperation>());
     }
 
     /// <summary>
@@ -73,6 +79,37 @@ public class LoginReservationTests
         Assert.That(player.Account, Is.SameAs(this._account));
         this.VerifyLoginResult(player, LoginResult.Ok);
         this._loginServer.Verify(l => l.LogOffAsync(It.IsAny<string>(), It.IsAny<byte>()), Times.Never);
+    }
+
+    /// <summary>
+    /// Pending webshop coin grants are applied before the successful login response, so the
+    /// balance is already authoritative when the client enters character selection.
+    /// </summary>
+    [Test]
+    public async ValueTask AppliesPendingCashShopCoinGrantsDuringLoginAsync()
+    {
+        var account = this._account!;
+        var grant = new Persistence.BasicModel.CashShopCoinGrant
+        {
+            AccountId = account.GetId(),
+            CoinType = CashShopCoinType.WCoinC,
+            Amount = 250,
+            CreatedAt = DateTime.UtcNow,
+        };
+        this._playerContext
+            .Setup(c => c.GetPendingCashShopCoinGrantsAsync(account.GetId(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { grant });
+        this._playerContext
+            .Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        this.SetupReservation(true);
+        var player = await this.CreatePlayerAtLoginScreenAsync().ConfigureAwait(false);
+
+        await new LoginAction().LoginAsync(player, LoginName, "pw").ConfigureAwait(false);
+
+        Assert.That(account.WCoinC, Is.EqualTo(250));
+        Assert.That(grant.AppliedAt, Is.Not.Null);
+        this.VerifyLoginResult(player, LoginResult.Ok);
     }
 
     /// <summary>

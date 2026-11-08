@@ -91,6 +91,8 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
 
     private DateTime _lastRegenerate = DateTime.UtcNow;
 
+    private DateTime? _lastOnlineTimeAccrualUtc;
+
     /// <summary>
     /// The fraction of a second which elapsed since the last regeneration, but wasn't subtracted from
     /// <see cref="Character.StateRemainingSeconds"/> yet, because it only counts in whole seconds.
@@ -652,7 +654,29 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
     public async ValueTask SetAccountAsync(Account account)
     {
         this.Account = account;
+        this._lastOnlineTimeAccrualUtc = DateTime.UtcNow;
         await this.PlayerLoggedIn.SafeInvokeAsync(this).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Accrues complete online seconds since the previous accrual.
+    /// </summary>
+    /// <param name="now">The current UTC timestamp.</param>
+    internal void AccrueOnlineTime(DateTime now)
+    {
+        if (this.Account is not { } account || this._lastOnlineTimeAccrualUtc is not { } lastAccrual)
+        {
+            return;
+        }
+
+        var completeSeconds = (long)(now - lastAccrual).TotalSeconds;
+        if (completeSeconds <= 0)
+        {
+            return;
+        }
+
+        account.OnlineTimeSeconds = checked(account.OnlineTimeSeconds + completeSeconds);
+        this._lastOnlineTimeAccrualUtc = lastAccrual.AddSeconds(completeSeconds);
     }
 
     /// <summary>

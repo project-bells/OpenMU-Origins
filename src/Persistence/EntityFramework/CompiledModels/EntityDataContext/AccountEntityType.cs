@@ -22,7 +22,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
                 "MUnique.OpenMU.Persistence.EntityFramework.Model.Account",
                 typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.Account),
                 baseEntityType,
-                propertyCount: 20,
+                propertyCount: 21,
                 navigationCount: 4,
                 foreignKeyCount: 1,
                 unnamedIndexCount: 2,
@@ -111,6 +111,14 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
                 fieldInfo: typeof(MUnique.OpenMU.DataModel.Entities.Account).GetField("<LoginName>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
                 maxLength: 10);
             loginName.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
+
+            var onlineTimeSeconds = runtimeEntityType.AddProperty(
+                "OnlineTimeSeconds",
+                typeof(long),
+                propertyInfo: typeof(MUnique.OpenMU.DataModel.Entities.Account).GetProperty("OnlineTimeSeconds", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(MUnique.OpenMU.DataModel.Entities.Account).GetField("<OnlineTimeSeconds>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                sentinel: 0L);
+            onlineTimeSeconds.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
 
             var passwordHash = runtimeEntityType.AddProperty(
                 "PasswordHash",
