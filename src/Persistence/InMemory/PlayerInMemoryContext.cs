@@ -152,6 +152,31 @@ public class PlayerInMemoryContext : InMemoryContext, IPlayerContext
     }
 
     /// <inheritdoc />
+    public async ValueTask<IReadOnlyList<DataModel.Entities.WebShopAccountOperation>> GetPendingWebShopAccountOperationsAsync(
+        Guid accountId,
+        CancellationToken cancellationToken = default)
+    {
+        var operations = await this.Provider.GetRepository<WebShopAccountOperation>()
+            .GetAllAsync(cancellationToken)
+            .ConfigureAwait(false);
+        return operations
+            .Where(operation => operation.AccountId == accountId && operation.AppliedAt is null && operation.FailureCode is null)
+            .OrderBy(operation => operation.CreatedAt)
+            .ToList();
+    }
+
+    /// <inheritdoc />
+    public async ValueTask<DataModel.Entities.WebShopAccountOperation?> GetWebShopAccountOperationByReferenceAsync(
+        string reference,
+        CancellationToken cancellationToken = default)
+    {
+        var operations = await this.Provider.GetRepository<WebShopAccountOperation>()
+            .GetAllAsync(cancellationToken)
+            .ConfigureAwait(false);
+        return operations.FirstOrDefault(operation => operation.Reference == reference);
+    }
+
+    /// <inheritdoc />
     public async ValueTask<IReadOnlyList<DataModel.Entities.CashShopCoinGrant>> GetLatestCashShopCoinGrantsAsync(
         Guid accountId,
         int maximumCount,

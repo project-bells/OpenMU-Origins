@@ -10,6 +10,7 @@ using MUnique.OpenMU.AttributeSystem;
 using MUnique.OpenMU.DataModel.Attributes;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Configuration.Items;
+using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Persistence.Initialization.CharacterClasses;
@@ -102,20 +103,7 @@ public abstract class GameConfigurationInitializerBase : InitializerBase
     /// <param name="level">The character level.</param>
     /// <returns>The calculated necessary experience.</returns>
     internal static long CalculateNeededExperience(long level)
-    {
-        if (level == 0)
-        {
-            return 0;
-        }
-
-        if (level < 256)
-        {
-            return 10 * (level + 8) * (level - 1) * (level - 1);
-        }
-
-        return (10 * (level + 8) * (level - 1) * (level - 1)) +
-               (1000 * (level - 247) * (level - 256) * (level - 256));
-    }
+        => CharacterProgression.CalculateNeededExperience(level);
 
     /// <summary>
     /// Creates an item option definition for the specified attribute definition.

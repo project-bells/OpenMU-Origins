@@ -5,7 +5,9 @@
 namespace MUnique.OpenMU.GameLogic.PlayerActions;
 
 using System.Threading;
+using MUnique.OpenMU.GameLogic.CashShop;
 using MUnique.OpenMU.GameLogic.Views.Login;
+using MUnique.OpenMU.GameLogic.WebShop;
 
 /// <summary>
 /// Action to log in a player to the game.
@@ -270,6 +272,8 @@ public class LoginAction
     private async ValueTask FinishLoginAsync(Player player, string username, Account account)
     {
         await player.SetAccountAsync(account).ConfigureAwait(false);
+        await player.ApplyPendingCashShopCoinGrantsAsync().ConfigureAwait(false);
+        await player.ApplyPendingWebShopAccountOperationsAsync().ConfigureAwait(false);
         player.Logger.LogDebug("Login successful, username: [{Username}].", username);
 
         if (player.IsTemplatePlayer)

@@ -158,6 +158,26 @@ public interface IPlayerContext : IContext
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets the pending server-authoritative webshop operations of an account.
+    /// </summary>
+    /// <param name="accountId">The account identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The pending operations in creation order.</returns>
+    ValueTask<IReadOnlyList<WebShopAccountOperation>> GetPendingWebShopAccountOperationsAsync(
+        Guid accountId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets a webshop account operation by its immutable external reference.
+    /// </summary>
+    /// <param name="reference">The external reference.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The operation; otherwise, <see langword="null"/>.</returns>
+    ValueTask<WebShopAccountOperation?> GetWebShopAccountOperationByReferenceAsync(
+        string reference,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets the latest grants of cash shop coins to an account, including the applied ones, ordered from the newest to the oldest.
     /// </summary>
     /// <param name="accountId">The persistent account identifier.</param>

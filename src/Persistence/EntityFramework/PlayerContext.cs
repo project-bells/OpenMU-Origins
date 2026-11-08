@@ -247,6 +247,36 @@ internal class PlayerContext : CachingEntityFrameworkContext, IPlayerContext
     }
 
     /// <inheritdoc />
+    public async ValueTask<IReadOnlyList<DataModel.Entities.WebShopAccountOperation>> GetPendingWebShopAccountOperationsAsync(
+        Guid accountId,
+        CancellationToken cancellationToken = default)
+    {
+        using var l = await this.LockAsync(cancellationToken).ConfigureAwait(false);
+        using (this.RepositoryProvider.ContextStack.UseContext(this))
+        {
+            return await this.Context.Set<WebShopAccountOperation>()
+                .Where(operation => operation.AccountId == accountId && operation.AppliedAt == null && operation.FailureCode == null)
+                .OrderBy(operation => operation.CreatedAt)
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
+    }
+
+    /// <inheritdoc />
+    public async ValueTask<DataModel.Entities.WebShopAccountOperation?> GetWebShopAccountOperationByReferenceAsync(
+        string reference,
+        CancellationToken cancellationToken = default)
+    {
+        using var l = await this.LockAsync(cancellationToken).ConfigureAwait(false);
+        using (this.RepositoryProvider.ContextStack.UseContext(this))
+        {
+            return await this.Context.Set<WebShopAccountOperation>()
+                .FirstOrDefaultAsync(operation => operation.Reference == reference, cancellationToken)
+                .ConfigureAwait(false);
+        }
+    }
+
+    /// <inheritdoc />
     public async ValueTask<IReadOnlyList<DataModel.Entities.CashShopCoinGrant>> GetLatestCashShopCoinGrantsAsync(
         Guid accountId,
         int maximumCount,

@@ -81,6 +81,11 @@ public class EntityDataContext : ExtendedTypeContext
     internal DbSet<CashShopCoinGrant> CashShopCoinGrants => this.Set<CashShopCoinGrant>();
 
     /// <summary>
+    /// Gets the server-authoritative webshop account operations.
+    /// </summary>
+    internal DbSet<WebShopAccountOperation> WebShopAccountOperations => this.Set<WebShopAccountOperation>();
+
+    /// <summary>
     /// Gets the gens memberships of the characters.
     /// </summary>
     internal DbSet<GensMember> GensMembers => this.Set<GensMember>();
@@ -138,6 +143,7 @@ public class EntityDataContext : ExtendedTypeContext
         modelBuilder.Entity<CashShopStorageItem>().Apply();
         modelBuilder.Entity<CashShopItemGrant>().Apply();
         modelBuilder.Entity<CashShopCoinGrant>().Apply();
+        modelBuilder.Entity<WebShopAccountOperation>().Apply();
         modelBuilder.Entity<DropItemGroup>().Apply();
         modelBuilder.Entity<ExitGate>().Apply();
         modelBuilder.Entity<GameConfiguration>().Apply();

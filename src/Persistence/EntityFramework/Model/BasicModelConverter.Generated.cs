@@ -149,6 +149,7 @@ internal sealed class BasicModelConverter
             StatAttributeDefinition value => this.Convert(value),
             SystemConfiguration value => this.Convert(value),
             WarpInfo value => this.Convert(value),
+            WebShopAccountOperation value => this.Convert(value),
             _ => source,
         };
     }
@@ -179,6 +180,7 @@ internal sealed class BasicModelConverter
         }
 
         target.RegistrationDate = source.RegistrationDate;
+        target.OnlineTimeSeconds = source.OnlineTimeSeconds;
         target.State = source.State;
         target.TimeZone = source.TimeZone;
         target.VaultPassword = source.VaultPassword;
@@ -3075,6 +3077,30 @@ internal sealed class BasicModelConverter
         target.Costs = source.Costs;
         target.LevelRequirement = source.LevelRequirement;
         target.Gate = (MUnique.OpenMU.DataModel.Configuration.ExitGate)this.ConvertObject(source.Gate)!;
+        return target;
+    }
+
+    private BasicModel.WebShopAccountOperation Convert(WebShopAccountOperation source)
+    {
+        if (this._converted.TryGetValue(source, out var converted))
+        {
+            return (BasicModel.WebShopAccountOperation)converted;
+        }
+
+        var target = new BasicModel.WebShopAccountOperation();
+        this._converted.Add(source, target);
+        target.Id = source.Id;
+        target.AccountId = source.AccountId;
+        target.OperationType = source.OperationType;
+        target.Reference = source.Reference;
+        target.CharacterName = source.CharacterName;
+        target.NewCharacterName = source.NewCharacterName;
+        target.CharacterClassNumber = source.CharacterClassNumber;
+        target.Amount = source.Amount;
+        target.RequestedBy = source.RequestedBy;
+        target.CreatedAt = source.CreatedAt;
+        target.AppliedAt = source.AppliedAt;
+        target.FailureCode = source.FailureCode;
         return target;
     }
 

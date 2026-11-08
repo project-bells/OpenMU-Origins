@@ -65,4 +65,23 @@ internal static class CashShopExtensions
             .HasForeignKey(grant => grant.AccountId)
             .OnDelete(DeleteBehavior.Cascade);
     }
+
+    /// <summary>
+    /// Applies the settings for the <see cref="WebShopAccountOperation"/> entity.
+    /// </summary>
+    /// <param name="builder">The builder.</param>
+    public static void Apply(this EntityTypeBuilder<WebShopAccountOperation> builder)
+    {
+        builder.Property(operation => operation.Reference).HasMaxLength(128);
+        builder.Property(operation => operation.CharacterName).HasMaxLength(10);
+        builder.Property(operation => operation.NewCharacterName).HasMaxLength(10);
+        builder.Property(operation => operation.RequestedBy).HasMaxLength(128);
+        builder.Property(operation => operation.FailureCode).HasMaxLength(64);
+        builder.HasIndex(operation => operation.Reference).IsUnique();
+        builder.HasIndex(operation => new { operation.AccountId, operation.AppliedAt });
+        builder.HasOne<Account>()
+            .WithMany()
+            .HasForeignKey(operation => operation.AccountId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
 }
