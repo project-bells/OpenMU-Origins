@@ -20,6 +20,8 @@ using MUnique.OpenMU.ConnectServer;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.FriendServer;
 using MUnique.OpenMU.GameLogic;
+using MUnique.OpenMU.GameLogic.CashShop;
+using MUnique.OpenMU.GameLogic.MuHelper;
 using MUnique.OpenMU.GameLogic.TestActors;
 using MUnique.OpenMU.GameServer;
 using MUnique.OpenMU.GuildServer;
@@ -488,6 +490,23 @@ internal sealed class Program : IDisposable
         {
             typesWithMissingCustomConfigs.ForEach(c => this.CreateDefaultPlugInConfiguration(typesWithCustomConfig[c.TypeId]!, c, referenceHandler));
             _ = context.SaveChangesAsync().AsTask().WaitAndUnwrapException();
+        }
+
+        var requiredPlayerFeatures = new HashSet<Guid>
+        {
+            typeof(MuHelperFeaturePlugIn).GUID,
+            typeof(CashShopFeaturePlugIn).GUID,
+        };
+        var disabledRequiredFeatures = configs
+            .Where(configuration => requiredPlayerFeatures.Contains(configuration.TypeId) && !configuration.IsActive)
+            .ToList();
+        if (disabledRequiredFeatures.Count > 0)
+        {
+            disabledRequiredFeatures.ForEach(configuration => configuration.IsActive = true);
+            _ = context.SaveChangesAsync().AsTask().WaitAndUnwrapException();
+            this._logger.Information(
+                "Enabled {count} required player feature plugins (MU Helper and cash shop).",
+                disabledRequiredFeatures.Count);
         }
 
         var typesWithMissingConfigs = pluginManager.KnownPlugInTypes.Where(t => configs.All(c => c.TypeId != t.GUID)).ToList();
