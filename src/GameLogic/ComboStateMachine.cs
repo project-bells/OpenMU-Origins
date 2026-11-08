@@ -4,7 +4,6 @@
 
 namespace MUnique.OpenMU.GameLogic;
 
-using System.Collections.Concurrent;
 using System.Diagnostics;
 
 /// <summary>
@@ -13,8 +12,6 @@ using System.Diagnostics;
 /// </summary>
 public sealed class ComboStateMachine : StateMachine
 {
-    private static readonly ConcurrentDictionary<SkillComboDefinition, (ComboState Inital, ComboState Final)> StateCache = new();
-
     private readonly TimeSpan _maximumCompletionTime;
     private DateTime _lastStartedCombo;
 
@@ -51,7 +48,10 @@ public sealed class ComboStateMachine : StateMachine
     /// <returns>The created <see cref="ComboStateMachine"/>.</returns>.
     public static ComboStateMachine Create(SkillComboDefinition comboDefinition)
     {
-        var states = GetOrCreateStates(comboDefinition);
+        // The game configuration can be reloaded while the process keeps running. Combo states
+        // contain skill instances from that configuration, so sharing them across reloads would
+        // make all comparisons with skills from the new configuration fail.
+        var states = BuildStates(comboDefinition);
         return new ComboStateMachine(states.Initial, states.Final, comboDefinition.MaximumCompletionTime);
     }
 
@@ -91,11 +91,6 @@ public sealed class ComboStateMachine : StateMachine
         }
 
         return false;
-    }
-
-    private static (ComboState Initial, ComboState Final) GetOrCreateStates(SkillComboDefinition comboDefinition)
-    {
-        return StateCache.GetOrAdd(comboDefinition, BuildStates);
     }
 
     private static (ComboState Initial, ComboState Final) BuildStates(SkillComboDefinition comboDefinition)
