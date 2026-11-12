@@ -49,6 +49,7 @@ public sealed class AddTalismanOfLuckUpdatePlugIn : UpdatePlugInBase
     {
         var talisman = gameConfiguration.Items.FirstOrDefault(item => item.Group == 14 && item.Number == 53)
                        ?? CreateTalisman(context, gameConfiguration);
+        talisman.Durability = 10;
         var protectionTalisman = gameConfiguration.Items.FirstOrDefault(item => item.Group == 14 && item.Number == 96)
                                  ?? CreateProtectionTalisman(context, gameConfiguration);
         var craftings = gameConfiguration.Monsters.Single(monster => monster.NpcWindow == NpcWindow.ChaosMachine).ItemCraftings;
@@ -64,29 +65,29 @@ public sealed class AddTalismanOfLuckUpdatePlugIn : UpdatePlugInBase
             if (luckRequirement is null)
             {
                 luckRequirement = context.CreateNew<ItemCraftingRequiredItem>();
-                luckRequirement.MinimumAmount = 0;
-                luckRequirement.MaximumAmount = 1;
-                luckRequirement.AddPercentage = 10;
-                luckRequirement.SuccessResult = MixResult.Disappear;
-                luckRequirement.FailResult = MixResult.Disappear;
                 luckRequirement.PossibleItems.Add(talisman);
                 settings.RequiredItems.Add(luckRequirement);
             }
 
+            luckRequirement.MinimumAmount = 0;
+            luckRequirement.MaximumAmount = 10;
+            luckRequirement.AddPercentage = 1;
+            luckRequirement.SuccessResult = MixResult.Disappear;
+            luckRequirement.FailResult = MixResult.Disappear;
             luckRequirement.Reference = ItemLevelUpgradeHandler.TalismanOfLuckReference;
 
             var protectionRequirement = settings.RequiredItems.FirstOrDefault(requirement => requirement.PossibleItems.Contains(protectionTalisman));
             if (protectionRequirement is null)
             {
                 protectionRequirement = context.CreateNew<ItemCraftingRequiredItem>();
-                protectionRequirement.MinimumAmount = 0;
-                protectionRequirement.MaximumAmount = 1;
-                protectionRequirement.SuccessResult = MixResult.Disappear;
-                protectionRequirement.FailResult = MixResult.Disappear;
                 protectionRequirement.PossibleItems.Add(protectionTalisman);
                 settings.RequiredItems.Add(protectionRequirement);
             }
 
+            protectionRequirement.MinimumAmount = 0;
+            protectionRequirement.MaximumAmount = 1;
+            protectionRequirement.SuccessResult = MixResult.Disappear;
+            protectionRequirement.FailResult = MixResult.DisappearAndProtectReferencedItems;
             protectionRequirement.Reference = ItemLevelUpgradeHandler.TalismanOfChaosAssemblyReference;
         }
 
@@ -113,7 +114,7 @@ public sealed class AddTalismanOfLuckUpdatePlugIn : UpdatePlugInBase
         talisman.Number = 53;
         talisman.Group = 14;
         talisman.DropsFromMonsters = false;
-        talisman.Durability = 1;
+        talisman.Durability = 10;
         talisman.Width = 1;
         talisman.Height = 1;
         talisman.SetGuid(talisman.Group, talisman.Number);
@@ -129,7 +130,7 @@ public sealed class AddTalismanOfLuckUpdatePlugIn : UpdatePlugInBase
         talisman.Number = 96;
         talisman.Group = 14;
         talisman.DropsFromMonsters = false;
-        talisman.Durability = 1;
+        talisman.Durability = 10;
         talisman.Width = 1;
         talisman.Height = 1;
         talisman.SetGuid(talisman.Group, talisman.Number);

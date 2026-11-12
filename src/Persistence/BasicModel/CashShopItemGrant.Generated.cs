@@ -19,9 +19,9 @@ using MUnique.OpenMU.Persistence.Json;
 /// </summary>
 public partial class CashShopItemGrant : MUnique.OpenMU.DataModel.Entities.CashShopItemGrant, IIdentifiable, IConvertibleTo<CashShopItemGrant>
 {
-
-
-
+    
+    
+    
 
     /// <inheritdoc/>
     public override bool Equals(object obj)

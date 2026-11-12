@@ -81,6 +81,9 @@
   <data name="LifeStone" xml:space="preserve">
     <value>Life Stone</value>
   </data>
+  <data name="IllusionTempleTicket" xml:space="preserve">
+    <value>Illusion Temple Ticket</value>
+  </data>
   <data name="BloodCastleTicket" xml:space="preserve">
     <value>Blood Castle Ticket</value>
   </data>
@@ -125,5 +128,14 @@
   </data>
   <data name="GemstoneRefinery" xml:space="preserve">
     <value>Gemstone Refinery</value>
+  </data>
+  <data name="GoldenBoxCombination" xml:space="preserve">
+    <value>Golden Box Combination</value>
+  </data>
+  <data name="SilverBoxCombination" xml:space="preserve">
+    <value>Silver Box Combination</value>
+  </data>
+  <data name="LuckyItemExchange" xml:space="preserve">
+    <value>Lucky Item Exchange</value>
   </data>
 </root>

@@ -50,8 +50,8 @@ public sealed class OfflinePlayerMuHelper : AsyncDisposable
 
         this._buffHandler = new BuffHandler(player, config);
         this._healingHandler = new HealingHandler(player, config);
-        this._itemPickupHandler = new ItemPickupHandler(player, config);
         this._movementHandler = new MovementHandler(player, config);
+        this._itemPickupHandler = new ItemPickupHandler(player, config, this._movementHandler);
         this._combatHandler = new CombatHandler(player, config, this._movementHandler);
         this._repairHandler = new RepairHandler(player, config);
         this._zenHandler = new ZenConsumptionHandler(player);
@@ -239,6 +239,7 @@ public sealed class OfflinePlayerMuHelper : AsyncDisposable
                 // then marches the bot back to its death site instead of picking a hunting ground).
                 this._isDead = false;
                 this._player.HuntingOrigin = this._player.Position;
+                this._player.HuntingSpot = null;
                 this._player.ArmRevengeAfterRespawn();
                 this._player.Logger.LogInformation("Bot '{Name}' respawned; resuming.", this._player.Name);
                 return false;

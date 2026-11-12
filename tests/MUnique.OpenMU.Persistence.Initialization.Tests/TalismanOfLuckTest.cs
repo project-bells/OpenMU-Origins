@@ -71,6 +71,7 @@ internal class TalismanOfLuckTest
     {
         var talisman = configuration.Items.Single(item => item.Group == 14 && item.Number == 53);
         var protectionTalisman = configuration.Items.Single(item => item.Group == 14 && item.Number == 96);
+        Assert.That(talisman.Durability, Is.EqualTo(10));
         foreach (var crafting in GetUpgradeCraftings(configuration))
         {
             var settings = crafting.SimpleCraftingSettings!;
@@ -80,12 +81,11 @@ internal class TalismanOfLuckTest
             {
                 Assert.That(crafting.ItemCraftingHandlerClassName, Is.EqualTo(typeof(ItemLevelUpgradeHandler).FullName));
                 Assert.That(requirement.MinimumAmount, Is.Zero);
-                Assert.That(requirement.MaximumAmount, Is.EqualTo(1));
-                Assert.That(requirement.AddPercentage, Is.EqualTo(10));
-                Assert.That(requirement.Reference, Is.EqualTo(ItemLevelUpgradeHandler.TalismanOfLuckReference));
+                Assert.That(requirement.MaximumAmount, Is.EqualTo(10));
+                Assert.That(requirement.AddPercentage, Is.EqualTo(1));
                 Assert.That(protectionRequirement.MinimumAmount, Is.Zero);
                 Assert.That(protectionRequirement.MaximumAmount, Is.EqualTo(1));
-                Assert.That(protectionRequirement.Reference, Is.EqualTo(ItemLevelUpgradeHandler.TalismanOfChaosAssemblyReference));
+                Assert.That(protectionRequirement.FailResult, Is.EqualTo(MixResult.DisappearAndProtectReferencedItems));
             });
         }
 

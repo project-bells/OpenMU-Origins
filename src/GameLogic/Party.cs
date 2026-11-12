@@ -8,6 +8,7 @@ using System.Diagnostics.Metrics;
 using System.Threading;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.NPC;
+using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameLogic.Views.Party;
 using MUnique.OpenMU.Persistence;
@@ -379,29 +380,67 @@ public sealed class Party : AsyncDisposable
 
         if (isAtMaxLevel && isMasterClass)
         {
-            var exp = (int)(perLevel
-                            * attributes[Stats.TotalLevel]
-                            * player.GameContext.MasterExperienceRate
-                            * (attributes[Stats.MasterExperienceRate] + attributes[Stats.BonusExperienceRate]));
+            var masterExperience = perLevel
+                                   * attributes[Stats.TotalLevel]
+                                   * player.GameContext.MasterExperienceRate
+                                   * (attributes[Stats.MasterExperienceRate] + attributes[Stats.BonusExperienceRate]);
+            var exp = await ApplyExperienceCalculationPlugInsAsync(player, killed, true, masterExperience).ConfigureAwait(false);
 
             await player.AddMasterExperienceAsync(exp, killed).ConfigureAwait(false);
+            await NotifyGainedExperienceAsync(player, exp, killed, true).ConfigureAwait(false);
             return exp;
         }
 
-        var normalExperience = (int)(perLevel
-                                     * attributes[Stats.Level]
-                                     * player.GameContext.ExperienceRate
-                                     * (attributes[Stats.ExperienceRate] + attributes[Stats.BonusExperienceRate]));
+        // The share is weighted by the total level, because the experience per level is calculated
+        // by the sum of the total levels. Otherwise, a member with master levels which is still below
+        // the maximum level (e.g. after a reset) would lose the share of its master levels.
+        var calculatedExperience = perLevel
+                                   * attributes[Stats.TotalLevel]
+                                   * player.GameContext.ExperienceRate
+                                   * (attributes[Stats.ExperienceRate] + attributes[Stats.BonusExperienceRate]);
+        var normalExperience = await ApplyExperienceCalculationPlugInsAsync(player, killed, false, calculatedExperience).ConfigureAwait(false);
 
         if (!isAtMaxLevel)
         {
             await player.AddExperienceAsync(normalExperience, killed).ConfigureAwait(false);
+            await NotifyGainedExperienceAsync(player, normalExperience, killed, false).ConfigureAwait(false);
         }
 
         // At the maximum level without the master quest no experience is awarded, but the amount is
         // still returned: the money drop is derived from it, and a solo kill returns it as well
         // (see Player.AddExpAfterKillAsync), so such a member must not end up without any money.
         return normalExperience;
+    }
+
+    /// <summary>
+    /// Lets the <see cref="IExperienceCalculationPlugIn"/>s modify the experience of a party member,
+    /// as it's done for a solo kill (see <see cref="PlayerExperience.CalculateAfterKillAsync"/>).
+    /// Otherwise, bonuses which are implemented as such a plugin would be lost in a party.
+    /// </summary>
+    private static async ValueTask<int> ApplyExperienceCalculationPlugInsAsync(Player player, IAttackable killed, bool isMasterExperience, double experience)
+    {
+        if (player.GameContext.PlugInManager.GetPlugInPoint<IExperienceCalculationPlugIn>() is { } plugInPoint)
+        {
+            var args = new ExperienceCalculationArgs(killed, isMasterExperience, experience);
+            await plugInPoint.CalculateExperienceAsync(player, args).ConfigureAwait(false);
+            experience = args.Experience;
+        }
+
+        return (int)experience;
+    }
+
+    /// <summary>
+    /// Lets the <see cref="IPlayerGainedExperiencePlugIn"/>s know about the experience of a party member,
+    /// as it's done for a solo kill (see <see cref="PlayerExperience.AddAfterKillAsync"/>).
+    /// Otherwise, e.g. the trainable pets of the Dark Lord wouldn't gain experience in a party.
+    /// </summary>
+    private static async ValueTask NotifyGainedExperienceAsync(Player player, int experience, IAttackable killed, bool isMasterExperience)
+    {
+        if (experience > 0
+            && player.GameContext.PlugInManager.GetPlugInPoint<IPlayerGainedExperiencePlugIn>() is { } plugInPoint)
+        {
+            await plugInPoint.PlayerGainedExperienceAsync(player, experience, killed, isMasterExperience).ConfigureAwait(false);
+        }
     }
 
     private async ValueTask ExitPartyAsync(IPartyMember member, byte index)

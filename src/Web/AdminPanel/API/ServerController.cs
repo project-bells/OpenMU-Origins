@@ -24,6 +24,7 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
     using MUnique.OpenMU.Interfaces;
     using MUnique.OpenMU.Persistence;
     using MUnique.OpenMU.Web.AdminPanel.Auth;
+    using MUnique.OpenMU.Web.AdminPanel.Operations;
 
     /// <summary>
     /// Server API controller.
@@ -43,6 +44,7 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
         private static readonly Guid ResetsAttributeId = new("89A891A7-F9F9-4AB5-AF36-12056E53A5F7");
 
         private readonly IDictionary<int, IGameServer> _gameServers;
+        private readonly ServerWriteOperations? _operations;
         private readonly IPersistenceContextProvider? _persistenceContextProvider;
         private readonly IDataSource<GameConfiguration>? _gameConfigurationSource;
 
@@ -50,14 +52,17 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
         /// Initializes a new instance of the <see cref="ServerController"/> class.
         /// </summary>
         /// <param name="gameServers">The game servers.</param>
+        /// <param name="operations">The audited server operations.</param>
         /// <param name="persistenceContextProvider">The persistence context provider.</param>
         /// <param name="gameConfigurationSource">The game configuration source.</param>
         public ServerController(
             IDictionary<int, IGameServer> gameServers,
+            ServerWriteOperations? operations = null,
             IPersistenceContextProvider? persistenceContextProvider = null,
             IDataSource<GameConfiguration>? gameConfigurationSource = null)
         {
             this._gameServers = gameServers;
+            this._operations = operations;
             this._persistenceContextProvider = persistenceContextProvider;
             this._gameConfigurationSource = gameConfigurationSource;
         }
@@ -71,18 +76,18 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
         /// This is the only endpoint of the API which does something instead of reporting
         /// something, so it requires the operator role and not just the viewer role.
         /// </remarks>
+        [HttpPost]
         [Route("send/{id=0}")]
-        [Authorize(AuthenticationSchemes = ApiKeyAuthenticationDefaults.ApiSchemes, Policy = AdminPolicies.Operator)]
+        [Authorize(AuthenticationSchemes = ApiKeyAuthenticationDefaults.ApiSchemes, Policy = AdminPolicies.AuthenticatedOperator)]
         public async Task<IActionResult> SendGlobalMessageAsync(int id, [FromQuery(Name = "msg")] string msg)
         {
-            var server = (GameServer)this._gameServers.Values.ElementAt(id);
-            if (server is not null)
+            if (this._operations is null)
             {
-                await server.Context.SendGlobalNotificationAsync(msg).ConfigureAwait(false);
-                return this.Ok("Done");
+                return this.StatusCode(503, "Server write operations service is unavailable.");
             }
 
-            return this.Ok("Server not ready");
+            await this._operations.SendMessageAsync(id, msg, MessageType.GoldenCenter, this.HttpContext.RequestAborted).ConfigureAwait(false);
+            return this.Ok("Done");
         }
 
         /// <summary>
@@ -114,38 +119,38 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
         /// </summary>
         [HttpGet]
         [Route("status")]
-        public IActionResult ServerState()
+        public async Task<IActionResult> ServerStateAsync()
         {
-            int sum = 0;
             var list = new List<string>();
             var realms = new List<object>();
+            var sum = 0;
 
-            foreach (var item in this._gameServers.Values)
+            foreach (var server in this._gameServers.Values.OfType<GameServer>())
             {
-                if (item is GameServer server)
+                var players = await server.Context.GetPlayersAsync().ConfigureAwait(false);
+                list.AddRange(players.Select(player => player.GetName()));
+
+                var online = server.Context.PlayerCount;
+                var max = server.MaximumConnections > 0 ? server.MaximumConnections : 2500;
+                var loadPct = max > 0 ? Math.Clamp((int)Math.Round((double)online / max * 100), 0, 100) : 0;
+                var pvp = server.Context.PvpEnabled;
+
+                var name = !string.IsNullOrWhiteSpace(server.Description)
+                    ? server.Description
+                    : $"Origins-{server.Id + 1}";
+
+                sum += online;
+
+                realms.Add(new
                 {
-                    var online = server.Context.PlayerCount;
-                    var max = server.MaximumConnections > 0 ? server.MaximumConnections : 2500;
-                    var loadPct = max > 0 ? Math.Clamp((int)Math.Round((double)online / max * 100), 0, 100) : 0;
-                    var pvp = server.Context.PvpEnabled;
-
-                    var name = !string.IsNullOrWhiteSpace(server.Description)
-                        ? server.Description
-                        : $"Origins-{server.Id + 1}";
-
-                    sum += online;
-
-                    realms.Add(new
-                    {
-                        id = (int)server.Id,
-                        name,
-                        online,
-                        max,
-                        loadPct,
-                        pvp,
-                        status = server.ServerState == MUnique.OpenMU.Interfaces.ServerState.Started ? "Normal" : server.ServerState.ToString(),
-                    });
-                }
+                    id = (int)server.Id,
+                    name,
+                    online,
+                    max,
+                    loadPct,
+                    pvp,
+                    status = server.ServerState == MUnique.OpenMU.Interfaces.ServerState.Started ? "Normal" : server.ServerState.ToString(),
+                });
             }
 
             TimeSpan uptime;

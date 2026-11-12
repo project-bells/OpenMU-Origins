@@ -1,4 +1,4 @@
-﻿// <copyright file="Jewels.cs" company="MUnique">
+// <copyright file="Jewels.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -34,37 +34,6 @@ public class Jewels : Version097d.Items.Jewels
         this.GameConfiguration.Items.Add(this.CreateGemstone());
         this.GameConfiguration.Items.Add(this.CreateLowerRefineStone());
         this.GameConfiguration.Items.Add(this.CreateHigherRefineStone());
-        this.GameConfiguration.Items.Add(this.CreateTalismanOfLuck());
-        this.GameConfiguration.Items.Add(this.CreateTalismanOfChaosAssembly());
-    }
-
-    private ItemDefinition CreateTalismanOfChaosAssembly()
-    {
-        var itemDefinition = this.Context.CreateNew<ItemDefinition>();
-        LocalizedStringResources.Register(nameof(ItemNames), ItemNames.ResourceManager);
-        itemDefinition.Name = ItemNames.ResourceManager.GetLocalizedString("TalismanOfChaosAssembly");
-        itemDefinition.Number = 96;
-        itemDefinition.Group = 14;
-        itemDefinition.DropsFromMonsters = false;
-        itemDefinition.Durability = 1;
-        itemDefinition.Width = 1;
-        itemDefinition.Height = 1;
-        itemDefinition.SetGuid(itemDefinition.Group, itemDefinition.Number);
-        return itemDefinition;
-    }
-
-    private ItemDefinition CreateTalismanOfLuck()
-    {
-        var itemDefinition = this.Context.CreateNew<ItemDefinition>();
-        itemDefinition.Name = LocalizedString.FromResource(() => ItemNames.TalismanOfLuck);
-        itemDefinition.Number = 53;
-        itemDefinition.Group = 14;
-        itemDefinition.DropsFromMonsters = false;
-        itemDefinition.Durability = 1;
-        itemDefinition.Width = 1;
-        itemDefinition.Height = 1;
-        itemDefinition.SetGuid(itemDefinition.Group, itemDefinition.Number);
-        return itemDefinition;
     }
 
     /// <summary>

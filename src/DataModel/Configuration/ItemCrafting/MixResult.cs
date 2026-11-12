@@ -1,4 +1,4 @@
-﻿// <copyright file="MixResult.cs" company="MUnique">
+// <copyright file="MixResult.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -33,4 +33,14 @@ public enum MixResult
     /// The item will stay, but its level will be reset to zero.
     /// </summary>
     ResetItemLevel = 4,
+
+    /// <summary>
+    /// The item will disappear. If the crafting fails, it protects the referenced required items
+    /// (<see cref="ItemCraftingRequiredItem.Reference"/> greater than <c>0</c>), which then stay as is
+    /// instead of getting their own fail result.
+    /// </summary>
+    /// <remarks>
+    /// Used by the Talisman of Chaos Assembly, which keeps the item of a +10 to +15 item upgrade.
+    /// </remarks>
+    DisappearAndProtectReferencedItems = 5,
 }

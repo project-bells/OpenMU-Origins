@@ -197,7 +197,7 @@ internal class SkillsInitializer : SkillsInitializerBase
         this.CreateSkill(SkillNumber.FireBlast, LocalizedString.FromResource(() => SkillNames.FireBlast), CharacterClasses.AllLords, DamageType.Physical, 150, 6, 10, 30);
         this.CreateSkill(SkillNumber.PlasmaStorm, LocalizedString.FromResource(() => SkillNames.PlasmaStorm), CharacterClasses.AllMastersAndSecondClass, DamageType.Fenrir, damage: 60, distance: 6, abilityConsumption: 20, manaConsumption: 50, levelRequirement: 110, skillType: SkillType.AreaSkillAutomaticHits);
         this.CreateSkill(SkillNumber.InfinityArrow, LocalizedString.FromResource(() => SkillNames.InfinityArrow), CharacterClasses.MuseElfAndHighElf, distance: 6, abilityConsumption: 10, manaConsumption: 50, levelRequirement: 220, skillType: SkillType.Buff, targetRestriction: SkillTargetRestriction.Self);
-        this.CreateSkill(SkillNumber.FireScream, LocalizedString.FromResource(() => SkillNames.FireScream), CharacterClasses.AllLords, DamageType.Physical, 130, 6, 10, 45, energyRequirement: 70, leadershipRequirement: 150, skillType: SkillType.AreaSkillAutomaticHits);
+        this.CreateSkill(SkillNumber.FireScream, LocalizedString.FromResource(() => SkillNames.FireScream), CharacterClasses.AllLords, DamageType.Physical, 130, 6, 10, 45, energyRequirement: 150, leadershipRequirement: 70, skillType: SkillType.AreaSkillAutomaticHits);
         this.AddAreaSkillSettings(SkillNumber.FireScream, true, 2f, 3f, 6f);
         this.CreateSkill(SkillNumber.Explosion79, LocalizedString.FromResource(() => SkillNames.Explosion), CharacterClasses.None, DamageType.Physical, distance: 2);
         this.CreateSkill(SkillNumber.SummonMonster, LocalizedString.FromResource(() => SkillNames.SummonMonster), manaConsumption: 40, energyRequirement: 90);
@@ -1039,7 +1039,11 @@ internal class SkillsInitializer : SkillsInitializerBase
             skill.SkillType = replacedSkill.SkillType;
             skill.Target = replacedSkill.Target;
             skill.TargetRestriction = replacedSkill.TargetRestriction;
-            skill.MagicEffectDef ??= replacedSkill.MagicEffectDef;
+
+            if (skill.MagicEffectDef is null || skill.ElementalModifierTarget is not null)
+            {
+                skill.MagicEffectDef = replacedSkill.MagicEffectDef;
+            }
 
             if (replacedSkill.AreaSkillSettings is { } areaSkillSettings)
             {

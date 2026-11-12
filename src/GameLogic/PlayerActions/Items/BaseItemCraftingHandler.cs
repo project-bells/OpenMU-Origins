@@ -1,4 +1,4 @@
-﻿// <copyright file="BaseItemCraftingHandler.cs" company="MUnique">
+// <copyright file="BaseItemCraftingHandler.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.GameLogic.PlayerActions.Items;
 
 using MUnique.OpenMU.DataModel.Configuration.ItemCrafting;
 using MUnique.OpenMU.DataModel.Configuration.Items;
+using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.CastleSiege;
 using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.Views.Inventory;
@@ -27,9 +28,10 @@ public abstract class BaseItemCraftingHandler : IItemCraftingHandler
             return (CraftingResult.Failed, null);
         }
 
-        if (this.TryGetRequiredItems(player, out var items, out var successRate) is { } error)
+        var (error, items, successRate, price) = this.GetRequiredItemsAndPrice(player);
+        if (error is not null)
         {
-            return (error, null);
+            return (error.Value, null);
         }
 
         if (this.ValidateMix(items, socketSlot) is { } validationError)
@@ -39,7 +41,6 @@ public abstract class BaseItemCraftingHandler : IItemCraftingHandler
 
         player.Logger.LogInformation("Crafting success chance: {successRate} %", successRate);
 
-        var price = this.GetPrice(successRate, items);
         if (!await this._castleSiegeTaxProvider.TryPayChaosCostAsync(player, price).ConfigureAwait(false))
         {
             return (CraftingResult.NotEnoughMoney, null);
@@ -71,9 +72,10 @@ public abstract class BaseItemCraftingHandler : IItemCraftingHandler
 
         // Reset backup inventory to avoid items are restored after failure and sudden disconnect of the client.
         player.BackupInventory = null;
+        var referencedItemsProtected = items.Any(link => link.ItemRequirement.FailResult == MixResult.DisappearAndProtectReferencedItems && link.Items.Any());
         foreach (var i in items)
         {
-            await this.RequiredItemChangeAsync(player, i, items, false).ConfigureAwait(false);
+            await this.RequiredItemChangeAsync(player, i, items, false, referencedItemsProtected).ConfigureAwait(false);
         }
 
         return (CraftingResult.Failed, null);
@@ -91,6 +93,48 @@ public abstract class BaseItemCraftingHandler : IItemCraftingHandler
     protected virtual CraftingResult? ValidateMix(IList<CraftingRequiredItemLink> requiredItems, byte socketSlot)
     {
         return null;
+    }
+
+    /// <summary>
+    /// Gets the required items, the success rate including the <see cref="Stats.CraftingBonusPercentage"/>
+    /// of the player, and the price of this crafting, without changing anything.
+    /// </summary>
+    /// <param name="player">The player.</param>
+    /// <returns>
+    /// The error, if the required items couldn't be get; Otherwise, <c>null</c> with the required items,
+    /// the success rate including the crafting bonus of the player and the price without taxes.
+    /// </returns>
+    public (CraftingResult? Error, IList<CraftingRequiredItemLink> Items, byte SuccessRate, int Price) GetRequiredItemsAndPrice(Player player)
+    {
+        if (this.TryGetRequiredItems(player, out var items, out var successRate) is { } error)
+        {
+            return (error, items, successRate, 0);
+        }
+
+        // The price is based on the success rate of the items, so a bonus doesn't make the crafting more expensive.
+        var price = this.GetPrice(successRate, items);
+        return (null, items, ApplyCraftingBonus(successRate, player.Attributes?[Stats.CraftingBonusPercentage] ?? 0), price);
+    }
+
+    /// <summary>
+    /// Applies the <see cref="Stats.CraftingBonusPercentage"/> of the player to the success rate of a crafting.
+    /// </summary>
+    /// <remarks>
+    /// A success rate of 0 or 100 percent is kept, because such craftings either can't fail or
+    /// can't succeed by design. Otherwise, the result stays between 1 and 100 percent.
+    /// </remarks>
+    /// <param name="successRate">The success rate, which is defined by the required items.</param>
+    /// <param name="bonusPercentage">The bonus in percentage points.</param>
+    /// <returns>The resulting success rate.</returns>
+    internal static byte ApplyCraftingBonus(byte successRate, float bonusPercentage)
+    {
+        var bonus = (int)bonusPercentage;
+        if (successRate is 0 or >= 100 || bonus == 0)
+        {
+            return successRate;
+        }
+
+        return (byte)Math.Clamp(successRate + bonus, 1, 100);
     }
 
     /// <summary>
@@ -125,7 +169,7 @@ public abstract class BaseItemCraftingHandler : IItemCraftingHandler
     {
         foreach (var requiredItemLink in requiredItems)
         {
-            await this.RequiredItemChangeAsync(player, requiredItemLink, requiredItems, true).ConfigureAwait(false);
+            await this.RequiredItemChangeAsync(player, requiredItemLink, requiredItems, true, false).ConfigureAwait(false);
         }
 
         var resultItems = await this.CreateOrModifyResultItemsAsync(requiredItems, player, socketSlot, successRate).ConfigureAwait(false);
@@ -151,14 +195,22 @@ public abstract class BaseItemCraftingHandler : IItemCraftingHandler
     /// <param name="itemLink">The input item link.</param>
     /// <param name="requiredItems">All matched input items.</param>
     /// <param name="success"><c>true</c> when the mix succeeded.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    private async ValueTask RequiredItemChangeAsync(Player player, CraftingRequiredItemLink itemLink, IList<CraftingRequiredItemLink> requiredItems, bool success)
+    /// <param name="referencedItemsProtected">
+    /// <c>true</c>, if an item with <see cref="MixResult.DisappearAndProtectReferencedItems"/> protects the referenced items,
+    /// so that they stay as is.
+    /// </param>
+    private async ValueTask RequiredItemChangeAsync(Player player, CraftingRequiredItemLink itemLink, IList<CraftingRequiredItemLink> requiredItems, bool success, bool referencedItemsProtected)
     {
         var mixResult = this.GetMixResult(itemLink, requiredItems, success);
+        if (!success && referencedItemsProtected && itemLink.ItemRequirement.Reference > 0 && mixResult == MixResult.Disappear)
+        {
+            mixResult = MixResult.StaysAsIs;
+        }
 
         switch (mixResult)
         {
             case MixResult.Disappear:
+            case MixResult.DisappearAndProtectReferencedItems:
                 var point = player.GameContext.PlugInManager.GetPlugInPoint<IItemDestroyedPlugIn>();
                 foreach (var item in itemLink.Items)
                 {

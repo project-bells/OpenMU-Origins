@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -18,6 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using MUnique.OpenMU.Persistence.AdminAuth;
+using MUnique.OpenMU.Web.AdminPanel.Operations;
 using MUnique.OpenMU.Web.AdminPanel.Services;
 
 /// <summary>
@@ -75,12 +77,15 @@ public static class AdminPanelAuthExtensions
         services.AddSingleton<BootstrapAdminUserProvider>();
         services.AddSingleton<SignInTicketService>();
         services.AddSingleton<AdminUserAvailabilityService>();
+        services.AddSingleton<AdminPanelSetupMode>();
         services.AddSingleton<AdminPrincipalValidator>();
         services.AddSingleton<ReverseProxyAuthenticationService>();
-        services.AddScoped<IUserStore<AdminUser>, AdminUserStore>();
+        services.AddScoped<AdminUserStore>();
+        services.AddScoped<IUserStore<AdminUser>>(provider => provider.GetRequiredService<AdminUserStore>());
         services.AddScoped<AdminLoginService>();
         services.AddScoped<AuthenticatorSetupService>();
         services.AddScoped<CurrentAdminUserService>();
+        services.AddScoped<AdminPolicyGuard>();
 
         services.AddIdentityCore<AdminUser>(options =>
             {
@@ -123,10 +128,20 @@ public static class AdminPanelAuthExtensions
         services.AddSingleton<IAuthorizationHandler, AdminAccessRequirementHandler>();
         services.AddAuthorizationBuilder()
             .SetDefaultPolicy(new AuthorizationPolicyBuilder().AddRequirements(new AdminAccessRequirement()).Build())
+            .AddPolicy(AdminPolicies.AuthenticatedOperator, policy => policy.RequireAuthenticatedUser().RequireRole(AdminRoles.Operator))
+            .AddPolicy(AdminPolicies.AuthenticatedCashShop, policy => policy.RequireAuthenticatedUser().RequireRole(AdminRoles.CashShop))
             .AddPolicy(AdminPolicies.Viewer, policy => policy.AddRequirements(new AdminAccessRequirement(AdminRoles.Viewer)))
             .AddPolicy(AdminPolicies.Operator, policy => policy.AddRequirements(new AdminAccessRequirement(AdminRoles.Operator)))
             .AddPolicy(AdminPolicies.Administrator, policy => policy.AddRequirements(new AdminAccessRequirement(AdminRoles.Administrator)))
-            .AddPolicy(AdminPolicies.CashShop, policy => policy.AddRequirements(new AdminAccessRequirement(AdminRoles.CashShop)));
+            .AddPolicy(AdminPolicies.CashShop, policy => policy.AddRequirements(new AdminAccessRequirement(AdminRoles.CashShop)))
+            .AddPolicy(AdminPolicies.ApiKeyViewer, policy => policy
+                .AddAuthenticationSchemes(ApiKeyAuthenticationDefaults.AuthenticationScheme)
+                .RequireAuthenticatedUser()
+                .RequireRole(AdminRoles.Viewer));
+        services.AddHttpContextAccessor();
+        services.AddScoped<AdminOperationCircuitState>();
+        services.AddScoped<CircuitHandler>(sp => sp.GetRequiredService<AdminOperationCircuitState>());
+        services.AddScoped<IAdminOperationContext, AdminOperationContext>();
         services.AddCascadingAuthenticationState();
         services.AddScoped<AdminAuthenticationStateProvider>();
         services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<AdminAuthenticationStateProvider>());
@@ -160,16 +175,17 @@ public static class AdminPanelAuthExtensions
     }
 
     /// <summary>
-    /// Requires the default authorization policy for all requests below the specified path.
+    /// Requires an authorization policy for all requests below the specified path.
     /// </summary>
     /// <param name="app">The application builder.</param>
     /// <param name="path">The path, e.g. <c>/logs</c>.</param>
+    /// <param name="policyName">The name of the required policy, see <see cref="AdminPolicies"/>.</param>
     /// <returns>The same instance, to allow chaining of further calls.</returns>
     /// <remarks>
     /// Static files are served by a middleware and not by an endpoint, so they are not covered by
     /// the authorization of the endpoint routing. The log files must not be readable by anyone.
     /// </remarks>
-    public static IApplicationBuilder UseAuthorizedPath(this IApplicationBuilder app, string path)
+    public static IApplicationBuilder UseAuthorizedPath(this IApplicationBuilder app, string path, string policyName)
     {
         return app.Use(async (context, next) =>
         {
@@ -181,11 +197,20 @@ public static class AdminPanelAuthExtensions
 
             var policyProvider = context.RequestServices.GetRequiredService<IAuthorizationPolicyProvider>();
             var authorizationService = context.RequestServices.GetRequiredService<IAuthorizationService>();
-            var policy = await policyProvider.GetDefaultPolicyAsync().ConfigureAwait(false);
+            var policy = await policyProvider.GetPolicyAsync(policyName).ConfigureAwait(false)
+                         ?? throw new InvalidOperationException($"The authorization policy '{policyName}' is not defined.");
             var result = await authorizationService.AuthorizeAsync(context.User, null, policy).ConfigureAwait(false);
             if (!result.Succeeded)
             {
-                await context.ChallengeAsync().ConfigureAwait(false);
+                if (context.User.Identity?.IsAuthenticated is true)
+                {
+                    await context.ForbidAsync().ConfigureAwait(false);
+                }
+                else
+                {
+                    await context.ChallengeAsync().ConfigureAwait(false);
+                }
+
                 return;
             }
 

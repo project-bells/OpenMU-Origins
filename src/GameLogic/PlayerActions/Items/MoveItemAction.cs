@@ -18,6 +18,8 @@ using static MUnique.OpenMU.DataModel.InventoryConstants;
 /// </summary>
 public class MoveItemAction
 {
+    private readonly ItemCraftAction _craftAction = new();
+
     private enum Movement
     {
         None,
@@ -85,7 +87,12 @@ public class MoveItemAction
         switch (movement)
         {
             case Movement.Normal:
-                await this.MoveNormalAsync(player, fromStorage, fromSlot, toStorage, toSlot, fromItemStorage!, item, toItemStorage!).ConfigureAwait(false);
+                if (!await this.MoveNormalAsync(player, fromStorage, fromSlot, toStorage, toSlot, fromItemStorage!, item, toItemStorage!).ConfigureAwait(false))
+                {
+                    // The move was rolled back, so nothing changed.
+                    movement = Movement.None;
+                }
+
                 break;
             case Movement.PartiallyStack when toItemStorage?.GetItem(toSlot) is { } targetItem:
                 await this.PartiallyStackAsync(player, item, targetItem).ConfigureAwait(false);
@@ -96,6 +103,14 @@ public class MoveItemAction
             default:
                 await player.InvokeViewPlugInAsync<IItemMoveFailedPlugIn>(p => p.ItemMoveFailedAsync(item)).ConfigureAwait(false);
                 break;
+        }
+
+        if (movement is not Movement.None
+            && player.PlayerState.CurrentState == PlayerState.NpcDialogOpened
+            && player.TemporaryStorage is { } craftingStorage
+            && (fromItemStorage == craftingStorage || toItemStorage == craftingStorage))
+        {
+            await this._craftAction.ShowCraftingPreviewAsync(player).ConfigureAwait(false);
         }
 
         if (movement is not Movement.None
@@ -152,7 +167,7 @@ public class MoveItemAction
         await player.InvokeViewPlugInAsync<IItemDurabilityChangedPlugIn>(p => p.ItemDurabilityChangedAsync(targetItem, false)).ConfigureAwait(false);
     }
 
-    private async ValueTask MoveNormalAsync(Player player, Storages fromStorage, byte fromSlot, Storages toStorage, byte toSlot, IStorage fromItemStorage, Item item, IStorage toItemStorage)
+    private async ValueTask<bool> MoveNormalAsync(Player player, Storages fromStorage, byte fromSlot, Storages toStorage, byte toSlot, IStorage fromItemStorage, Item item, IStorage toItemStorage)
     {
         var wasEquipped = fromItemStorage == player.Inventory && fromSlot <= LastEquippableItemSlotIndex;
         await fromItemStorage.RemoveItemAsync(item).ConfigureAwait(false);
@@ -186,7 +201,7 @@ public class MoveItemAction
             }
 
             await player.InvokeViewPlugInAsync<IItemMoveFailedPlugIn>(p => p.ItemMoveFailedAsync(item)).ConfigureAwait(false);
-            return;
+            return false;
         }
 
         await player.InvokeViewPlugInAsync<Views.Inventory.IItemMovedPlugIn>(p => p.ItemMovedAsync(item, toSlot, toStorage)).ConfigureAwait(false);
@@ -205,7 +220,17 @@ public class MoveItemAction
             {
                 await tradingPartner.InvokeViewPlugInAsync<ITradeItemAppearPlugIn>(p => p.TradeItemAppearAsync(toSlot, item)).ConfigureAwait(false);
             }
+
+            // A changed offer takes both confirmations back, as a changed amount of money does (TradeMoneyAction).
+            // Otherwise a trader could take an item out after the partner confirmed, confirm, and get the
+            // partner's items for less than they agreed to.
+            await player.PlayerState.TryAdvanceToAsync(PlayerState.TradeOpened).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IChangeTradeButtonStatePlugIn>(p => p.ChangeTradeButtonStateAsync(TradeButtonState.Red)).ConfigureAwait(false);
+            await tradingPartner.PlayerState.TryAdvanceToAsync(PlayerState.TradeOpened).ConfigureAwait(false);
+            await tradingPartner.InvokeViewPlugInAsync<IChangeTradeButtonStatePlugIn>(p => p.ChangeTradeButtonStateAsync(TradeButtonState.Red)).ConfigureAwait(false);
         }
+
+        return true;
     }
 
     private bool CompliesWithMapRequirements(Player player)
@@ -261,6 +286,8 @@ public class MoveItemAction
             case Storages.SeedSphereCrafting:
             case Storages.SeedMountCrafting:
             case Storages.SeedUnmountCrafting:
+            case Storages.LuckyItemTrade:
+            case Storages.LuckyItemRefinery:
                 if (player.TemporaryStorage is not null)
                 {
                     result = new StorageInfo(player.TemporaryStorage, TemporaryStorageRows, 0, TemporaryStorageSize);
@@ -462,6 +489,8 @@ public class MoveItemAction
             Storages.SeedSphereCrafting => state == PlayerState.NpcDialogOpened && openedWindow == NpcWindow.SeedMaster,
             Storages.SeedMountCrafting => state == PlayerState.NpcDialogOpened && openedWindow == NpcWindow.SeedResearcher,
             Storages.SeedUnmountCrafting => state == PlayerState.NpcDialogOpened && openedWindow == NpcWindow.SeedResearcher,
+            Storages.LuckyItemTrade => state == PlayerState.NpcDialogOpened && openedWindow == NpcWindow.CombineLuckyItem,
+            Storages.LuckyItemRefinery => state == PlayerState.NpcDialogOpened && openedWindow == NpcWindow.CombineLuckyItem,
             _ => false,
         };
     }
