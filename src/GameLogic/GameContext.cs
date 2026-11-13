@@ -1,4 +1,4 @@
-﻿// <copyright file="GameContext.cs" company="MUnique">
+// <copyright file="GameContext.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -585,6 +585,23 @@ public class GameContext : AsyncDisposable, IGameContext
         await this._recoverTimer.DisposeAsync().ConfigureAwait(false);
         await this._tasksTimer.DisposeAsync().ConfigureAwait(false);
         await base.DisposeAsyncCore().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Calculates the required experience for the specified character level based on the game configuration.
+    /// </summary>
+    /// <param name="configuration">The game configuration.</param>
+    /// <param name="level">The target level.</param>
+    /// <returns>The cumulative experience for <paramref name="level"/>.</returns>
+    public static long CalculateExperienceForLevel(GameConfiguration configuration, int level)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        var clampedLevel = Math.Clamp(level, 0, Math.Max(0, (int)configuration.MaximumLevel));
+        var argument = new Argument("level");
+        var expression = new Expression(configuration.ExperienceFormula ?? DefaultExperienceFormula);
+        expression.addArguments(argument);
+        argument.setArgumentValue(clampedLevel);
+        return Math.Max(0L, (long)expression.calculate());
     }
 
     private static long[] CreateExpTable(string experienceFormula, short maximumLevel)

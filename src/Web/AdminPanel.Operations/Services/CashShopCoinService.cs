@@ -52,12 +52,20 @@ public class CashShopCoinService
         }
 
         var grants = await context.GetLatestCashShopCoinGrantsAsync(account.GetId(), SummaryGrantCount, cancellationToken).ConfigureAwait(false);
+        var pendingGrants = await context.GetPendingCashShopCoinGrantsAsync(account.GetId(), cancellationToken).ConfigureAwait(false);
+        var pendingWCoinC = (int)Math.Clamp(pendingGrants.Where(g => g.CoinType == CashShopCoinType.WCoinC).Sum(g => (long)g.Amount), int.MinValue, int.MaxValue);
+        var pendingWCoinP = (int)Math.Clamp(pendingGrants.Where(g => g.CoinType == CashShopCoinType.WCoinP).Sum(g => (long)g.Amount), int.MinValue, int.MaxValue);
+        var pendingGoblin = (int)Math.Clamp(pendingGrants.Where(g => g.CoinType == CashShopCoinType.GoblinPoints).Sum(g => (long)g.Amount), int.MinValue, int.MaxValue);
+
         return new CashShopCoinSummary(
             account.LoginName,
             account.WCoinC,
             account.WCoinP,
             account.GoblinPoints,
-            grants.Select(CashShopCoinGrantInfo.From).ToList());
+            grants.Select(CashShopCoinGrantInfo.From).ToList(),
+            pendingWCoinC,
+            pendingWCoinP,
+            pendingGoblin);
     }
 
     /// <summary>

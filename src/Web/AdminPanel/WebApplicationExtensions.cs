@@ -1,4 +1,4 @@
-﻿// <copyright file="WebApplicationExtensions.cs" company="MUnique">
+// <copyright file="WebApplicationExtensions.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -79,6 +79,8 @@ public static class WebApplicationExtensions
         services.AddSingleton<WebShopSessionService>();
         services.AddHttpClient<PayPalCheckoutService>();
         services.AddScoped<CashShopCoinService>();
+        services.AddScoped<WebAccountService>();
+        services.AddScoped<WebCharacterSelfService>();
 
         services.AddScoped<ModalService>();
         services.AddScoped<IModalService>(sp => sp.GetRequiredService<ModalService>());

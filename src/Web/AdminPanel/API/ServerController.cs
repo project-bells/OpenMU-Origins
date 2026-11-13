@@ -9,7 +9,6 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
     using System.Data.Common;
     using System.Linq;
     using System.Reflection;
-    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Authorization;
@@ -177,7 +176,7 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
                 realms,
             };
 
-            return this.Ok(JsonSerializer.Serialize(response));
+            return this.Ok(response);
         }
 
         /// <summary>
@@ -197,7 +196,7 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
             var provider = this.GetPersistenceContextProvider();
             if (provider is null)
             {
-                return this.Ok(JsonSerializer.Serialize(new { total = 0, characters = Array.Empty<object>() }));
+                return this.Ok(new { total = 0, characters = Array.Empty<object>() });
             }
 
             var characters = await this.LoadAllCharactersAsync(provider, cancellationToken).ConfigureAwait(false);
@@ -239,7 +238,7 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
                 isOnline = onlineNames.Contains(c.Name),
             }).ToList();
 
-            return this.Ok(JsonSerializer.Serialize(new { total = result.Count, characters = result }));
+            return this.Ok(new { total = result.Count, characters = result });
         }
 
         /// <summary>
@@ -257,7 +256,7 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
             var provider = this.GetPersistenceContextProvider();
             if (provider is null)
             {
-                return this.Ok(JsonSerializer.Serialize(new { total = 0, guilds = Array.Empty<object>() }));
+                return this.Ok(new { total = 0, guilds = Array.Empty<object>() });
             }
 
             var characters = await this.LoadAllCharactersAsync(provider, cancellationToken).ConfigureAwait(false);
@@ -292,7 +291,7 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
                 siegeStatus = g.SiegeStatus,
             }).ToList();
 
-            return this.Ok(JsonSerializer.Serialize(new { total = result.Count, guilds = result }));
+            return this.Ok(new { total = result.Count, guilds = result });
         }
 
         private IPersistenceContextProvider? GetPersistenceContextProvider()
@@ -403,43 +402,7 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
         }
 
         private static (string ClassId, string ClassName, string ClassShort) GetClassInfo(int classNumber)
-        {
-            return classNumber switch
-            {
-                0 => ("dw", "Dark Wizard", "DW"),
-                1 => ("dw", "Soul Master", "DW"),
-                2 => ("dw", "Grand Master", "DW"),
-                16 => ("dk", "Dark Knight", "DK"),
-                17 => ("dk", "Blade Knight", "DK"),
-                18 => ("dk", "Blade Master", "DK"),
-                19 => ("dk", "Blade Master", "DK"),
-                32 => ("elf", "Fairy Elf", "ELF"),
-                33 => ("elf", "Muse Elf", "ELF"),
-                34 => ("elf", "High Elf", "ELF"),
-                35 => ("elf", "High Elf", "ELF"),
-                48 => ("mg", "Magic Gladiator", "MG"),
-                50 => ("mg", "Duel Master", "MG"),
-                64 => ("dl", "Dark Lord", "DL"),
-                66 => ("dl", "Lord Emperor", "DL"),
-                80 => ("sum", "Summoner", "SUM"),
-                81 => ("sum", "Bloody Summoner", "SUM"),
-                82 => ("sum", "Dimension Master", "SUM"),
-                83 => ("sum", "Dimension Master", "SUM"),
-                96 => ("rf", "Rage Fighter", "RF"),
-                98 => ("rf", "Fist Master", "RF"),
-                _ => (classNumber >> 4) switch
-                {
-                    0 => ("dw", "Dark Wizard", "DW"),
-                    1 => ("dk", "Dark Knight", "DK"),
-                    2 => ("elf", "Fairy Elf", "ELF"),
-                    3 => ("mg", "Magic Gladiator", "MG"),
-                    4 => ("dl", "Dark Lord", "DL"),
-                    5 => ("sum", "Summoner", "SUM"),
-                    6 => ("rf", "Rage Fighter", "RF"),
-                    _ => ("dk", "Blade Master", "DK"),
-                },
-            };
-        }
+            => Services.WebCharacterMapper.GetClassInfo(classNumber);
 
         private async Task<List<CharacterRankEntry>> LoadAllCharactersAsync(IPersistenceContextProvider provider, CancellationToken cancellationToken)
         {
