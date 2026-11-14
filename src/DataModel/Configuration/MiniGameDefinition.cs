@@ -27,6 +27,25 @@ public partial class MiniGameDefinition
     public LocalizedString Name { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether this mini game is active in the game.
+    /// </summary>
+    /// <remarks>
+    /// Inactive mini games stay in the configuration, but are not available in the game.
+    /// This allows to restrict the game to the features of a certain game version, e.g. a season,
+    /// without having to delete them.
+    /// </remarks>
+    public bool IsActive { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the version of the original game which introduced this mini game.
+    /// </summary>
+    /// <remarks>
+    /// It's informational and allows to activate or deactivate the content of certain game versions
+    /// in batches (see <see cref="IsActive"/>).
+    /// </remarks>
+    public GameVersion IntroducedIn { get; set; }
+
+    /// <summary>
     /// Gets or sets the description of the mini game.
     /// </summary>
     public LocalizedString Description { get; set; }
@@ -60,6 +79,12 @@ public partial class MiniGameDefinition
     /// Gets or sets the maximum player count which can enter the game.
     /// </summary>
     public int MaximumPlayerCount { get; set; }
+
+    /// <summary>
+    /// Gets or sets the minimum player count which is required for the game to start, and below which
+    /// a running game is aborted early. A value of <c>0</c> means the game type's built-in default applies.
+    /// </summary>
+    public int MinimumPlayerCount { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether to save the score as <see cref="MUnique.OpenMU.DataModel.Statistics.MiniGameRankingEntry"/>.
@@ -126,6 +151,12 @@ public partial class MiniGameDefinition
     /// Gets or sets the ticket item which is required to enter the mini game.
     /// </summary>
     public virtual ItemDefinition? TicketItem { get; set; }
+
+    /// <summary>
+    /// Gets or sets the free ticket item, which allows to enter the mini game of any level, instead of the <see cref="TicketItem"/>.
+    /// Its durability is the number of entries. It's usually sold in the in-game shop.
+    /// </summary>
+    public virtual ItemDefinition? FreeTicketItem { get; set; }
 
     /// <summary>
     /// Gets or sets the rewards which are given to the player when the game has been finished successfully.

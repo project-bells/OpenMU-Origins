@@ -9,7 +9,6 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
     using System.Data.Common;
     using System.Linq;
     using System.Reflection;
-    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Authorization;
@@ -24,6 +23,7 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
     using MUnique.OpenMU.Interfaces;
     using MUnique.OpenMU.Persistence;
     using MUnique.OpenMU.Web.AdminPanel.Auth;
+    using MUnique.OpenMU.Web.AdminPanel.Operations;
 
     /// <summary>
     /// Server API controller.
@@ -43,6 +43,7 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
         private static readonly Guid ResetsAttributeId = new("89A891A7-F9F9-4AB5-AF36-12056E53A5F7");
 
         private readonly IDictionary<int, IGameServer> _gameServers;
+        private readonly ServerWriteOperations? _operations;
         private readonly IPersistenceContextProvider? _persistenceContextProvider;
         private readonly IDataSource<GameConfiguration>? _gameConfigurationSource;
 
@@ -50,14 +51,17 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
         /// Initializes a new instance of the <see cref="ServerController"/> class.
         /// </summary>
         /// <param name="gameServers">The game servers.</param>
+        /// <param name="operations">The audited server operations.</param>
         /// <param name="persistenceContextProvider">The persistence context provider.</param>
         /// <param name="gameConfigurationSource">The game configuration source.</param>
         public ServerController(
             IDictionary<int, IGameServer> gameServers,
+            ServerWriteOperations? operations = null,
             IPersistenceContextProvider? persistenceContextProvider = null,
             IDataSource<GameConfiguration>? gameConfigurationSource = null)
         {
             this._gameServers = gameServers;
+            this._operations = operations;
             this._persistenceContextProvider = persistenceContextProvider;
             this._gameConfigurationSource = gameConfigurationSource;
         }
@@ -71,18 +75,18 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
         /// This is the only endpoint of the API which does something instead of reporting
         /// something, so it requires the operator role and not just the viewer role.
         /// </remarks>
+        [HttpPost]
         [Route("send/{id=0}")]
-        [Authorize(AuthenticationSchemes = ApiKeyAuthenticationDefaults.ApiSchemes, Policy = AdminPolicies.Operator)]
+        [Authorize(AuthenticationSchemes = ApiKeyAuthenticationDefaults.ApiSchemes, Policy = AdminPolicies.AuthenticatedOperator)]
         public async Task<IActionResult> SendGlobalMessageAsync(int id, [FromQuery(Name = "msg")] string msg)
         {
-            var server = (GameServer)this._gameServers.Values.ElementAt(id);
-            if (server is not null)
+            if (this._operations is null)
             {
-                await server.Context.SendGlobalNotificationAsync(msg).ConfigureAwait(false);
-                return this.Ok("Done");
+                return this.StatusCode(503, "Server write operations service is unavailable.");
             }
 
-            return this.Ok("Server not ready");
+            await this._operations.SendMessageAsync(id, msg, MessageType.GoldenCenter, this.HttpContext.RequestAborted).ConfigureAwait(false);
+            return this.Ok("Done");
         }
 
         /// <summary>
@@ -114,38 +118,38 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
         /// </summary>
         [HttpGet]
         [Route("status")]
-        public IActionResult ServerState()
+        public async Task<IActionResult> ServerStateAsync()
         {
-            int sum = 0;
             var list = new List<string>();
             var realms = new List<object>();
+            var sum = 0;
 
-            foreach (var item in this._gameServers.Values)
+            foreach (var server in this._gameServers.Values.OfType<GameServer>())
             {
-                if (item is GameServer server)
+                var players = await server.Context.GetPlayersAsync().ConfigureAwait(false);
+                list.AddRange(players.Select(player => player.GetName()));
+
+                var online = server.Context.PlayerCount;
+                var max = server.MaximumConnections > 0 ? server.MaximumConnections : 2500;
+                var loadPct = max > 0 ? Math.Clamp((int)Math.Round((double)online / max * 100), 0, 100) : 0;
+                var pvp = server.Context.PvpEnabled;
+
+                var name = !string.IsNullOrWhiteSpace(server.Description)
+                    ? server.Description
+                    : $"Origins-{server.Id + 1}";
+
+                sum += online;
+
+                realms.Add(new
                 {
-                    var online = server.Context.PlayerCount;
-                    var max = server.MaximumConnections > 0 ? server.MaximumConnections : 2500;
-                    var loadPct = max > 0 ? Math.Clamp((int)Math.Round((double)online / max * 100), 0, 100) : 0;
-                    var pvp = server.Context.PvpEnabled;
-
-                    var name = !string.IsNullOrWhiteSpace(server.Description)
-                        ? server.Description
-                        : $"Origins-{server.Id + 1}";
-
-                    sum += online;
-
-                    realms.Add(new
-                    {
-                        id = (int)server.Id,
-                        name,
-                        online,
-                        max,
-                        loadPct,
-                        pvp,
-                        status = server.ServerState == MUnique.OpenMU.Interfaces.ServerState.Started ? "Normal" : server.ServerState.ToString(),
-                    });
-                }
+                    id = (int)server.Id,
+                    name,
+                    online,
+                    max,
+                    loadPct,
+                    pvp,
+                    status = server.ServerState == MUnique.OpenMU.Interfaces.ServerState.Started ? "Normal" : server.ServerState.ToString(),
+                });
             }
 
             TimeSpan uptime;
@@ -172,7 +176,7 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
                 realms,
             };
 
-            return this.Ok(JsonSerializer.Serialize(response));
+            return this.Ok(response);
         }
 
         /// <summary>
@@ -192,7 +196,7 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
             var provider = this.GetPersistenceContextProvider();
             if (provider is null)
             {
-                return this.Ok(JsonSerializer.Serialize(new { total = 0, characters = Array.Empty<object>() }));
+                return this.Ok(new { total = 0, characters = Array.Empty<object>() });
             }
 
             var characters = await this.LoadAllCharactersAsync(provider, cancellationToken).ConfigureAwait(false);
@@ -234,7 +238,7 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
                 isOnline = onlineNames.Contains(c.Name),
             }).ToList();
 
-            return this.Ok(JsonSerializer.Serialize(new { total = result.Count, characters = result }));
+            return this.Ok(new { total = result.Count, characters = result });
         }
 
         /// <summary>
@@ -252,7 +256,7 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
             var provider = this.GetPersistenceContextProvider();
             if (provider is null)
             {
-                return this.Ok(JsonSerializer.Serialize(new { total = 0, guilds = Array.Empty<object>() }));
+                return this.Ok(new { total = 0, guilds = Array.Empty<object>() });
             }
 
             var characters = await this.LoadAllCharactersAsync(provider, cancellationToken).ConfigureAwait(false);
@@ -287,7 +291,7 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
                 siegeStatus = g.SiegeStatus,
             }).ToList();
 
-            return this.Ok(JsonSerializer.Serialize(new { total = result.Count, guilds = result }));
+            return this.Ok(new { total = result.Count, guilds = result });
         }
 
         private IPersistenceContextProvider? GetPersistenceContextProvider()
@@ -398,43 +402,7 @@ namespace MUnique.OpenMU.Web.AdminPanel.API
         }
 
         private static (string ClassId, string ClassName, string ClassShort) GetClassInfo(int classNumber)
-        {
-            return classNumber switch
-            {
-                0 => ("dw", "Dark Wizard", "DW"),
-                1 => ("dw", "Soul Master", "DW"),
-                2 => ("dw", "Grand Master", "DW"),
-                16 => ("dk", "Dark Knight", "DK"),
-                17 => ("dk", "Blade Knight", "DK"),
-                18 => ("dk", "Blade Master", "DK"),
-                19 => ("dk", "Blade Master", "DK"),
-                32 => ("elf", "Fairy Elf", "ELF"),
-                33 => ("elf", "Muse Elf", "ELF"),
-                34 => ("elf", "High Elf", "ELF"),
-                35 => ("elf", "High Elf", "ELF"),
-                48 => ("mg", "Magic Gladiator", "MG"),
-                50 => ("mg", "Duel Master", "MG"),
-                64 => ("dl", "Dark Lord", "DL"),
-                66 => ("dl", "Lord Emperor", "DL"),
-                80 => ("sum", "Summoner", "SUM"),
-                81 => ("sum", "Bloody Summoner", "SUM"),
-                82 => ("sum", "Dimension Master", "SUM"),
-                83 => ("sum", "Dimension Master", "SUM"),
-                96 => ("rf", "Rage Fighter", "RF"),
-                98 => ("rf", "Fist Master", "RF"),
-                _ => (classNumber >> 4) switch
-                {
-                    0 => ("dw", "Dark Wizard", "DW"),
-                    1 => ("dk", "Dark Knight", "DK"),
-                    2 => ("elf", "Fairy Elf", "ELF"),
-                    3 => ("mg", "Magic Gladiator", "MG"),
-                    4 => ("dl", "Dark Lord", "DL"),
-                    5 => ("sum", "Summoner", "SUM"),
-                    6 => ("rf", "Rage Fighter", "RF"),
-                    _ => ("dk", "Blade Master", "DK"),
-                },
-            };
-        }
+            => Services.WebCharacterMapper.GetClassInfo(classNumber);
 
         private async Task<List<CharacterRankEntry>> LoadAllCharactersAsync(IPersistenceContextProvider provider, CancellationToken cancellationToken)
         {

@@ -28,6 +28,10 @@ public class ItemLevelUpgradeCrafting : SimpleItemCraftingHandler
     /// </summary>
     public const byte TalismanOfChaosAssemblyReference = 3;
 
+    private const byte TalismanItemGroup = 14;
+    private const short TalismanOfLuckItemNumber = 53;
+    private const short TalismanOfChaosAssemblyItemNumber = 96;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ItemLevelUpgradeCrafting"/> class.
     /// </summary>
@@ -40,8 +44,8 @@ public class ItemLevelUpgradeCrafting : SimpleItemCraftingHandler
     /// <inheritdoc />
     protected override CraftingResult? ValidateMix(IList<CraftingRequiredItemLink> requiredItems, byte socketSlot)
     {
-        var usesLuck = HasItems(requiredItems, TalismanOfLuckReference);
-        var usesProtection = HasItems(requiredItems, TalismanOfChaosAssemblyReference);
+        var usesLuck = HasItems(requiredItems, TalismanOfLuckReference, TalismanOfLuckItemNumber);
+        var usesProtection = HasItems(requiredItems, TalismanOfChaosAssemblyReference, TalismanOfChaosAssemblyItemNumber);
         return usesLuck && usesProtection ? CraftingResult.IncorrectMixItems : null;
     }
 
@@ -50,7 +54,7 @@ public class ItemLevelUpgradeCrafting : SimpleItemCraftingHandler
     {
         if (!success
             && itemLink.ItemRequirement.Reference == UpgradeItemReference
-            && HasItems(requiredItems, TalismanOfChaosAssemblyReference))
+            && HasItems(requiredItems, TalismanOfChaosAssemblyReference, TalismanOfChaosAssemblyItemNumber))
         {
             return MixResult.ResetItemLevel;
         }
@@ -58,8 +62,11 @@ public class ItemLevelUpgradeCrafting : SimpleItemCraftingHandler
         return base.GetMixResult(itemLink, requiredItems, success);
     }
 
-    private static bool HasItems(IList<CraftingRequiredItemLink> requiredItems, byte reference)
+    private static bool HasItems(IList<CraftingRequiredItemLink> requiredItems, byte reference, short talismanItemNumber)
     {
-        return requiredItems.Any(link => link.ItemRequirement.Reference == reference && link.Items.Any());
+        return requiredItems.Any(link =>
+            link.Items.Any()
+            && (link.ItemRequirement.Reference == reference
+                || link.Items.Any(item => item.Definition is { Group: TalismanItemGroup } definition && definition.Number == talismanItemNumber)));
     }
 }

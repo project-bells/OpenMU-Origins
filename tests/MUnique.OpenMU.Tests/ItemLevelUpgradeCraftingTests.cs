@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.Tests;
 
 using Moq;
 using MUnique.OpenMU.DataModel.Configuration.ItemCrafting;
+using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic.PlayerActions.Craftings;
 using MUnique.OpenMU.GameLogic.PlayerActions.Items;
@@ -61,6 +62,57 @@ public class ItemLevelUpgradeCraftingTests
         var requiredItems = new List<CraftingRequiredItemLink> { upgradeItem };
 
         Assert.That(crafting.GetResult(upgradeItem, requiredItems, success: false), Is.EqualTo(MixResult.Disappear));
+    }
+
+    /// <summary>
+    /// Ensures that mutually exclusive talismans are rejected even when added via <c>CraftingTalismans</c> with reference <c>0</c>.
+    /// </summary>
+    [Test]
+    public void LuckAndProtectionTalismansAreMutuallyExclusiveByItemDefinition()
+    {
+        var crafting = new TestItemLevelUpgradeCrafting();
+        var requiredItems = new List<CraftingRequiredItemLink>
+        {
+            CreateTalismanLinkByItemNumber(53),
+            CreateTalismanLinkByItemNumber(96),
+        };
+
+        Assert.That(crafting.Validate(requiredItems), Is.EqualTo(CraftingResult.IncorrectMixItems));
+    }
+
+    /// <summary>
+    /// Ensures that protection talismans reset upgraded items even when matched by item definition with reference <c>0</c>.
+    /// </summary>
+    [Test]
+    public void ProtectionTalismanResetsUpgradeItemLevelWhenMatchedByItemDefinition()
+    {
+        var crafting = new TestItemLevelUpgradeCrafting();
+        var upgradeItem = CreateLink(ItemLevelUpgradeCrafting.UpgradeItemReference, hasItem: true, MixResult.Disappear);
+        var requiredItems = new List<CraftingRequiredItemLink>
+        {
+            upgradeItem,
+            CreateTalismanLinkByItemNumber(96, MixResult.DisappearAndProtectReferencedItems),
+        };
+
+        Assert.That(crafting.GetResult(upgradeItem, requiredItems, success: false), Is.EqualTo(MixResult.ResetItemLevel));
+    }
+
+    private static CraftingRequiredItemLink CreateTalismanLinkByItemNumber(short number, MixResult failResult = MixResult.Disappear)
+    {
+        var definition = new Mock<ItemDefinition>();
+        definition.SetupAllProperties();
+        definition.Object.Group = 14;
+        definition.Object.Number = number;
+
+        var item = new Mock<Item>();
+        item.SetupAllProperties();
+        item.Object.Definition = definition.Object;
+
+        var requirement = new Mock<ItemCraftingRequiredItem>();
+        requirement.SetupAllProperties();
+        requirement.Object.Reference = 0;
+        requirement.Object.FailResult = failResult;
+        return new CraftingRequiredItemLink([item.Object], requirement.Object);
     }
 
     private static CraftingRequiredItemLink CreateLink(byte reference, bool hasItem, MixResult failResult = MixResult.StaysAsIs)

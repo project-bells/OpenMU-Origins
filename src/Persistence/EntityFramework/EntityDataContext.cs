@@ -1,4 +1,4 @@
-﻿// <copyright file="EntityDataContext.cs" company="MUnique">
+// <copyright file="EntityDataContext.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -86,6 +86,16 @@ public class EntityDataContext : ExtendedTypeContext
     internal DbSet<WebShopAccountOperation> WebShopAccountOperations => this.Set<WebShopAccountOperation>();
 
     /// <summary>
+    /// Gets the links of the accounts to users of external services.
+    /// </summary>
+    internal DbSet<AccountExternalLink> AccountExternalLinks => this.Set<AccountExternalLink>();
+
+    /// <summary>
+    /// Gets the bindings of the chats of guilds to channels of external services.
+    /// </summary>
+    internal DbSet<GuildChatBinding> GuildChatBindings => this.Set<GuildChatBinding>();
+
+    /// <summary>
     /// Gets the gens memberships of the characters.
     /// </summary>
     internal DbSet<GensMember> GensMembers => this.Set<GensMember>();
@@ -144,6 +154,8 @@ public class EntityDataContext : ExtendedTypeContext
         modelBuilder.Entity<CashShopItemGrant>().Apply();
         modelBuilder.Entity<CashShopCoinGrant>().Apply();
         modelBuilder.Entity<WebShopAccountOperation>().Apply();
+        modelBuilder.Entity<AccountExternalLink>().Apply();
+        modelBuilder.Entity<GuildChatBinding>().Apply();
         modelBuilder.Entity<DropItemGroup>().Apply();
         modelBuilder.Entity<ExitGate>().Apply();
         modelBuilder.Entity<GameConfiguration>().Apply();
@@ -153,12 +165,16 @@ public class EntityDataContext : ExtendedTypeContext
         modelBuilder.Entity<ItemCrafting>().Apply();
         modelBuilder.Entity<ItemDefinition>().Apply();
         modelBuilder.Entity<ItemLevelBonusTable>().Apply();
+        modelBuilder.Entity<ItemPriceDefinition>().Apply();
         modelBuilder.Entity<ItemDropItemGroup>().Apply();
         modelBuilder.Entity<ItemOptionCombinationBonus>().Apply();
         modelBuilder.Entity<ItemOptionDefinition>().Apply();
         modelBuilder.Entity<ItemOptionType>().Apply();
         modelBuilder.Entity<ItemSetGroup>().Apply();
         modelBuilder.Entity<ItemSlotType>().Apply();
+        modelBuilder.Entity<ItemStatProfile>().Apply();
+        modelBuilder.Entity<ItemStatTerms>().Apply();
+        modelBuilder.Entity<ItemRequirementFormula>().Apply();
         modelBuilder.Entity<ItemStorage>().Apply();
         modelBuilder.Entity<ItemBasePowerUpDefinition>();
         modelBuilder.Entity<LevelBonus>().Apply();

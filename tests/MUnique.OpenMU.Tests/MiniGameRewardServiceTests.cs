@@ -37,6 +37,8 @@ public class MiniGameRewardServiceTests
             () => NullDropGenerator.Instance,
             () => TimeSpan.Zero,
             () => null,
+            _ => false,
+            _ => false,
             NullLogger.Instance,
             this);
 
@@ -77,6 +79,8 @@ public class MiniGameRewardServiceTests
             () => NullDropGenerator.Instance,
             () => TimeSpan.Zero,
             () => null,
+            _ => false,
+            _ => false,
             NullLogger.Instance,
             this);
 

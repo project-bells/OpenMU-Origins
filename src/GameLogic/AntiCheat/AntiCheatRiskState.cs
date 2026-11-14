@@ -41,4 +41,15 @@ public sealed class AntiCheatRiskState
             return AntiCheatRiskPolicy.Decide(this._score, this._categories.Count, impossibleAction);
         }
     }
+
+    /// <summary>
+    /// Gets a thread-safe snapshot of the current score and observed categories.
+    /// </summary>
+    internal (double Score, IReadOnlyCollection<AntiCheatCategory> Categories) GetSnapshot()
+    {
+        lock (this._sync)
+        {
+            return (this._score, this._categories.ToArray());
+        }
+    }
 }

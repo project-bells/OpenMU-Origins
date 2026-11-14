@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.Persistence;
+using MUnique.OpenMU.Web.AdminPanel.Auth;
 using MUnique.OpenMU.Web.AdminPanel.Properties;
 using MUnique.OpenMU.Web.Shared;
 using MUnique.OpenMU.Web.Shared.Components.Modal;
@@ -117,6 +118,17 @@ public abstract class EditBase : ComponentBase, IAsyncDisposable
     public ILogger<EditBase>? Logger { get; set; }
 
     /// <summary>
+    /// Gets or sets the guard which checks the permission of the current user before saving.
+    /// </summary>
+    [Inject]
+    public AdminPolicyGuard PolicyGuard { get; set; } = null!;
+
+    /// <summary>
+    /// Gets the authorization policy which is required to save the changes.
+    /// </summary>
+    protected virtual string SavePolicy => AdminPolicies.Administrator;
+
+    /// <summary>
     /// Gets the data source of the type which is edited.
     /// </summary>
     protected virtual IDataSource EditDataSource => this.ConfigDataSource;
@@ -157,7 +169,10 @@ public abstract class EditBase : ComponentBase, IAsyncDisposable
         this._disposeCts = null;
 
         await (this._loadTask ?? Task.CompletedTask).ConfigureAwait(false);
-        await this.EditDataSource.DiscardChangesAsync().ConfigureAwait(true);
+        if (await this.HasCurrentContextAsync().ConfigureAwait(false))
+        {
+            await this.EditDataSource.DiscardChangesAsync().ConfigureAwait(false);
+        }
 
         if (this._isOwningContext)
         {
@@ -229,6 +244,18 @@ public abstract class EditBase : ComponentBase, IAsyncDisposable
     {
         try
         {
+            if (!await this.PolicyGuard.IsAuthorizedAsync(this.SavePolicy).ConfigureAwait(true))
+            {
+                this.ToastService.ShowError(Resources.ChangeNotPermitted);
+                return;
+            }
+
+            if (!await this.HasCurrentContextAsync().ConfigureAwait(true))
+            {
+                this.ShowContextChangedMessage();
+                return;
+            }
+
             if (this._persistenceContext is { } context)
             {
                 var success = await context.SaveChangesAsync().ConfigureAwait(true);
@@ -239,6 +266,11 @@ public abstract class EditBase : ComponentBase, IAsyncDisposable
             {
                 this.ToastService.ShowError(Resources.FailedByUninitializedContext);
             }
+        }
+        catch (ObjectDisposedException)
+        {
+            // Invalidation may also race the current-context check immediately before the save.
+            this.ShowContextChangedMessage();
         }
         catch (Exception ex)
         {
@@ -259,7 +291,12 @@ public abstract class EditBase : ComponentBase, IAsyncDisposable
             return;
         }
 
-        await this.EditDataSource.ForceDiscardChangesAsync().ConfigureAwait(true);
+        // StateHasChanged below requires the renderer context after asynchronous data-source waits.
+        if (await this.HasCurrentContextAsync().ConfigureAwait(true))
+        {
+            await this.EditDataSource.ForceDiscardChangesAsync().ConfigureAwait(true);
+        }
+
         this._loadingState = DataLoadingState.LoadingStarted;
         var cts = new CancellationTokenSource();
         this._disposeCts = cts;
@@ -285,9 +322,31 @@ public abstract class EditBase : ComponentBase, IAsyncDisposable
         await this.EditDataSource.GetOwnerAsync(Guid.Empty, cancellationToken).ConfigureAwait(true);
     }
 
+    private async ValueTask<bool> HasCurrentContextAsync()
+        => this._isOwningContext || this._persistenceContext is null
+            || ReferenceEquals(this._persistenceContext, await this.EditDataSource.GetContextAsync().ConfigureAwait(false));
+
+    private void ShowContextChangedMessage()
+        => this.ToastService.ShowError(Resources.EditorContextChanged);
+
     private async ValueTask OnBeforeInternalNavigationAsync(LocationChangingContext context)
     {
-        if (this._persistenceContext?.HasChanges is true)
+        var stale = !await this.HasCurrentContextAsync().ConfigureAwait(true);
+        var hasChanges = stale;
+        if (!stale)
+        {
+            try
+            {
+                hasChanges = this._persistenceContext?.HasChanges is true;
+            }
+            catch (ObjectDisposedException)
+            {
+                stale = true;
+                hasChanges = true;
+            }
+        }
+
+        if (hasChanges)
         {
             var isConfirmed = await this.JavaScript.InvokeAsync<bool>(
                 "window.confirm",
@@ -300,12 +359,16 @@ public abstract class EditBase : ComponentBase, IAsyncDisposable
             }
             else if (this._isOwningContext)
             {
-                this._persistenceContext.Dispose();
+                this._persistenceContext?.Dispose();
                 this._persistenceContext = null;
+            }
+            else if (!stale)
+            {
+                await this.EditDataSource.DiscardChangesAsync().ConfigureAwait(true);
             }
             else
             {
-                await this.EditDataSource.DiscardChangesAsync().ConfigureAwait(true);
+                // The replacement context may contain another editor's pending changes.
             }
         }
     }
@@ -314,7 +377,9 @@ public abstract class EditBase : ComponentBase, IAsyncDisposable
     {
         if (this.Type is not null && GenericControllerFeatureProvider.SupportedTypes.Any(t => t.Item1 == this.Type))
         {
-            var uri = $"/download/{this.Type.Name}/{this.Type.Name}_{this.Id}.json";
+            // Relative to the base address of the page, which contains the path base of the host,
+            // e.g. "/admin/" in the distributed deployment.
+            var uri = $"download/{this.Type.Name}/{this.Type.Name}_{this.Id}.json";
             return $"<p>{Resources.DownloadAsJson}: <a href=\"{uri}\" download><span class=\"oi oi-data-transfer-download\"></span></a></p>";
         }
 

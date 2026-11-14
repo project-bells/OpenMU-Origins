@@ -21,9 +21,9 @@ using MUnique.OpenMU.Persistence;
 [Table(nameof(CashShopItemGrant), Schema = SchemaNames.AccountData)]
 internal partial class CashShopItemGrant : MUnique.OpenMU.DataModel.Entities.CashShopItemGrant, IIdentifiable
 {
-
-
-
+    
+    
+    
 
     /// <inheritdoc/>
     public override bool Equals(object obj)
@@ -43,5 +43,5 @@ internal partial class CashShopItemGrant : MUnique.OpenMU.DataModel.Entities.Cas
         return this.Id.GetHashCode();
     }
 
-
+    
 }

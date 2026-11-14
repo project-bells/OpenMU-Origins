@@ -81,6 +81,9 @@
   <data name="LifeStone" xml:space="preserve">
     <value>生命之石</value>
   </data>
+  <data name="IllusionTempleTicket" xml:space="preserve">
+    <value>幻影寺院入场道具合成</value>
+  </data>
   <data name="BloodCastleTicket" xml:space="preserve">
     <value>血色城堡入场道具合成</value>
   </data>
@@ -125,5 +128,14 @@
   </data>
   <data name="GemstoneRefinery" xml:space="preserve">
     <value>原石提炼</value>
+  </data>
+  <data name="GoldenBoxCombination" xml:space="preserve">
+    <value>金箱合成</value>
+  </data>
+  <data name="SilverBoxCombination" xml:space="preserve">
+    <value>银箱合成</value>
+  </data>
+  <data name="LuckyItemExchange" xml:space="preserve">
+    <value>幸运装备兑换</value>
   </data>
 </root>

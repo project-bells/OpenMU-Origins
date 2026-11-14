@@ -60,6 +60,22 @@ public sealed class ServerAuthoritativeAntiCheatPlugIn : IFeaturePlugIn, ISuppor
     }
 
     /// <summary>
+    /// Tries to get a snapshot of the accumulated risk state for the given player.
+    /// </summary>
+    internal bool TryGetRiskSnapshot(Player player, out double score, out IReadOnlyCollection<AntiCheatCategory> categories)
+    {
+        if (this._riskStates.TryGetValue(player, out var state))
+        {
+            (score, categories) = state.GetSnapshot();
+            return true;
+        }
+
+        score = 0;
+        categories = Array.Empty<AntiCheatCategory>();
+        return false;
+    }
+
+    /// <summary>
     /// Checks a skill cast against the server-side per-skill timing budget.
     /// </summary>
     public bool TryAdmitSkillCast(Player player, ushort skillId, DateTimeOffset now, out AntiCheatDecision? decision)

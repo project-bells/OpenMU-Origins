@@ -21,6 +21,7 @@ using MUnique.OpenMU.PlugIns;
 public abstract class AttackableNpcBase : NonPlayerCharacter, IAttackable
 {
     private const byte MaximumDropDistance = 2;
+    private const short IceSkillNumber = 7;
 
     private readonly IEventStateProvider? _eventStateProvider;
     private readonly IDropGenerator _dropGenerator;
@@ -111,6 +112,13 @@ public abstract class AttackableNpcBase : NonPlayerCharacter, IAttackable
             return null;
         }
 
+        if (attacker is Player player_
+            && Rand.NextRandomBool(attacker.Attributes[Stats.CrystalSwordIceChance])
+            && player_.GameContext.Configuration.Skills.FirstOrDefault(s => s.Number == IceSkillNumber) is { } ice)
+        {
+            skill = new SkillEntry { Skill = ice };
+        }
+
         var hitInfo = await attacker.CalculateDamageAsync(this, skill, isCombo, damageFactor).ConfigureAwait(false);
 
         if (skill?.Skill is not { } attackSkill || attackSkill.DamageType != DamageType.Fenrir)
@@ -122,6 +130,11 @@ public abstract class AttackableNpcBase : NonPlayerCharacter, IAttackable
 
         if (hitInfo.HealthDamage > 0)
         {
+            if (this.Attributes[Stats.IsFrozen] > 0)
+            {
+                await this.MagicEffectList.ShortenEffectsProducingSpecificStatAsync(Stats.IsFrozen, 1).ConfigureAwait(false);
+            }
+
             if (this.Attributes[Stats.IsAsleep] > 0)
             {
                 await this.MagicEffectList.ClearAllEffectsProducingSpecificStatAsync(Stats.IsAsleep).ConfigureAwait(false);

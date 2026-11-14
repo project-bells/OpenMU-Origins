@@ -2,13 +2,16 @@
 @using MUnique.OpenMU.DataModel
 @using MUnique.OpenMU.DataModel.Entities
 @using MUnique.OpenMU.Network.Analyzer
+@using MUnique.OpenMU.Web.AdminPanel.Operations
 @using MUnique.OpenMU.Web.AdminPanel.Properties
 @using MUnique.OpenMU.Web.Shared.Services
 
 @inject LoggedInAccountService AccountService;
 @inject OfflineAccountService OfflineService;
 @inject BotAccountService BotService;
+@inject AdminPolicyGuard PolicyGuard;
 @inject IServiceProvider ServiceProvider;
+@inject IToastService ToastService;
 
 <PageTitle>OpenMU: @Resources.OnlineAccounts</PageTitle>
 <Breadcrumb IsFirstFromRoot="true" Caption="@Resources.OnlineAccounts"/>
@@ -64,7 +67,7 @@
           <td><GuildLink GuildId="@item.GuildId" GuildName="@item.GuildName" EmptyText="@Resources.EmptyValue" /></td>
           <td><PartyBadge PartyMaster="@item.PartyMaster" PartySize="@item.PartySize" /></td>
           <td>
-            <button class="btn btn-warning btn-sm" type="button" @onclick="() => this.AccountService.SetAccountOfflineAsync(item)">
+            <button class="btn btn-warning btn-sm" type="button" @onclick="() => this.SetAccountOfflineAsync(item)">
               <span class="oi oi-bolt" aria-hidden="true" /> @Resources.Disconnect
             </button>
             @if (this.IsNetworkAnalyzerAvailable)
@@ -100,9 +103,11 @@
           <td><PartyBadge PartyMaster="@item.PartyMaster" PartySize="@item.PartySize" /></td>
           <td>@item.StartedAt.ToString("yyyy-MM-dd HH:mm:ss") UTC</td>
           <td>
-            <button class="btn btn-warning btn-sm" type="button" @onclick="() => this.OfflineService.StopOfflinePlayerAsync(item)">
-              <span class="oi oi-media-stop" aria-hidden="true" /> @Resources.Stop
-            </button>
+            <AuthorizeView Policy="@AdminPolicies.Operator">
+              <button class="btn btn-warning btn-sm" type="button" @onclick="() => this.StopOfflinePlayerAsync(item)">
+                <span class="oi oi-media-stop" aria-hidden="true" /> @Resources.Stop
+              </button>
+            </AuthorizeView>
           </td>
         </ItemTemplate>
       </DataTable>
@@ -134,6 +139,30 @@
 </div>
 
 @code {
+    private async Task StopOfflinePlayerAsync(OfflineAccount account)
+    {
+        // Stopping the session disconnects the player, which is up to an operator.
+        if (!await this.PolicyGuard.IsAuthorizedAsync(AdminPolicies.Operator).ConfigureAwait(true))
+        {
+            this.ToastService.ShowError(Resources.ChangeNotPermitted);
+            return;
+        }
+
+        await this.OfflineService.StopOfflinePlayerAsync(account).ConfigureAwait(true);
+    }
+
+    private async Task SetAccountOfflineAsync(LoggedInAccount account)
+    {
+        try
+        {
+            await this.AccountService.SetAccountOfflineAsync(account).ConfigureAwait(true);
+        }
+        catch (AdminOperationException ex)
+        {
+            this.ToastService.ShowError(ex.Message);
+        }
+    }
+
     private Tab _activeTab = Tab.Players;
 
     private bool _showOfflevel;

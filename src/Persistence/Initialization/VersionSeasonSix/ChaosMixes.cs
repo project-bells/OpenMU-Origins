@@ -1,4 +1,4 @@
-﻿// <copyright file="ChaosMixes.cs" company="MUnique">
+// <copyright file="ChaosMixes.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -10,11 +10,16 @@ using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.PlayerActions.Craftings;
 using MUnique.OpenMU.Interfaces;
+using MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Items;
 using ItemLevelUpgradeHandler = MUnique.OpenMU.GameLogic.PlayerActions.Craftings.ItemLevelUpgradeCrafting;
 
 /// <summary>
 /// Initializer for chaos mixes.
 /// </summary>
+/// <remarks>
+/// The Talisman of Luck and the Talisman of Chaos Assembly are added to the craftings which accept them
+/// by the <see cref="Items.CraftingTalismans"/>.
+/// </remarks>
 public class ChaosMixes : InitializerBase
 {
     /// <summary>
@@ -44,6 +49,7 @@ public class ChaosMixes : InitializerBase
         chaosGoblin.ItemCraftings.Add(this.ItemLevelUpgradeCrafting(50, 15));
         chaosGoblin.ItemCraftings.Add(this.BloodCastleTicketCrafting());
         chaosGoblin.ItemCraftings.Add(this.DevilSquareTicketCrafting());
+        chaosGoblin.ItemCraftings.Add(this.IllusionTempleTicketCrafting());
         chaosGoblin.ItemCraftings.Add(this.LifeStoneCrafting());
         chaosGoblin.ItemCraftings.Add(this.SmallShieldPotionCrafting());
         chaosGoblin.ItemCraftings.Add(this.MediumShieldPotionCrafting());
@@ -59,6 +65,7 @@ public class ChaosMixes : InitializerBase
         chaosGoblin.ItemCraftings.Add(this.ThirdWingsStage2Crafting());
         chaosGoblin.ItemCraftings.Add(this.Level380OptionCrafting());
         chaosGoblin.ItemCraftings.Add(this.SecromiconCrafting());
+        new GoblinBoxItems(this.Context, this.GameConfiguration).AddCraftings();
 
         var elphis = this.GameConfiguration.Monsters.Single(m => m.NpcWindow == NpcWindow.ElphisRefinery);
         elphis.ItemCraftings.Add(this.GemstoneRefinery());
@@ -75,6 +82,9 @@ public class ChaosMixes : InitializerBase
 
         var cherryBlossomSpirit = this.GameConfiguration.Monsters.Single(m => m.NpcWindow == NpcWindow.CherryBlossomBranchesAssembly);
         cherryBlossomSpirit.ItemCraftings.Add(this.CherryBlossomEventCrafting());
+
+        var david = this.GameConfiguration.Monsters.Single(m => m.NpcWindow == NpcWindow.CombineLuckyItem);
+        david.ItemCraftings.Add(new LuckyItems(this.Context, this.GameConfiguration).CreateTicketExchangeCrafting());
     }
 
     private ItemCrafting ItemLevelUpgradeCrafting(byte craftingNumber, byte targetLevel)
@@ -129,25 +139,6 @@ public class ChaosMixes : InitializerBase
         soul.FailResult = MixResult.Disappear;
         soul.PossibleItems.Add(this.GameConfiguration.Items.First(i => i.Name.ValueInNeutralLanguage == "Jewel of Soul"));
         craftingSettings.RequiredItems.Add(soul);
-
-        var talisman = this.Context.CreateNew<ItemCraftingRequiredItem>();
-        talisman.Reference = ItemLevelUpgradeHandler.TalismanOfLuckReference;
-        talisman.MinimumAmount = 0;
-        talisman.MaximumAmount = 1;
-        talisman.AddPercentage = 10;
-        talisman.SuccessResult = MixResult.Disappear;
-        talisman.FailResult = MixResult.Disappear;
-        talisman.PossibleItems.Add(this.GameConfiguration.Items.First(i => i.Group == 14 && i.Number == 53));
-        craftingSettings.RequiredItems.Add(talisman);
-
-        var protectionTalisman = this.Context.CreateNew<ItemCraftingRequiredItem>();
-        protectionTalisman.Reference = ItemLevelUpgradeHandler.TalismanOfChaosAssemblyReference;
-        protectionTalisman.MinimumAmount = 0;
-        protectionTalisman.MaximumAmount = 1;
-        protectionTalisman.SuccessResult = MixResult.Disappear;
-        protectionTalisman.FailResult = MixResult.Disappear;
-        protectionTalisman.PossibleItems.Add(this.GameConfiguration.Items.First(i => i.Group == 14 && i.Number == 96));
-        craftingSettings.RequiredItems.Add(protectionTalisman);
 
         // Result:
         var upgrade = this.Context.CreateNew<ItemCraftingResultItem>();
@@ -809,6 +800,15 @@ public class ChaosMixes : InitializerBase
         crafting.Name = LocalizedString.FromResource(() => CraftingNames.DevilsSquareTicket);
         crafting.Number = 2;
         crafting.ItemCraftingHandlerClassName = typeof(DevilSquareTicketCrafting).FullName!;
+        return crafting;
+    }
+
+    private ItemCrafting IllusionTempleTicketCrafting()
+    {
+        var crafting = this.Context.CreateNew<ItemCrafting>();
+        crafting.Name = LocalizedString.FromResource(() => CraftingNames.IllusionTempleTicket);
+        crafting.Number = 37;
+        crafting.ItemCraftingHandlerClassName = typeof(IllusionTempleTicketCrafting).FullName!;
         return crafting;
     }
 

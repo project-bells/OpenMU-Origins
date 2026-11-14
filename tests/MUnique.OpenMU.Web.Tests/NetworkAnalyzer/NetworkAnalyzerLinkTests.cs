@@ -12,6 +12,7 @@ using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Network.Analyzer;
 using MUnique.OpenMU.Web.AdminPanel.Pages;
 using MUnique.OpenMU.Web.Shared.Services;
+using MUnique.OpenMU.Web.Tests.AdminAuth;
 
 /// <summary>
 /// Tests for the links which lead to the network analyzer page.
@@ -47,16 +48,36 @@ public class NetworkAnalyzerLinkTests
         Assert.That(component.FindAll("a[title='Analyze the network traffic']"), Is.Empty);
     }
 
+    /// <summary>An audit outage shows an error instead of terminating the logged-in page circuit.</summary>
+    [Test]
+    public async Task DisconnectAuditFailureShowsToastAsync()
+    {
+        using var context = CreateContext();
+        var audit = new MUnique.OpenMU.Web.Tests.Mcp.InMemoryAdminAuditRepository { RejectWrites = true };
+        var provider = new Mock<IServerProvider>();
+        provider.SetupGet(p => p.Servers).Returns(new List<IManageableServer>());
+        var login = new Mock<ILoginServer>();
+        context.Services.AddSingleton(new LoggedInAccountService(login.Object, provider.Object, new MemoryCache(new MemoryCacheOptions()), MUnique.OpenMU.Web.Tests.Mcp.AdminOperationTestServices.CreateExecutor(audit: audit)));
+        var toast = new Mock<MUnique.OpenMU.Web.Shared.Components.Toast.IToastService>();
+        context.Services.AddSingleton(toast.Object);
+        var component = context.Render<LoggedIn>();
+        await component.Find("button.btn-warning").ClickAsync(new Microsoft.AspNetCore.Components.Web.MouseEventArgs()).ConfigureAwait(false);
+        toast.Verify(t => t.ShowError(It.Is<string>(message => message.Contains("Audit storage is unavailable", StringComparison.Ordinal)), null), Times.Once);
+        Assert.That(component.Find("h1"), Is.Not.Null);
+    }
+
     private static BunitContext CreateContext(IPacketCaptureService? captureService = null)
     {
         var context = new BunitContext();
         context.JSInterop.Mode = JSRuntimeMode.Loose;
+        context.AddAdministratorAuthorization();
 
         var serverProvider = new Mock<IServerProvider>();
         serverProvider.Setup(provider => provider.Servers).Returns(new List<IManageableServer>());
 
         context.Services.AddSingleton<NavigationHistory>();
-        context.Services.AddSingleton(new LoggedInAccountService(Mock.Of<ILoginServer>(), serverProvider.Object, new MemoryCache(new MemoryCacheOptions())));
+        context.Services.AddSingleton<MUnique.OpenMU.Web.Shared.Components.Toast.IToastService>(Mock.Of<MUnique.OpenMU.Web.Shared.Components.Toast.IToastService>());
+        context.Services.AddSingleton(new LoggedInAccountService(Mock.Of<ILoginServer>(), serverProvider.Object, new MemoryCache(new MemoryCacheOptions()), MUnique.OpenMU.Web.Tests.Mcp.AdminOperationTestServices.CreateExecutor()));
         context.Services.AddSingleton(new OfflineAccountService(serverProvider.Object));
         context.Services.AddSingleton(new BotAccountService(serverProvider.Object, new MemoryCache(new MemoryCacheOptions())));
         context.Services.AddSingleton<IDataService<LoggedInAccount>>(
