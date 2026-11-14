@@ -92,6 +92,7 @@ public class EditItemDropsTests
         var addButton = cut.FindAll("button").First(button => button.TextContent.Contains("Add drop item group"));
         addButton.Click();
 
+        cut.WaitForState(() => this._map.DropItemGroups.Count == 1, TimeSpan.FromSeconds(10));
         Assert.That(this._map.DropItemGroups, Has.Count.EqualTo(1));
     }
 }

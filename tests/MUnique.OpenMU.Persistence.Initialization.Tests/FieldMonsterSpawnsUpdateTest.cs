@@ -45,7 +45,7 @@ internal class FieldMonsterSpawnsUpdateTest
         var (context, gameConfiguration) = await TestGameConfiguration.CreateSeason6Async().ConfigureAwait(false);
         using var _ = context;
 
-        AssertLayouts(gameConfiguration);
+        AssertLayouts(gameConfiguration, quantityMultiplier: 3);
     }
 
     /// <summary>
@@ -200,13 +200,13 @@ internal class FieldMonsterSpawnsUpdateTest
         }
     }
 
-    private static void AssertLayouts(GameConfiguration gameConfiguration)
+    private static void AssertLayouts(GameConfiguration gameConfiguration, short quantityMultiplier = 1)
     {
         foreach (var (mapNumber, layout) in Layouts)
         {
             var map = gameConfiguration.Maps.Single(m => m.Number == mapNumber);
             var layoutMonsters = layout.Select(spawn => spawn.MonsterNumber).ToHashSet();
-            var expected = layout.Select(spawn => (GuidHelper.CreateGuid<MonsterSpawnArea>(mapNumber, spawn.Number), spawn.MonsterNumber, spawn.X1, spawn.X2, spawn.Y1, spawn.Y2, spawn.Quantity));
+            var expected = layout.Select(spawn => (GuidHelper.CreateGuid<MonsterSpawnArea>(mapNumber, spawn.Number), spawn.MonsterNumber, spawn.X1, spawn.X2, spawn.Y1, spawn.Y2, checked((short)(spawn.Quantity * quantityMultiplier))));
             var actual = map.MonsterSpawns
                 .Where(s => s.SpawnTrigger == SpawnTrigger.Automatic && layoutMonsters.Contains(s.MonsterDefinition!.Number))
                 .Select(s => (s.GetId(), s.MonsterDefinition!.Number, s.X1, s.X2, s.Y1, s.Y2, s.Quantity));
