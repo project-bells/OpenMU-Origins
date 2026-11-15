@@ -89,33 +89,33 @@ internal sealed class CashShopInitializer : InitializerBase
         IReadOnlyDictionary<int, int> featuredPrices = new Dictionary<int, int>
         {
             // First and second lucky armor sets (five tickets per set).
-            [360] = 250,
-            [361] = 250,
-            [362] = 250,
-            [363] = 250,
-            [364] = 250,
-            [365] = 400,
-            [366] = 400,
-            [367] = 400,
-            [368] = 400,
-            [369] = 400,
+            [360] = 8,
+            [361] = 8,
+            [362] = 8,
+            [363] = 8,
+            [364] = 8,
+            [365] = 15,
+            [366] = 15,
+            [367] = 15,
+            [368] = 15,
+            [369] = 15,
 
             // Jewel bundles and upgrade support.
-            [384] = 450, // Bless x30
-            [385] = 450, // Soul x30
-            [386] = 280, // Chaos x10
-            [387] = 550, // Life x10
-            [388] = 550, // Harmony x10
-            [389] = 300, // Talisman of Luck 10%
-            [390] = 1_500,
-            [391] = 2_200,
+            [384] = 10, // Bless x30
+            [385] = 10, // Soul x30
+            [386] = 8, // Chaos x10
+            [387] = 15, // Life x10
+            [388] = 15, // Harmony x10
+            [389] = 10, // Talisman of Luck 10%
+            [390] = 40,
+            [391] = 60,
 
             // Box of Kundun +1 through +5 (equipment and weapon progression).
-            [461] = 120,
-            [462] = 220,
-            [463] = 400,
-            [464] = 650,
-            [465] = 950,
+            [461] = 2,
+            [462] = 5,
+            [463] = 10,
+            [464] = 15,
+            [465] = 20,
         };
 
         foreach (var package in configuration.Packages)
@@ -146,9 +146,11 @@ internal sealed class CashShopInitializer : InitializerBase
             return price;
         }
 
-        return originalCoinType == CashShopCoinType.GoblinPoints
-            ? Math.Max(20, (int)Math.Round(price / 4.0))
-            : price;
+        // The stock catalog prices were designed for a much scarcer economy. In this
+        // server 100 Credits buy 50 WCoin (C), so regular offers are reduced to 5%.
+        // Legacy Goblin Point prices use a larger source scale and are reduced further.
+        var divisor = originalCoinType == CashShopCoinType.GoblinPoints ? 160.0 : 20.0;
+        return Math.Max(1, (int)Math.Round(price / divisor));
     }
 
     /// <summary>
