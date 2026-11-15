@@ -57,7 +57,7 @@ public class AddLuckyItemsUpdatePlugIn : UpdatePlugInBase
     public override string Description => PlugInDescription;
 
     /// <inheritdoc />
-    public override bool IsMandatory => false;
+    public override bool IsMandatory => true;
 
     /// <inheritdoc />
     public override DateTime CreatedAt => new(2026, 11, 02, 14, 0, 0, DateTimeKind.Utc);

@@ -28,29 +28,18 @@ else
 {
     <table class="table table-sm w-auto">
         <tbody>
-        @foreach (var coinType in Enum.GetValues<CashShopCoinType>())
-        {
-            <tr>
-                <th>@CashShopCoinCaption.Get(coinType)</th>
-                <td class="text-end">@GetBalance(summary, coinType).ToString("N0")</td>
-                <td class="text-muted">@this.GetPendingText(summary, coinType)</td>
-            </tr>
-        }
+        <tr>
+            <th>@CashShopCoinCaption.Get(CashShopCoinType.WCoinC)</th>
+            <td class="text-end">@GetBalance(summary, CashShopCoinType.WCoinC).ToString("N0")</td>
+            <td class="text-muted">@this.GetPendingText(summary, CashShopCoinType.WCoinC)</td>
+        </tr>
         </tbody>
     </table>
 
     <h2>@Resources.CashShopGrantCoins</h2>
     <EditForm Model="this._input" OnValidSubmit="this.OnGrantAsync" class="row g-2 align-items-end mb-4">
         <DataAnnotationsValidator />
-        <div class="col-auto">
-            <label class="form-label" for="coinType">@Resources.CashShopCoinType</label>
-            <InputSelect id="coinType" class="form-select" @bind-Value="this._input.CoinType">
-                @foreach (var coinType in Enum.GetValues<CashShopCoinType>())
-                {
-                    <option value="@coinType">@CashShopCoinCaption.Get(coinType)</option>
-                }
-            </InputSelect>
-        </div>
+        <input type="hidden" name="coinType" value="@CashShopCoinType.WCoinC" />
         <div class="col-auto">
             <label class="form-label" for="amount">@Resources.CashShopAmount</label>
             <InputNumber id="amount" class="form-control" @bind-Value="this._input.Amount" />

@@ -73,6 +73,82 @@ internal sealed class CashShopInitializer : InitializerBase
         this.GameConfiguration.CashShopConfiguration = configuration;
 
         this.AddPackages(configuration);
+        ApplySingleCurrencyEconomy(configuration);
+    }
+
+    /// <summary>
+    /// Applies the eGis-MU single-currency, player-friendly economy to a cash-shop catalog.
+    /// All sellable products use WCoin (C); WCoin (P) and Goblin Points are not used.
+    /// </summary>
+    /// <param name="configuration">The cash-shop configuration to update.</param>
+    internal static void ApplySingleCurrencyEconomy(CashShopConfiguration configuration)
+    {
+        // These prices are calibrated against the web top-up tiers: a THB 300-500 purchase
+        // is enough for a useful pet/boost loadout plus several progression items, while
+        // the strongest random-reward boxes still retain meaningful value.
+        IReadOnlyDictionary<int, int> featuredPrices = new Dictionary<int, int>
+        {
+            // First and second lucky armor sets (five tickets per set).
+            [360] = 250,
+            [361] = 250,
+            [362] = 250,
+            [363] = 250,
+            [364] = 250,
+            [365] = 400,
+            [366] = 400,
+            [367] = 400,
+            [368] = 400,
+            [369] = 400,
+
+            // Jewel bundles and upgrade support.
+            [384] = 450, // Bless x30
+            [385] = 450, // Soul x30
+            [386] = 280, // Chaos x10
+            [387] = 550, // Life x10
+            [388] = 550, // Harmony x10
+            [389] = 300, // Talisman of Luck 10%
+            [390] = 1_500,
+            [391] = 2_200,
+
+            // Box of Kundun +1 through +5 (equipment and weapon progression).
+            [461] = 120,
+            [462] = 220,
+            [463] = 400,
+            [464] = 650,
+            [465] = 950,
+        };
+
+        foreach (var package in configuration.Packages)
+        {
+            var originalCoinType = package.CoinType;
+            var oldPackagePrice = package.Price;
+            package.CoinType = CashShopCoinType.WCoinC;
+
+            var convertedPrice = featuredPrices.TryGetValue(package.PackageSequence, out var featuredPrice)
+                ? featuredPrice
+                : ConvertToWCoinC(oldPackagePrice, originalCoinType);
+            package.Price = convertedPrice;
+
+            foreach (var product in package.Products)
+            {
+                if (oldPackagePrice > 0 && convertedPrice != oldPackagePrice)
+                {
+                    product.Price = Math.Max(1, (int)Math.Round(product.Price * (double)convertedPrice / oldPackagePrice));
+                }
+            }
+        }
+    }
+
+    private static int ConvertToWCoinC(int price, CashShopCoinType originalCoinType)
+    {
+        if (price <= 0)
+        {
+            return price;
+        }
+
+        return originalCoinType == CashShopCoinType.GoblinPoints
+            ? Math.Max(20, (int)Math.Round(price / 4.0))
+            : price;
     }
 
     /// <summary>
