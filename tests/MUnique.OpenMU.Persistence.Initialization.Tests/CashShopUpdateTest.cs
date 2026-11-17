@@ -124,14 +124,14 @@ internal class CashShopUpdateTest
         Assert.That(
             configuration.Packages.Where(p => p.IsForSale).SelectMany(p => p.Products),
             Has.All.Matches<CashShopProduct>(product => product.ItemDefinition is not null && product.Duration == TimeSpan.Zero));
-        Assert.That(configuration.Packages.Count(p => p.IsForSale), Is.EqualTo(60));
+        Assert.That(configuration.Packages.Count(p => p.IsForSale), Is.EqualTo(160));
         Assert.That(configuration.Packages.Where(p => DeliveryPackages.Contains(p.PackageSequence)), Has.All.Matches<CashShopPackage>(p => p.IsForSale));
 
         var seal = configuration.Packages.Single(p => p.PackageSequence == 122);
         Assert.That(seal.Name.ValueInNeutralLanguage, Is.EqualTo("Seal of Wealth"));
         Assert.That(seal.CoinType, Is.EqualTo(CashShopCoinType.WCoinC));
         Assert.That(seal.IsBundle, Is.False);
-        Assert.That(seal.Products.Select(p => p.Duration), Is.EquivalentTo(new[] { TimeSpan.FromDays(1), TimeSpan.FromDays(3), TimeSpan.FromDays(7), TimeSpan.FromDays(30) }));
+        Assert.That(seal.Products, Has.All.Matches<CashShopProduct>(p => p.Duration == TimeSpan.Zero));
     }
 
     /// <summary>
@@ -180,7 +180,7 @@ internal class CashShopUpdateTest
         await update.ApplyUpdateAsync(context, gameConfiguration).ConfigureAwait(false);
 
         Assert.That(gameConfiguration.Items.Count(IsDeliveryItem), Is.EqualTo(4));
-        Assert.That(configuration.Packages.Count(p => p.IsForSale), Is.EqualTo(60));
+        Assert.That(configuration.Packages.Count(p => p.IsForSale), Is.EqualTo(160));
         Assert.That(
             configuration.Packages.Where(p => DeliveryPackages.Contains(p.PackageSequence)).SelectMany(p => p.Products),
             Has.All.Matches<CashShopProduct>(product => product.ItemDefinition is { } item && IsDeliveryItem(item)));
