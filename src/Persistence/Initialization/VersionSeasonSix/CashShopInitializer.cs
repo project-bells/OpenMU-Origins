@@ -916,7 +916,10 @@ internal sealed class CashShopInitializer : InitializerBase
             product.ItemDefinition = this._initializer.GameConfiguration.Items.FirstOrDefault(item => item.Group == itemGroup && item.Number == itemNumber);
             product.ItemLevel = itemLevel;
             product.Quantity = quantity;
-            product.Duration = TimeSpan.FromSeconds(durationSeconds);
+            // eGis-MU sells permanent items. The Season 6 script describes many
+            // offers as 1/7/30-day products, but item expiration isn't supported
+            // by the server and such products would otherwise be impossible to buy.
+            product.Duration = TimeSpan.Zero;
             this._package.Products.Add(product);
             if (!product.CanBeDelivered())
             {

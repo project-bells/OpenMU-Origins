@@ -124,8 +124,9 @@ internal class CashShopJeweleryDataTest
         // Per coin type: two products in each of the eight packages of a single item, and two in the Gladiator Package.
         Assert.That(packages.SelectMany(p => p.Products).Count(p => p.ItemDefinition is { } item && IsJewelery(item)), Is.EqualTo(36));
 
-        // The products are time-limited, which isn't supported yet.
-        Assert.That(packages, Has.None.Matches<CashShopPackage>(p => p.IsForSale));
+        // The custom single-currency shop delivers these products permanently.
+        Assert.That(packages, Has.All.Matches<CashShopPackage>(p => p.IsForSale));
+        Assert.That(packages.SelectMany(p => p.Products), Has.All.Matches<CashShopProduct>(p => p.Duration == TimeSpan.Zero));
     }
 
     private static float? PowerUp(IEnumerable<ItemDefinition> items, short number, AttributeDefinition attribute)
