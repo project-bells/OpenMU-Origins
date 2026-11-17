@@ -88,6 +88,10 @@ public class CashShopController : ControllerBase
         {
             this.ModelState.AddModelError(nameof(request.CoinType), "The coin type is unknown.");
         }
+        else if (requestedCoinType != CashShopCoinType.WCoinC)
+        {
+            this.ModelState.AddModelError(nameof(request.CoinType), "This server only supports WCoin (C).");
+        }
 
         if (!this.ModelState.IsValid)
         {

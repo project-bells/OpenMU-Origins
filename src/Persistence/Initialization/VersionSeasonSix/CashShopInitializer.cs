@@ -73,6 +73,84 @@ internal sealed class CashShopInitializer : InitializerBase
         this.GameConfiguration.CashShopConfiguration = configuration;
 
         this.AddPackages(configuration);
+        ApplySingleCurrencyEconomy(configuration);
+    }
+
+    /// <summary>
+    /// Applies the eGis-MU single-currency, player-friendly economy to a cash-shop catalog.
+    /// All sellable products use WCoin (C); WCoin (P) and Goblin Points are not used.
+    /// </summary>
+    /// <param name="configuration">The cash-shop configuration to update.</param>
+    internal static void ApplySingleCurrencyEconomy(CashShopConfiguration configuration)
+    {
+        // These prices are calibrated against the web top-up tiers: a THB 300-500 purchase
+        // is enough for a useful pet/boost loadout plus several progression items, while
+        // the strongest random-reward boxes still retain meaningful value.
+        IReadOnlyDictionary<int, int> featuredPrices = new Dictionary<int, int>
+        {
+            // First and second lucky armor sets (five tickets per set).
+            [360] = 8,
+            [361] = 8,
+            [362] = 8,
+            [363] = 8,
+            [364] = 8,
+            [365] = 15,
+            [366] = 15,
+            [367] = 15,
+            [368] = 15,
+            [369] = 15,
+
+            // Jewel bundles and upgrade support.
+            [384] = 10, // Bless x30
+            [385] = 10, // Soul x30
+            [386] = 8, // Chaos x10
+            [387] = 15, // Life x10
+            [388] = 15, // Harmony x10
+            [389] = 10, // Talisman of Luck 10%
+            [390] = 40,
+            [391] = 60,
+
+            // Box of Kundun +1 through +5 (equipment and weapon progression).
+            [461] = 2,
+            [462] = 5,
+            [463] = 10,
+            [464] = 15,
+            [465] = 20,
+        };
+
+        foreach (var package in configuration.Packages)
+        {
+            var originalCoinType = package.CoinType;
+            var oldPackagePrice = package.Price;
+            package.CoinType = CashShopCoinType.WCoinC;
+
+            var convertedPrice = featuredPrices.TryGetValue(package.PackageSequence, out var featuredPrice)
+                ? featuredPrice
+                : ConvertToWCoinC(oldPackagePrice, originalCoinType);
+            package.Price = convertedPrice;
+
+            foreach (var product in package.Products)
+            {
+                if (oldPackagePrice > 0 && convertedPrice != oldPackagePrice)
+                {
+                    product.Price = Math.Max(1, (int)Math.Round(product.Price * (double)convertedPrice / oldPackagePrice));
+                }
+            }
+        }
+    }
+
+    private static int ConvertToWCoinC(int price, CashShopCoinType originalCoinType)
+    {
+        if (price <= 0)
+        {
+            return price;
+        }
+
+        // The stock catalog prices were designed for a much scarcer economy. In this
+        // server 100 Credits buy 50 WCoin (C), so regular offers are reduced to 5%.
+        // Legacy Goblin Point prices use a larger source scale and are reduced further.
+        var divisor = originalCoinType == CashShopCoinType.GoblinPoints ? 160.0 : 20.0;
+        return Math.Max(1, (int)Math.Round(price / divisor));
     }
 
     /// <summary>

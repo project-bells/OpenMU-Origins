@@ -123,18 +123,20 @@ public class CashShopControllerTests
     }
 
     /// <summary>
-    /// An unknown account is answered with not found, and a zero amount or an unknown coin type is invalid.
-    /// A grant of an unknown coin type couldn't be applied by the game server.
+    /// An unknown account is answered with not found, and a zero amount, legacy currency or unknown coin type is invalid.
     /// </summary>
     [Test]
     public async Task InvalidRequestsAsync()
     {
         var unknownCoinType = CreateRequest(100, null);
         unknownCoinType.CoinType = (CashShopCoinType)7;
+        var legacyCoinType = CreateRequest(100, null);
+        legacyCoinType.CoinType = CashShopCoinType.WCoinP;
 
         Assert.That(await this._controller.GrantAsync("unknown", CreateRequest(100, null), CancellationToken.None).ConfigureAwait(false), Is.InstanceOf<NotFoundResult>());
         Assert.That(await this._controller.GetAsync("unknown", CancellationToken.None).ConfigureAwait(false), Is.InstanceOf<NotFoundResult>());
         Assert.That(await this._controller.GrantAsync("buyer", CreateRequest(0, null), CancellationToken.None).ConfigureAwait(false), Is.InstanceOf<ObjectResult>().With.Property(nameof(ObjectResult.StatusCode)).EqualTo(StatusCodes.Status400BadRequest));
+        Assert.That(await this._controller.GrantAsync("buyer", legacyCoinType, CancellationToken.None).ConfigureAwait(false), Is.InstanceOf<ObjectResult>().With.Property(nameof(ObjectResult.StatusCode)).EqualTo(StatusCodes.Status400BadRequest));
         Assert.That(await this._controller.GrantAsync("buyer", unknownCoinType, CancellationToken.None).ConfigureAwait(false), Is.InstanceOf<ObjectResult>().With.Property(nameof(ObjectResult.StatusCode)).EqualTo(StatusCodes.Status400BadRequest));
     }
 
