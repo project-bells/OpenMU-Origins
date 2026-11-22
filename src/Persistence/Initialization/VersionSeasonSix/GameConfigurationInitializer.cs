@@ -92,7 +92,7 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
         new NpcInitialization(this.Context, this.GameConfiguration).Initialize();
         new InvasionMobsInitialization(this.Context, this.GameConfiguration).Initialize();
         new GameMapsInitializer(this.Context, this.GameConfiguration).Initialize();
-        this.TripleRegularMonsterSpawns();
+        TripleRegularMonsterSpawns(this.GameConfiguration);
         this.AssignCharacterClassHomeMaps();
         this.WireRenaDropToEventMaps();
         new SocketSystem(this.Context, this.GameConfiguration).Initialize();
@@ -154,9 +154,9 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
         }
     }
 
-    private void TripleRegularMonsterSpawns()
+    internal static void TripleRegularMonsterSpawns(GameConfiguration gameConfiguration)
     {
-        foreach (var spawn in this.GameConfiguration.Maps
+        foreach (var spawn in gameConfiguration.Maps
                      .SelectMany(map => map.MonsterSpawns)
                      .Where(spawn => spawn.SpawnTrigger == SpawnTrigger.Automatic
                                      && spawn.MonsterDefinition?.NpcWindow == NpcWindow.Undefined
