@@ -2332,7 +2332,13 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.Migrations
                     b.Property<double>("Durability")
                         .HasColumnType("double precision");
 
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<bool>("HasSkill")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsBound")
                         .HasColumnType("boolean");
 
                     b.Property<byte>("ItemSlot")

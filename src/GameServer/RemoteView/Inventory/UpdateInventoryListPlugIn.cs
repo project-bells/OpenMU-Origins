@@ -87,5 +87,11 @@ public class UpdateInventoryListPlugIn : IUpdateInventoryListPlugIn
         }
 
         await connection.SendAsync(Write).ConfigureAwait(false);
+        await connection.SendPeriodItemListCountAsync().ConfigureAwait(false);
+        foreach (var item in items.Where(item => item.ExpiresAt is not null))
+        {
+            var expiration = checked((uint)new DateTimeOffset(item.ExpiresAt!.Value).ToUnixTimeSeconds());
+            await connection.SendPeriodItemInfoAsync(item.ItemSlot, expiration).ConfigureAwait(false);
+        }
     }
 }

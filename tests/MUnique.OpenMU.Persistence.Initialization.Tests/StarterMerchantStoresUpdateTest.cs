@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.Persistence.Initialization.Tests;
 
 using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.Persistence.Initialization.Items;
+using MUnique.OpenMU.Persistence.Initialization.Updates;
 
 /// <summary>
 /// Tests the compact consumable stores and starter equipment merchants.
@@ -14,6 +15,30 @@ using MUnique.OpenMU.Persistence.Initialization.Items;
 internal class StarterMerchantStoresUpdateTest
 {
     private static readonly short[] StarterMerchantNumbers = [242, 245, 248, 250, 251, 416, 578];
+
+    /// <summary>
+    /// The web starter kits are hidden, free, class-specific and expire after seven days.
+    /// </summary>
+    [Test]
+    public async Task WebStarterKitsAreConfiguredAsHiddenSevenDayPackagesAsync()
+    {
+        var (context, gameConfiguration) = await TestGameConfiguration.CreateSeason6Async().ConfigureAwait(false);
+        using var _ = context;
+        await new AddWebStarterKitsUpdatePlugIn().ApplyUpdateAsync(context, gameConfiguration).ConfigureAwait(false);
+
+        var packages = gameConfiguration.CashShopConfiguration!.Packages
+            .Where(package => package.PackageSequence is >= 9001 and <= 9007)
+            .OrderBy(package => package.PackageSequence)
+            .ToList();
+
+        Assert.That(packages, Has.Count.EqualTo(7));
+        Assert.That(packages.Select(package => package.IsForSale), Is.All.False);
+        Assert.That(packages.Select(package => package.Price), Is.All.Zero);
+        Assert.That(packages.SelectMany(package => package.Products).Select(product => product.ProductSequence),
+            Is.EquivalentTo(Enumerable.Range(2001, 7)));
+        Assert.That(packages.SelectMany(package => package.Products).Select(product => product.Duration),
+            Is.All.EqualTo(TimeSpan.FromDays(7)));
+    }
 
     /// <summary>
     /// Every class-specific starter shop contains a complete +7+16 set and weapon.

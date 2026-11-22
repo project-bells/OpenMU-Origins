@@ -65,6 +65,11 @@ public class SetItemPriceAction
             return ItemPriceResult.ItemNotFound;
         }
 
+        if (item.IsBound)
+        {
+            return ItemPriceResult.ItemIsBlocked;
+        }
+
         if (price.Amount < 0)
         {
             // Like before the other prices were introduced, a negative price removes the price.

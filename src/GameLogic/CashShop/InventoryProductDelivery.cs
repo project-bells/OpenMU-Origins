@@ -34,7 +34,7 @@ internal sealed class InventoryProductDelivery : ICashShopProductDeliveryPlugIn
             return CashShopUseResult.CannotUse;
         }
 
-        foreach (var item in CreateItems(player, definition, product.ItemLevel, product.Quantity))
+        foreach (var item in CreateItems(player, definition, product.ItemLevel, product.Quantity, product.Duration))
         {
             if (!await inventory.AddItemAsync(item).ConfigureAwait(false))
             {
@@ -68,7 +68,7 @@ internal sealed class InventoryProductDelivery : ICashShopProductDeliveryPlugIn
     /// Creates the items of a product. The quantity of a stackable item is its durability,
     /// so it's split into stacks of the maximum durability.
     /// </summary>
-    private static IEnumerable<Item> CreateItems(Player player, ItemDefinition definition, byte level, int quantity)
+    private static IEnumerable<Item> CreateItems(Player player, ItemDefinition definition, byte level, int quantity, TimeSpan duration)
     {
         var remaining = Math.Max(quantity, 1);
         while (remaining > 0)
@@ -76,6 +76,8 @@ internal sealed class InventoryProductDelivery : ICashShopProductDeliveryPlugIn
             var item = player.PersistenceContext.CreateNew<Item>();
             item.Definition = definition;
             item.Level = level;
+            item.ExpiresAt = duration > TimeSpan.Zero ? DateTime.UtcNow.Add(duration) : null;
+            item.IsBound = duration > TimeSpan.Zero;
             var count = item.IsStackable() ? Math.Min(remaining, (int)definition.Durability) : 1;
             item.Durability = item.IsStackable() ? count : definition.Durability;
             remaining -= count;

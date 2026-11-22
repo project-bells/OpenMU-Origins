@@ -23,6 +23,6 @@ public static class CashShopProductExtensions
     /// <returns><c>true</c>, if the product can be delivered; otherwise, <c>false</c>.</returns>
     public static bool CanBeDelivered(this CashShopProduct product)
     {
-        return product.ItemDefinition is not null && product.Duration == TimeSpan.Zero;
+        return product.ItemDefinition is not null;
     }
 }

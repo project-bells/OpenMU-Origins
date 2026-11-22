@@ -133,6 +133,16 @@ public class MoveItemAction
     /// </summary>
     private static string? GetRuleBlockingMove(Item item, Storages toStorage)
     {
+        if (item.IsBound && toStorage is not Storages.Inventory)
+        {
+            return toStorage switch
+            {
+                Storages.Vault => nameof(PlayerMessage.ItemCannotBeStored),
+                Storages.PersonalStore => nameof(PlayerMessage.ItemCannotBeSoldInPersonalStore),
+                _ => nameof(PlayerMessage.ItemCannotBeTraded),
+            };
+        }
+
         var definition = item.Definition;
         if (definition is null)
         {

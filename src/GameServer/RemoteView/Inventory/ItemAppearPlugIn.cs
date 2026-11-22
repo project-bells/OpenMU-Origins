@@ -53,5 +53,10 @@ public class ItemAppearPlugIn : IItemAppearPlugIn
         }
 
         await connection.SendAsync(Write).ConfigureAwait(false);
+        if (newItem.ExpiresAt is { } expiresAt)
+        {
+            var expiration = checked((uint)new DateTimeOffset(expiresAt).ToUnixTimeSeconds());
+            await connection.SendPeriodItemInfoAsync(newItem.ItemSlot, expiration).ConfigureAwait(false);
+        }
     }
 }

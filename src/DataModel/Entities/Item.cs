@@ -82,6 +82,17 @@ public partial class Item
     public int PetExperience { get; set; }
 
     /// <summary>
+    /// Gets or sets the UTC point in time at which this temporary item expires.
+    /// A null value means that the item is permanent.
+    /// </summary>
+    public DateTime? ExpiresAt { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this item is bound and therefore cannot be sold or traded.
+    /// </summary>
+    public bool IsBound { get; set; }
+
+    /// <summary>
     /// Assigns the values of another item to this item.
     /// </summary>
     /// <param name="otherItem">The other item.</param>
@@ -93,6 +104,8 @@ public partial class Item
         this.HasSkill = otherItem.HasSkill;
         this.SocketCount = otherItem.SocketCount;
         this.PetExperience = otherItem.PetExperience;
+        this.ExpiresAt = otherItem.ExpiresAt;
+        this.IsBound = otherItem.IsBound;
         if (otherItem.ItemOptions != null && otherItem.ItemOptions.Any())
         {
             this.ItemOptions.Clear();

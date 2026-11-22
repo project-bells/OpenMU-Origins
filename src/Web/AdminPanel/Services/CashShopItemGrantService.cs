@@ -102,7 +102,8 @@ public sealed class CashShopItemGrantService
         out IReadOnlyCollection<CashShopProduct> products)
     {
         var package = gameConfiguration.CashShopConfiguration?.Packages
-            .SingleOrDefault(candidate => candidate.PackageSequence == packageSequence && candidate.IsForSale);
+            .SingleOrDefault(candidate => candidate.PackageSequence == packageSequence
+                                          && (candidate.IsForSale || candidate.PackageSequence is >= 9001 and <= 9007));
         if (package is null)
         {
             products = [];
