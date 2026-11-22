@@ -120,13 +120,13 @@ internal class CashShopUpdateTest
         Assert.That(configuration!.ScriptSaleZone, Is.EqualTo(512));
         Assert.That(configuration.ScriptYear, Is.EqualTo(2012));
         Assert.That(configuration.ScriptYearId, Is.EqualTo(84));
-        Assert.That(configuration.Packages, Has.Count.EqualTo(212));
+        Assert.That(configuration.Packages, Has.Count.EqualTo(222));
         Assert.That(configuration.Packages.Select(p => p.PackageSequence), Is.Unique);
         Assert.That(configuration.Packages, Has.All.Matches<CashShopPackage>(p => p.Products.Select(product => product.PriceSequence).Distinct().Count() == p.Products.Count));
         Assert.That(
             configuration.Packages.Where(p => p.IsForSale).SelectMany(p => p.Products),
             Has.All.Matches<CashShopProduct>(product => product.ItemDefinition is not null && product.Duration == TimeSpan.Zero));
-        Assert.That(configuration.Packages.Count(p => p.IsForSale), Is.EqualTo(160));
+        Assert.That(configuration.Packages.Count(p => p.IsForSale), Is.EqualTo(170));
         Assert.That(configuration.Packages.Where(p => DeliveryPackages.Contains(p.PackageSequence)), Has.All.Matches<CashShopPackage>(p => p.IsForSale));
 
         var seal = configuration.Packages.Single(p => p.PackageSequence == 122);
@@ -182,7 +182,7 @@ internal class CashShopUpdateTest
         await update.ApplyUpdateAsync(context, gameConfiguration).ConfigureAwait(false);
 
         Assert.That(gameConfiguration.Items.Count(IsDeliveryItem), Is.EqualTo(4));
-        Assert.That(configuration.Packages.Count(p => p.IsForSale), Is.EqualTo(160));
+        Assert.That(configuration.Packages.Count(p => p.IsForSale), Is.EqualTo(170));
         Assert.That(
             configuration.Packages.Where(p => DeliveryPackages.Contains(p.PackageSequence)).SelectMany(p => p.Products),
             Has.All.Matches<CashShopProduct>(product => product.ItemDefinition is { } item && IsDeliveryItem(item)));

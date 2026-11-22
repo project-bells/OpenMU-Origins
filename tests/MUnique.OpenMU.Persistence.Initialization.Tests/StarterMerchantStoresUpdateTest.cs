@@ -41,6 +41,39 @@ internal class StarterMerchantStoresUpdateTest
     }
 
     /// <summary>
+    /// All class-change quest items are available only in Item Mall for 20 WCoin (C).
+    /// </summary>
+    [Test]
+    public async Task ClassQuestItemsAreConfiguredAsTwentyWCoinPackagesAsync()
+    {
+        var (context, gameConfiguration) = await TestGameConfiguration.CreateSeason6Async().ConfigureAwait(false);
+        using var _ = context;
+        await new AddWebStarterKitsUpdatePlugIn().ApplyUpdateAsync(context, gameConfiguration).ConfigureAwait(false);
+
+        var packages = gameConfiguration.CashShopConfiguration!.Packages
+            .Where(package => package.PackageSequence is >= AddWebStarterKitsUpdatePlugIn.FirstQuestPackageSequence
+                and <= AddWebStarterKitsUpdatePlugIn.LastQuestPackageSequence)
+            .OrderBy(package => package.PackageSequence)
+            .ToList();
+
+        Assert.That(packages, Has.Count.EqualTo(10));
+        Assert.That(packages, Has.All.Matches<MUnique.OpenMU.DataModel.Configuration.CashShopPackage>(package =>
+            package.IsForSale && !package.IsGiftable && !package.IsBundle
+            && package.CoinType == MUnique.OpenMU.DataModel.Configuration.CashShopCoinType.WCoinC
+            && package.Price == 20));
+        Assert.That(packages.SelectMany(package => package.Products).Select(product => product.Price), Is.All.EqualTo(20));
+        Assert.That(packages.SelectMany(package => package.Products).Select(product => (product.ItemDefinition!.Group, product.ItemDefinition.Number, product.ItemLevel)),
+            Is.EquivalentTo(new[]
+            {
+                ((byte)14, (short)23, (byte)0), ((byte)14, (short)23, (byte)1),
+                ((byte)14, (short)24, (byte)0), ((byte)14, (short)24, (byte)1),
+                ((byte)14, (short)25, (byte)0), ((byte)14, (short)26, (byte)0),
+                ((byte)14, (short)65, (byte)0), ((byte)14, (short)66, (byte)0),
+                ((byte)14, (short)67, (byte)0), ((byte)14, (short)68, (byte)0),
+            }));
+    }
+
+    /// <summary>
     /// Every class-specific starter shop contains a complete +7+16 set and weapon.
     /// </summary>
     [Test]

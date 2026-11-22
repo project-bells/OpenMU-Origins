@@ -184,6 +184,24 @@ public class CashShopController : ControllerBase
     }
 
     /// <summary>
+    /// Gets an item grant by its idempotency reference for this account.
+    /// </summary>
+    [HttpGet("item-grants/by-reference")]
+    public async Task<IActionResult> GetItemGrantByReferenceAsync(
+        string loginName,
+        [FromQuery] string reference,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(reference))
+        {
+            return this.BadRequest();
+        }
+
+        var grant = await this._itemGrantService.GetByReferenceAsync(loginName, reference, cancellationToken).ConfigureAwait(false);
+        return grant is null ? this.NotFound() : this.Ok(grant);
+    }
+
+    /// <summary>
     /// Extends the account's VIP membership exactly once.
     /// </summary>
     /// <param name="loginName">The account login name.</param>

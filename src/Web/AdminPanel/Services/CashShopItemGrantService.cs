@@ -29,6 +29,26 @@ public sealed class CashShopItemGrantService
     }
 
     /// <summary>
+    /// Gets an item grant by its idempotency reference when it belongs to the requested account.
+    /// </summary>
+    public async ValueTask<CashShopItemGrantInfo?> GetByReferenceAsync(
+        string loginName,
+        string reference,
+        CancellationToken cancellationToken = default)
+    {
+        var gameConfiguration = await this._gameConfigurationSource.GetOwnerAsync(Guid.Empty, cancellationToken).ConfigureAwait(false);
+        using var context = this._persistenceContextProvider.CreateNewPlayerContext(gameConfiguration);
+        if (await context.GetAccountByLoginNameAsync(loginName, cancellationToken).ConfigureAwait(false) is not { } account
+            || await context.GetCashShopItemGrantByReferenceAsync(reference.Trim(), cancellationToken).ConfigureAwait(false) is not { } grant
+            || grant.AccountId != account.GetId())
+        {
+            return null;
+        }
+
+        return CashShopItemGrantInfo.From(grant);
+    }
+
+    /// <summary>
     /// Adds the configured products to the account's cash shop storage exactly once.
     /// </summary>
     public async ValueTask<(CashShopItemGrantStatus Status, CashShopItemGrantInfo? Grant)> GrantAsync(
