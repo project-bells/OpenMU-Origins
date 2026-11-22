@@ -46,6 +46,7 @@ public class CashShopActionsTest
         await this._actions.OpenAsync(player).ConfigureAwait(false);
 
         Assert.That(player.IsCashShopOpen, Is.True);
+        GetView(player).Verify(v => v.ShowVersionsAsync(player.GameContext.Configuration.CashShopConfiguration!), Times.Once);
         GetView(player).Verify(v => v.ShowOpenResultAsync(true), Times.Once);
     }
 
@@ -60,6 +61,7 @@ public class CashShopActionsTest
         await this._actions.OpenAsync(player).ConfigureAwait(false);
 
         Assert.That(player.IsCashShopOpen, Is.False);
+        GetView(player).Verify(v => v.ShowVersionsAsync(It.IsAny<CashShopConfiguration>()), Times.Never);
         GetView(player).Verify(v => v.ShowOpenResultAsync(false), Times.Once);
     }
 

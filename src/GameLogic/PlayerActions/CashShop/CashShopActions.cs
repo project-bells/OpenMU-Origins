@@ -52,6 +52,13 @@ public class CashShopActions
     {
         var isAllowed = IsAllowedToUse(player);
         player.IsCashShopOpen = isAllowed;
+        if (isAllowed && player.GameContext.Configuration.CashShopConfiguration is { } configuration)
+        {
+            // The client locks the Item Mall until it receives these versions. Re-send them on every
+            // open request so clients recover automatically after a server restart or reconnect.
+            await player.InvokeViewPlugInAsync<ICashShopViewPlugIn>(p => p.ShowVersionsAsync(configuration)).ConfigureAwait(false);
+        }
+
         await player.InvokeViewPlugInAsync<ICashShopViewPlugIn>(p => p.ShowOpenResultAsync(isAllowed)).ConfigureAwait(false);
     }
 
