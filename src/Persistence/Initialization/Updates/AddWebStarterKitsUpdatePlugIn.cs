@@ -41,9 +41,8 @@ public sealed class AddWebStarterKitsUpdatePlugIn : UpdatePlugInBase
             return ValueTask.CompletedTask;
         }
 
-        string[] names = ["Dark Knight", "Dark Wizard", "Fairy Elf", "Magic Gladiator", "Dark Lord", "Summoner", "Rage Fighter"];
         var placeholder = gameConfiguration.Items.First(item => item.Group == 13 && item.Number == 64); // Demon; special delivery creates the full kit.
-        for (int index = 0; index < names.Length; index++)
+        for (int index = 0; index < 7; index++)
         {
             var packageSequence = FirstPackageSequence + index;
             var productSequence = 2001 + index;
@@ -55,7 +54,9 @@ public sealed class AddWebStarterKitsUpdatePlugIn : UpdatePlugInBase
             }
 
             package.PackageSequence = packageSequence;
-            package.Name = new LocalizedString($"Free Starter Kit - {names[index]}");
+            // Hidden system-grant packages don't need a translated catalog caption; the client
+            // displays the product metadata which ships with Main.exe.
+            package.Name = new LocalizedString(string.Empty);
             package.Price = 0;
             package.CoinType = CashShopCoinType.WCoinC;
             package.IsForSale = false;

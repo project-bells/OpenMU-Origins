@@ -77,7 +77,7 @@ internal sealed partial class GameConfigurationLoader
         "select \"Id\", \"AddPercentage\", \"FailResult\", \"MaximumAmount\", \"MaximumItemLevel\", \"MinimumAmount\", \"MinimumItemLevel\", \"NpcPriceDivisor\", \"Reference\", \"SimpleCraftingSettingsId\", \"SuccessResult\" from config.\"ItemCraftingRequiredItem\"",
         "select \"Id\", \"AddLevel\", \"Durability\", \"ItemDefinitionId\", \"RandomMaximumLevel\", \"RandomMinimumLevel\", \"Reference\", \"SimpleCraftingSettingsId\" from config.\"ItemCraftingResultItem\"",
         "select \"Id\", \"Money\" from data.\"ItemStorage\" where (\"Id\" in (select \"MerchantStoreId\" from config.\"MonsterDefinition\"))",
-        "select \"Id\", \"DefinitionId\", \"Durability\", \"HasSkill\", \"ItemSlot\", \"ItemStorageId\", \"Level\", \"PetExperience\", \"SocketCount\", \"StorePrice\", \"StorePriceCoinType\", \"StorePriceItemDefinitionId\" from data.\"Item\" where (\"ItemStorageId\" in (select \"Id\" from (select * from data.\"ItemStorage\" where (\"Id\" in (select \"MerchantStoreId\" from config.\"MonsterDefinition\"))) \"ItemStorage\") or \"Id\" in (select \"ItemRewardId\" from config.\"QuestReward\"))",
+        "select \"Id\", \"DefinitionId\", \"Durability\", \"ExpiresAt\", \"IsBound\", \"HasSkill\", \"ItemSlot\", \"ItemStorageId\", \"Level\", \"PetExperience\", \"SocketCount\", \"StorePrice\", \"StorePriceCoinType\", \"StorePriceItemDefinitionId\" from data.\"Item\" where (\"ItemStorageId\" in (select \"Id\" from (select * from data.\"ItemStorage\" where (\"Id\" in (select \"MerchantStoreId\" from config.\"MonsterDefinition\"))) \"ItemStorage\") or \"Id\" in (select \"ItemRewardId\" from config.\"QuestReward\"))",
         "select \"Id\", \"Index\", \"ItemId\", \"ItemOptionId\", \"Level\" from data.\"ItemOptionLink\" where (\"ItemId\" in (select \"Id\" from (select * from data.\"Item\" where (\"ItemStorageId\" in (select \"Id\" from (select * from data.\"ItemStorage\" where (\"Id\" in (select \"MerchantStoreId\" from config.\"MonsterDefinition\"))) \"ItemStorage\") or \"Id\" in (select \"ItemRewardId\" from config.\"QuestReward\"))) \"Item\"))",
         "select \"Id\", \"Group\", \"MaximumCharacterLevel\", \"MinimumCharacterLevel\", \"MonsterDefinitionId\", \"Name\", \"Number\", \"QualifiedCharacterId\", \"QuestGiverId\", \"RefuseNumber\", \"Repeatable\", \"RequiredStartMoney\", \"RequiresClientAction\", \"StartingNumber\" from config.\"QuestDefinition\"",
         "select \"Id\", \"DropItemGroupId\", \"ItemId\", \"MinimumNumber\", \"QuestDefinitionId\" from config.\"QuestItemRequirement\"",
@@ -1521,17 +1521,19 @@ internal sealed partial class GameConfigurationLoader
             entity.Id = reader.GetGuid(0);
             if (!reader.IsDBNull(1)) { entity.DefinitionId = reader.GetGuid(1); }
             entity.Durability = reader.GetDouble(2);
-            entity.HasSkill = reader.GetBoolean(3);
-            entity.ItemSlot = (global::System.Byte)reader.GetInt16(4);
-            if (!reader.IsDBNull(5)) { entity.ItemStorageId = reader.GetGuid(5); }
-            entity.Level = (global::System.Byte)reader.GetInt16(6);
-            entity.PetExperience = reader.GetInt32(7);
-            entity.SocketCount = reader.GetInt32(8);
-            if (!reader.IsDBNull(9)) { entity.StorePrice = reader.GetInt32(9); }
-            if (!reader.IsDBNull(10)) { entity.StorePriceCoinType = (global::MUnique.OpenMU.DataModel.Configuration.CashShopCoinType)reader.GetInt32(10); }
-            if (!reader.IsDBNull(11)) { entity.StorePriceItemDefinitionId = reader.GetGuid(11); }
+            if (!reader.IsDBNull(3)) { entity.ExpiresAt = reader.GetFieldValue<global::System.DateTime>(3); }
+            entity.IsBound = reader.GetBoolean(4);
+            entity.HasSkill = reader.GetBoolean(5);
+            entity.ItemSlot = (global::System.Byte)reader.GetInt16(6);
+            if (!reader.IsDBNull(7)) { entity.ItemStorageId = reader.GetGuid(7); }
+            entity.Level = (global::System.Byte)reader.GetInt16(8);
+            entity.PetExperience = reader.GetInt32(9);
+            entity.SocketCount = reader.GetInt32(10);
+            if (!reader.IsDBNull(11)) { entity.StorePrice = reader.GetInt32(11); }
+            if (!reader.IsDBNull(12)) { entity.StorePriceCoinType = (global::MUnique.OpenMU.DataModel.Configuration.CashShopCoinType)reader.GetInt32(12); }
+            if (!reader.IsDBNull(13)) { entity.StorePriceItemDefinitionId = reader.GetGuid(13); }
             this._Item[entity.Id] = entity;
-            this._ItemRows.Add((entity, reader.IsDBNull(1) ? null : reader.GetGuid(1), reader.IsDBNull(5) ? null : reader.GetGuid(5), reader.IsDBNull(11) ? null : reader.GetGuid(11)));
+            this._ItemRows.Add((entity, reader.IsDBNull(1) ? null : reader.GetGuid(1), reader.IsDBNull(7) ? null : reader.GetGuid(7), reader.IsDBNull(13) ? null : reader.GetGuid(13)));
         }
     }
 

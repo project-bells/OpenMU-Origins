@@ -447,6 +447,7 @@ public sealed class GameConfigurationLoaderGenerator
             ("integer", var t) when t == typeof(int) => $"reader.GetInt32({ordinal})",
             ("integer", var t) when t.IsEnum => $"({GetCSharpName(t)})reader.GetInt32({ordinal})",
             ("bigint", var t) when t == typeof(long) => $"reader.GetInt64({ordinal})",
+            ("timestamp with time zone", var t) when t == typeof(DateTime) => $"reader.GetFieldValue<global::System.DateTime>({ordinal})",
             ("interval", var t) when t == typeof(TimeSpan) => $"reader.GetFieldValue<global::System.TimeSpan>({ordinal})",
             ("bytea", var t) when t == typeof(byte[]) => $"reader.GetFieldValue<byte[]>({ordinal})",
             _ => throw new NotSupportedException($"The column {loadedType.EntityType.Name}.{column.Name} of type {storeType} can't be read into {propertyType}."),
