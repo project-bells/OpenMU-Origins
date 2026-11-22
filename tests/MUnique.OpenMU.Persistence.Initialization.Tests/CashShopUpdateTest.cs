@@ -32,7 +32,9 @@ internal class CashShopUpdateTest
     {
         var (context, gameConfiguration) = await CreateSeason6ConfigurationAsync().ConfigureAwait(false);
         using var _ = context;
-        var packages = gameConfiguration.CashShopConfiguration!.Packages.ToList();
+        var packages = gameConfiguration.CashShopConfiguration!.Packages
+            .Where(package => package.PackageSequence < AddWebStarterKitsUpdatePlugIn.FirstPackageSequence)
+            .ToList();
         var chinese = CultureInfo.GetCultureInfo("zh-CN");
         Assert.That(packages, Has.All.Matches<CashShopPackage>(p =>
             p.Name.SourceKey?.StartsWith("CashShopPackageNames/", StringComparison.Ordinal) is true));
@@ -118,7 +120,7 @@ internal class CashShopUpdateTest
         Assert.That(configuration!.ScriptSaleZone, Is.EqualTo(512));
         Assert.That(configuration.ScriptYear, Is.EqualTo(2012));
         Assert.That(configuration.ScriptYearId, Is.EqualTo(84));
-        Assert.That(configuration.Packages, Has.Count.EqualTo(205));
+        Assert.That(configuration.Packages, Has.Count.EqualTo(212));
         Assert.That(configuration.Packages.Select(p => p.PackageSequence), Is.Unique);
         Assert.That(configuration.Packages, Has.All.Matches<CashShopPackage>(p => p.Products.Select(product => product.PriceSequence).Distinct().Count() == p.Products.Count));
         Assert.That(

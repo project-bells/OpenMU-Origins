@@ -58,6 +58,13 @@ public class SellItemToNpcAction
             return false;
         }
 
+        if (item.IsBound)
+        {
+            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.ItemCannotBeSoldToNpc)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IItemSoldToNpcPlugIn>(p => p.ItemSoldToNpcAsync(false)).ConfigureAwait(false);
+            return false;
+        }
+
         if (item.Definition is null || (item.Definition.IsBoundToCharacter && (item.Definition.Durability == 0 || item.Durability > 0)))
         {
             await player.InvokeViewPlugInAsync<IItemSoldToNpcPlugIn>(p => p.ItemSoldToNpcAsync(false)).ConfigureAwait(false);

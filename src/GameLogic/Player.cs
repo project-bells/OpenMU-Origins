@@ -1059,6 +1059,19 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
                 return;
             }
 
+            if (this.Inventory is { } inventory)
+            {
+                foreach (var expiredItem in inventory.Items
+                             .Where(item => item.ExpiresAt is { } expiresAt && expiresAt <= DateTime.UtcNow)
+                             .ToList())
+                {
+                    var slot = expiredItem.ItemSlot;
+                    await inventory.RemoveItemAsync(expiredItem).ConfigureAwait(false);
+                    await this.PersistenceContext.DeleteAsync(expiredItem).ConfigureAwait(false);
+                    await this.InvokeViewPlugInAsync<IItemRemovedPlugIn>(view => view.RemoveItemAsync(slot)).ConfigureAwait(false);
+                }
+            }
+
             var now = DateTime.UtcNow;
             foreach (var r in Stats.IntervalRegenerationAttributes)
             {
@@ -2151,6 +2164,14 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
         {
             selectedCharacter.Inventory = this.PersistenceContext.CreateNew<ItemStorage>();
             this.GameContext.PlugInManager.GetPlugInPoint<ICharacterCreatedPlugIn>()?.CharacterCreated(this.Account!, selectedCharacter, this.PersistenceContext, this.GameContext.Configuration, this.Logger);
+        }
+
+        foreach (var expiredItem in selectedCharacter.Inventory.Items
+                     .Where(item => item.ExpiresAt is { } expiresAt && expiresAt <= DateTime.UtcNow)
+                     .ToList())
+        {
+            selectedCharacter.Inventory.Items.Remove(expiredItem);
+            await this.PersistenceContext.DeleteAsync(expiredItem).ConfigureAwait(false);
         }
 
         selectedCharacter.CurrentMap ??= selectedCharacter.CharacterClass?.HomeMap;

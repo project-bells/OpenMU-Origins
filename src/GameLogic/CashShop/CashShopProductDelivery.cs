@@ -35,6 +35,12 @@ public static class CashShopProductDelivery
     /// </returns>
     public static ICashShopProductDeliveryPlugIn? GetDelivery(IGameContext gameContext, CashShopProduct product)
     {
+        var starterKitDelivery = new StarterKitProductDelivery();
+        if (starterKitDelivery.CanDeliver(product))
+        {
+            return starterKitDelivery;
+        }
+
         if (product.ItemDefinition is not { } definition)
         {
             return null;
